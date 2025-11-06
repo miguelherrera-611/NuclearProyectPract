@@ -69,10 +69,16 @@
     </div>
 </div>
 
+<!-- Cargar datos antes del script React -->
+<script>
+    window.vacantesData = {{ vacantes|safe }};
+</script>
+
+{% verbatim %}
 <script type="text/babel">
     const { useState, useEffect } = React;
 
-    const vacantesData = {{ vacantes|safe }};
+    const vacantesData = window.vacantesData;
 
     function VacantesApp() {
         const [vacantes, setVacantes] = useState(vacantesData);
@@ -104,6 +110,9 @@
                         <i className="fas fa-briefcase me-2 text-primary"></i>
                         Gestión de Vacantes
                     </h2>
+                    <a href="/vacantes/crear/" className="btn btn-success">
+                        <i className="fas fa-plus me-2"></i>Nueva Vacante
+                    </a>
                 </div>
 
                 {/* Filtros */}
@@ -221,14 +230,14 @@
     function StatCard({ icon, title, value, color }) {
         return (
             <div className="col-md-6 col-lg-3">
-                <div className={`card border-${color}`}>
+                <div className={'card border-' + color}>
                     <div className="card-body">
                         <div className="d-flex justify-content-between align-items-center">
                             <div>
                                 <p className="text-muted mb-1 small">{title}</p>
-                                <h4 className={`text-${color} mb-0`}>{value}</h4>
+                                <h4 className={'text-' + color + ' mb-0'}>{value}</h4>
                             </div>
-                            <i className={`fas ${icon} fa-2x text-${color} opacity-25`}></i>
+                            <i className={'fas ' + icon + ' fa-2x text-' + color + ' opacity-25'}></i>
                         </div>
                     </div>
                 </div>
@@ -246,6 +255,15 @@
             return badges[estado] || 'secondary';
         };
 
+        const getEstadoTexto = (estado) => {
+            const textos = {
+                'DISPONIBLE': 'Disponible',
+                'OCUPADA': 'Ocupada',
+                'CERRADA': 'Cerrada'
+            };
+            return textos[estado] || estado;
+        };
+
         return (
             <tr>
                 <td><strong>{vacante.titulo}</strong></td>
@@ -258,18 +276,25 @@
                     </span>
                 </td>
                 <td>
-                    <span className={`badge bg-${getEstadoBadge(vacante.estado)}`}>
-                        {vacante.estado}
+                    <span className={'badge bg-' + getEstadoBadge(vacante.estado)}>
+                        {getEstadoTexto(vacante.estado)}
                     </span>
                 </td>
                 <td>
-                    <div className="btn-group btn-group-sm">
-                        <a
-                            href={`/vacantes/${vacante.id}/`}
+                    <div className="btn-group btn-group-sm" role="group">
+
+                            href={'/vacantes/' + vacante.id + '/'}
                             className="btn btn-outline-primary"
                             title="Ver detalles"
                         >
                             <i className="fas fa-eye"></i>
+                        </a>
+
+                            href={'/vacantes/' + vacante.id + '/editar/'}
+                            className="btn btn-outline-warning"
+                            title="Editar vacante"
+                        >
+                            <i className="fas fa-edit"></i>
                         </a>
                     </div>
                 </td>
@@ -280,4 +305,5 @@
     const root = ReactDOM.createRoot(document.getElementById('vacantes-root'));
     root.render(<VacantesApp />);
 </script>
+{% endverbatim %}
 {% endblock %}

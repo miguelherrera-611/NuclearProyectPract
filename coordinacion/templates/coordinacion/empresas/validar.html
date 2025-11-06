@@ -1,0 +1,338 @@
+{% extends 'coordinacion/base.html' %}
+{% load static %}
+
+{% block title %}Validar Empresa{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'coordinacion:dashboard' %}">
+            <i class="fas fa-graduation-cap me-2"></i>Sistema de Prácticas
+        </a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-1"></i>{{ request.user.username }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{% url 'coordinacion:logout' %}">
+                            <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                        </a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 sidebar">
+            <div class="list-group">
+                <a href="{% url 'coordinacion:dashboard' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-home me-2"></i>Dashboard
+                </a>
+                <a href="{% url 'coordinacion:empresas_lista' %}" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-building me-2"></i>Empresas
+                </a>
+                <a href="{% url 'coordinacion:vacantes_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-briefcase me-2"></i>Vacantes
+                </a>
+                <a href="{% url 'coordinacion:estudiantes_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-user-graduate me-2"></i>Estudiantes
+                </a>
+                <a href="{% url 'coordinacion:postulaciones_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-clipboard-list me-2"></i>Postulaciones
+                </a>
+                <a href="{% url 'coordinacion:practicas_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-tasks me-2"></i>Prácticas
+                </a>
+                <a href="{% url 'coordinacion:tutores_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chalkboard-teacher me-2"></i>Tutores
+                </a>
+                <a href="{% url 'coordinacion:sustentaciones_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-graduation-cap me-2"></i>Sustentaciones
+                </a>
+                <a href="{% url 'coordinacion:reportes_dashboard' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chart-line me-2"></i>Reportes
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'coordinacion:dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'coordinacion:empresas_lista' %}">Empresas</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'coordinacion:empresa_detalle' empresa.id %}">{{ empresa.razon_social }}</a></li>
+                    <li class="breadcrumb-item active">Validar</li>
+                </ol>
+            </nav>
+
+            <!-- Header -->
+            <div class="mb-4">
+                <h2>
+                    <i class="fas fa-check-circle me-2 text-primary"></i>
+                    Validación de Empresa
+                </h2>
+                <p class="text-muted">Revisa la información y decide si aprobar o rechazar la empresa</p>
+            </div>
+
+            <div class="row g-4">
+                <!-- Resumen de la Empresa -->
+                <div class="col-lg-8">
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-building me-2"></i>
+                                {{ empresa.razon_social }}
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>NIT:</strong> {{ empresa.nit }}</p>
+                                    <p><strong>Dirección:</strong> {{ empresa.direccion }}</p>
+                                    <p><strong>Ciudad:</strong> {{ empresa.ciudad }}</p>
+                                    <p><strong>Teléfono:</strong> {{ empresa.telefono }}</p>
+                                    <p><strong>Email:</strong> {{ empresa.email }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Representante:</strong> {{ empresa.representante_nombre }}</p>
+                                    <p><strong>Cargo:</strong> {{ empresa.representante_cargo }}</p>
+                                    <p><strong>Email Rep.:</strong> {{ empresa.representante_email }}</p>
+                                    <p><strong>Tel. Rep.:</strong> {{ empresa.representante_telefono }}</p>
+                                    <p><strong>Fecha Registro:</strong> {{ empresa.fecha_registro|date:"d/m/Y H:i" }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Documentos -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="mb-0">
+                                <i class="fas fa-file-alt me-2"></i>Documentos para Revisión
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Importante:</strong> Verifica que los documentos estén legibles y correspondan a la empresa.
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="card h-100">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-file-pdf fa-3x text-danger mb-3"></i>
+                                            <h6>Cámara de Comercio</h6>
+                                            {% if empresa.camara_comercio %}
+                                                <a href="{{ empresa.camara_comercio.url }}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">
+                                                    <i class="fas fa-eye me-1"></i>Ver Documento
+                                                </a>
+                                                <span class="badge bg-success d-block mt-2">Adjuntado</span>
+                                            {% else %}
+                                                <span class="badge bg-danger d-block mt-3">No Adjuntado</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <div class="card h-100">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-file-pdf fa-3x text-danger mb-3"></i>
+                                            <h6>RUT</h6>
+                                            {% if empresa.rut %}
+                                                <a href="{{ empresa.rut.url }}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">
+                                                    <i class="fas fa-eye me-1"></i>Ver Documento
+                                                </a>
+                                                <span class="badge bg-success d-block mt-2">Adjuntado</span>
+                                            {% else %}
+                                                <span class="badge bg-danger d-block mt-3">No Adjuntado</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Formulario de Validación -->
+                    <div class="card">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-clipboard-check me-2"></i>Decisión de Validación
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST" id="validacionForm">
+                                {% csrf_token %}
+
+                                <!-- Radio buttons para decisión -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold">Decisión *</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="accion" id="aprobar" value="aprobar" required>
+                                        <label class="form-check-label" for="aprobar">
+                                            <i class="fas fa-check-circle text-success me-1"></i>
+                                            <strong>Aprobar Empresa</strong>
+                                            <small class="d-block text-muted">La empresa cumple con todos los requisitos</small>
+                                        </label>
+                                    </div>
+                                    <div class="form-check mt-3">
+                                        <input class="form-check-input" type="radio" name="accion" id="rechazar" value="rechazar" required>
+                                        <label class="form-check-label" for="rechazar">
+                                            <i class="fas fa-times-circle text-danger me-1"></i>
+                                            <strong>Rechazar Empresa</strong>
+                                            <small class="d-block text-muted">La empresa no cumple con los requisitos</small>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Observaciones -->
+                                <div class="mb-4">
+                                    <label for="observaciones" class="form-label fw-bold">Observaciones</label>
+                                    <textarea 
+                                        class="form-control" 
+                                        id="observaciones" 
+                                        name="observaciones" 
+                                        rows="4" 
+                                        placeholder="Escribe aquí las razones de tu decisión, recomendaciones o comentarios..."
+                                    ></textarea>
+                                    <small class="text-muted">
+                                        Las observaciones son <strong>obligatorias</strong> si rechazas la empresa
+                                    </small>
+                                </div>
+
+                                <!-- Botones -->
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'coordinacion:empresa_detalle' empresa.id %}" class="btn btn-secondary">
+                                        <i class="fas fa-times me-2"></i>Cancelar
+                                    </a>
+                                    <button type="submit" class="btn btn-primary btn-lg" id="btnSubmit">
+                                        <i class="fas fa-save me-2"></i>Guardar Decisión
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel Lateral - Checklist -->
+                <div class="col-lg-4">
+                    <div class="card sticky-top" style="top: 20px;">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-tasks me-2"></i>Checklist de Validación
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="small text-muted mb-3">Verifica los siguientes puntos antes de aprobar:</p>
+
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="check1">
+                                <label class="form-check-label" for="check1">
+                                    Razón social verificada
+                                </label>
+                            </div>
+
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="check2">
+                                <label class="form-check-label" for="check2">
+                                    NIT válido y verificado
+                                </label>
+                            </div>
+
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="check3">
+                                <label class="form-check-label" for="check3">
+                                    Cámara de Comercio vigente
+                                </label>
+                            </div>
+
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="check4">
+                                <label class="form-check-label" for="check4">
+                                    RUT actualizado
+                                </label>
+                            </div>
+
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="check5">
+                                <label class="form-check-label" for="check5">
+                                    Datos de contacto verificados
+                                </label>
+                            </div>
+
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="check6">
+                                <label class="form-check-label" for="check6">
+                                    Representante legal identificado
+                                </label>
+                            </div>
+
+                            <hr>
+
+                            <div class="alert alert-warning small mb-0">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>Nota:</strong> Esta decisión quedará registrada en el sistema
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script para validación del formulario -->
+<script>
+    document.getElementById('validacionForm').addEventListener('submit', function(e) {
+        const accion = document.querySelector('input[name="accion"]:checked');
+        const observaciones = document.getElementById('observaciones').value.trim();
+
+        if (!accion) {
+            e.preventDefault();
+            alert('Por favor, selecciona una decisión (Aprobar o Rechazar)');
+            return;
+        }
+
+        if (accion.value === 'rechazar' && observaciones === '') {
+            e.preventDefault();
+            alert('Las observaciones son obligatorias al rechazar una empresa');
+            document.getElementById('observaciones').focus();
+            return;
+        }
+
+        // Confirmación
+        const mensaje = accion.value === 'aprobar' 
+            ? '¿Estás seguro de APROBAR esta empresa?' 
+            : '¿Estás seguro de RECHAZAR esta empresa?';
+
+        if (!confirm(mensaje)) {
+            e.preventDefault();
+        }
+    });
+
+    // Cambiar color del botón según la opción seleccionada
+    document.querySelectorAll('input[name="accion"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const btnSubmit = document.getElementById('btnSubmit');
+            if (this.value === 'aprobar') {
+                btnSubmit.className = 'btn btn-success btn-lg';
+                btnSubmit.innerHTML = '<i class="fas fa-check me-2"></i>Aprobar Empresa';
+            } else {
+                btnSubmit.className = 'btn btn-danger btn-lg';
+                btnSubmit.innerHTML = '<i class="fas fa-times me-2"></i>Rechazar Empresa';
+            }
+        });
+    });
+</script>
+{% endblock %}

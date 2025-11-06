@@ -69,15 +69,19 @@
     </div>
 </div>
 
+<!-- IMPORTANTE: Cargar datos antes del script React -->
+<script>
+    window.estadisticasData = {{ estadisticas|safe }};
+    window.empresasTopData = {{ empresas_top|safe }};
+</script>
+
+{% verbatim %}
 <script type="text/babel">
     const { useState } = React;
 
-    const estadisticasData = {{ estadisticas|safe }};
-    const empresasTopData = {{ empresas_top|safe }};
-
     function ReportesApp() {
-        const stats = estadisticasData;
-        const empresasTop = empresasTopData;
+        const stats = window.estadisticasData;
+        const empresasTop = window.empresasTopData;
 
         const calcularPorcentaje = (valor, total) => {
             if (total === 0) return 0;
@@ -101,7 +105,6 @@
                     </div>
                 </div>
 
-                {/* Resumen General */}
                 <div className="card mb-4">
                     <div className="card-header bg-primary text-white">
                         <h5 className="mb-0">
@@ -144,7 +147,6 @@
                 </div>
 
                 <div className="row g-4">
-                    {/* Estado de Prácticas */}
                     <div className="col-md-6">
                         <div className="card h-100">
                             <div className="card-header bg-info text-white">
@@ -170,7 +172,6 @@
                         </div>
                     </div>
 
-                    {/* Estado de Empresas */}
                     <div className="col-md-6">
                         <div className="card h-100">
                             <div className="card-header bg-success text-white">
@@ -197,7 +198,6 @@
                     </div>
                 </div>
 
-                {/* Top Empresas */}
                 <div className="card mt-4">
                     <div className="card-header bg-primary text-white">
                         <h6 className="mb-0">
@@ -243,7 +243,6 @@
                     </div>
                 </div>
 
-                {/* Indicadores Adicionales */}
                 <div className="row g-4 mt-2">
                     <div className="col-md-4">
                         <div className="card text-center">
@@ -306,7 +305,6 @@
 
     function ProgressBar({ label, value, total, color }) {
         const percentage = total === 0 ? 0 : ((value / total) * 100).toFixed(0);
-        const widthStyle = percentage + '%';
 
         return (
             <div className="mb-3">
@@ -317,7 +315,8 @@
                 <div className="progress" style={{height: '20px'}}>
                     <div
                         className={'progress-bar bg-' + color}
-                        style={{width: widthStyle}}
+                        style={{width: percentage + '%'}}
+                        role="progressbar"
                     >
                         {percentage}%
                     </div>
@@ -329,4 +328,5 @@
     const root = ReactDOM.createRoot(document.getElementById('reportes-root'));
     root.render(<ReportesApp />);
 </script>
+{% endverbatim %}
 {% endblock %}

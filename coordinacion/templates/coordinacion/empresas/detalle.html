@@ -1,0 +1,453 @@
+{% extends 'coordinacion/base.html' %}
+{% load static %}
+
+{% block title %}Detalle de Empresa{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'coordinacion:dashboard' %}">
+            <i class="fas fa-graduation-cap me-2"></i>Sistema de Prácticas
+        </a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-1"></i>{{ request.user.username }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{% url 'coordinacion:logout' %}">
+                            <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                        </a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 sidebar">
+            <div class="list-group">
+                <a href="{% url 'coordinacion:dashboard' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-home me-2"></i>Dashboard
+                </a>
+                <a href="{% url 'coordinacion:empresas_lista' %}" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-building me-2"></i>Empresas
+                </a>
+                <a href="{% url 'coordinacion:vacantes_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-briefcase me-2"></i>Vacantes
+                </a>
+                <a href="{% url 'coordinacion:estudiantes_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-user-graduate me-2"></i>Estudiantes
+                </a>
+                <a href="{% url 'coordinacion:postulaciones_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-clipboard-list me-2"></i>Postulaciones
+                </a>
+                <a href="{% url 'coordinacion:practicas_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-tasks me-2"></i>Prácticas
+                </a>
+                <a href="{% url 'coordinacion:tutores_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chalkboard-teacher me-2"></i>Tutores
+                </a>
+                <a href="{% url 'coordinacion:sustentaciones_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-graduation-cap me-2"></i>Sustentaciones
+                </a>
+                <a href="{% url 'coordinacion:reportes_dashboard' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chart-line me-2"></i>Reportes
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'coordinacion:dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'coordinacion:empresas_lista' %}">Empresas</a></li>
+                    <li class="breadcrumb-item active">{{ empresa.razon_social }}</li>
+                </ol>
+            </nav>
+
+            <!-- Header con estado -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2>
+                        <i class="fas fa-building me-2 text-primary"></i>
+                        {{ empresa.razon_social }}
+                    </h2>
+                    <p class="text-muted mb-0">NIT: {{ empresa.nit }}</p>
+                </div>
+                <div>
+                    {% if empresa.estado == 'PENDIENTE' %}
+                        <span class="badge bg-warning fs-5">
+                            <i class="fas fa-clock me-1"></i>Pendiente de Aprobación
+                        </span>
+                    {% elif empresa.estado == 'APROBADA' %}
+                        <span class="badge bg-success fs-5">
+                            <i class="fas fa-check-circle me-1"></i>Aprobada
+                        </span>
+                    {% elif empresa.estado == 'RECHAZADA' %}
+                        <span class="badge bg-danger fs-5">
+                            <i class="fas fa-times-circle me-1"></i>Rechazada
+                        </span>
+                    {% elif empresa.estado == 'INACTIVA' %}
+                        <span class="badge bg-secondary fs-5">
+                            <i class="fas fa-ban me-1"></i>Inactiva
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="mb-4">
+                <a href="{% url 'coordinacion:empresas_lista' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Volver al Listado
+                </a>
+                {% if empresa.estado == 'PENDIENTE' %}
+                    <a href="{% url 'coordinacion:empresa_validar' empresa.id %}" class="btn btn-success">
+                        <i class="fas fa-check me-2"></i>Validar Empresa
+                    </a>
+                {% endif %}
+            </div>
+
+            <div class="row g-4">
+                <!-- Información General -->
+                <div class="col-lg-6">
+                    <div class="card h-100">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-info-circle me-2"></i>Información General
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-borderless">
+                                <tbody>
+                                    <tr>
+                                        <td class="fw-bold" style="width: 40%;">Razón Social:</td>
+                                        <td>{{ empresa.razon_social }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">NIT:</td>
+                                        <td>{{ empresa.nit }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Dirección:</td>
+                                        <td>{{ empresa.direccion }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Ciudad:</td>
+                                        <td>{{ empresa.ciudad }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Teléfono:</td>
+                                        <td>{{ empresa.telefono }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Email:</td>
+                                        <td>{{ empresa.email }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Representante Legal -->
+                <div class="col-lg-6">
+                    <div class="card h-100">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-user-tie me-2"></i>Representante Legal
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-borderless">
+                                <tbody>
+                                    <tr>
+                                        <td class="fw-bold" style="width: 40%;">Nombre:</td>
+                                        <td>{{ empresa.representante_nombre }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Cargo:</td>
+                                        <td>{{ empresa.representante_cargo }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Email:</td>
+                                        <td>{{ empresa.representante_email }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Teléfono:</td>
+                                        <td>{{ empresa.representante_telefono }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Documentos -->
+                <div class="col-lg-6">
+                    <div class="card h-100">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="mb-0">
+                                <i class="fas fa-file-alt me-2"></i>Documentos Adjuntos
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group">
+                                {% if empresa.camara_comercio %}
+                                    <a href="{{ empresa.camara_comercio.url }}" target="_blank" class="list-group-item list-group-item-action">
+                                        <i class="fas fa-file-pdf text-danger me-2"></i>
+                                        <strong>Cámara de Comercio</strong>
+                                        <span class="badge bg-success float-end">Disponible</span>
+                                    </a>
+                                {% else %}
+                                    <div class="list-group-item">
+                                        <i class="fas fa-file-pdf text-muted me-2"></i>
+                                        <strong>Cámara de Comercio</strong>
+                                        <span class="badge bg-secondary float-end">No adjuntado</span>
+                                    </div>
+                                {% endif %}
+
+                                {% if empresa.rut %}
+                                    <a href="{{ empresa.rut.url }}" target="_blank" class="list-group-item list-group-item-action">
+                                        <i class="fas fa-file-pdf text-danger me-2"></i>
+                                        <strong>RUT</strong>
+                                        <span class="badge bg-success float-end">Disponible</span>
+                                    </a>
+                                {% else %}
+                                    <div class="list-group-item">
+                                        <i class="fas fa-file-pdf text-muted me-2"></i>
+                                        <strong>RUT</strong>
+                                        <span class="badge bg-secondary float-end">No adjuntado</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estado y Seguimiento -->
+                <div class="col-lg-6">
+                    <div class="card h-100">
+                        <div class="card-header bg-secondary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-tasks me-2"></i>Estado y Seguimiento
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-borderless">
+                                <tbody>
+                                    <tr>
+                                        <td class="fw-bold" style="width: 40%;">Estado:</td>
+                                        <td>
+                                            {% if empresa.estado == 'PENDIENTE' %}
+                                                <span class="badge bg-warning">Pendiente</span>
+                                            {% elif empresa.estado == 'APROBADA' %}
+                                                <span class="badge bg-success">Aprobada</span>
+                                            {% elif empresa.estado == 'RECHAZADA' %}
+                                                <span class="badge bg-danger">Rechazada</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Inactiva</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Fecha de Registro:</td>
+                                        <td>{{ empresa.fecha_registro|date:"d/m/Y H:i" }}</td>
+                                    </tr>
+                                    {% if empresa.fecha_aprobacion %}
+                                    <tr>
+                                        <td class="fw-bold">Fecha de Aprobación:</td>
+                                        <td>{{ empresa.fecha_aprobacion|date:"d/m/Y H:i" }}</td>
+                                    </tr>
+                                    {% endif %}
+                                    {% if empresa.aprobada_por %}
+                                    <tr>
+                                        <td class="fw-bold">Aprobada por:</td>
+                                        <td>{{ empresa.aprobada_por.nombre_completo }}</td>
+                                    </tr>
+                                    {% endif %}
+                                    {% if empresa.observaciones %}
+                                    <tr>
+                                        <td class="fw-bold">Observaciones:</td>
+                                        <td>{{ empresa.observaciones }}</td>
+                                    </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vacantes Asociadas -->
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-briefcase me-2"></i>Vacantes de Práctica ({{ vacantes.count }})
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if vacantes %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Título</th>
+                                                <th>Área</th>
+                                                <th>Programa</th>
+                                                <th>Cupos</th>
+                                                <th>Estado</th>
+                                                <th>Fecha Creación</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for vacante in vacantes %}
+                                                <tr>
+                                                    <td><strong>{{ vacante.titulo }}</strong></td>
+                                                    <td><small>{{ vacante.area_practica }}</small></td>
+                                                    <td><small>{{ vacante.programa_academico }}</small></td>
+                                                    <td>
+                                                        <span class="badge bg-secondary">
+                                                            {{ vacante.cupos_ocupados }}/{{ vacante.cantidad_cupos }}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        {% if vacante.estado == 'DISPONIBLE' %}
+                                                            <span class="badge bg-success">Disponible</span>
+                                                        {% elif vacante.estado == 'OCUPADA' %}
+                                                            <span class="badge bg-info">Ocupada</span>
+                                                        {% else %}
+                                                            <span class="badge bg-secondary">Cerrada</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td><small>{{ vacante.fecha_creacion|date:"d/m/Y" }}</small></td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">Esta empresa aún no tiene vacantes registradas</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tutores -->
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-users me-2"></i>Tutores Empresariales ({{ tutores.count }})
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if tutores %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Nombre</th>
+                                                <th>Cargo</th>
+                                                <th>Email</th>
+                                                <th>Teléfono</th>
+                                                <th>Estado</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for tutor in tutores %}
+                                                <tr>
+                                                    <td><strong>{{ tutor.nombre_completo }}</strong></td>
+                                                    <td><small>{{ tutor.cargo }}</small></td>
+                                                    <td><small>{{ tutor.email }}</small></td>
+                                                    <td><small>{{ tutor.telefono }}</small></td>
+                                                    <td>
+                                                        {% if tutor.activo %}
+                                                            <span class="badge bg-success">Activo</span>
+                                                        {% else %}
+                                                            <span class="badge bg-secondary">Inactivo</span>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-user-times fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">No hay tutores registrados para esta empresa</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Prácticas Asociadas -->
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="mb-0">
+                                <i class="fas fa-tasks me-2"></i>Prácticas Empresariales ({{ practicas.count }})
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if practicas %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Estudiante</th>
+                                                <th>Código</th>
+                                                <th>Fecha Inicio</th>
+                                                <th>Fecha Fin</th>
+                                                <th>Estado</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for practica in practicas %}
+                                                <tr>
+                                                    <td><strong>{{ practica.estudiante.nombre_completo }}</strong></td>
+                                                    <td><small>{{ practica.estudiante.codigo }}</small></td>
+                                                    <td><small>{{ practica.fecha_inicio|date:"d/m/Y" }}</small></td>
+                                                    <td><small>{{ practica.fecha_fin_estimada|date:"d/m/Y" }}</small></td>
+                                                    <td>
+                                                        {% if practica.estado == 'INICIADA' %}
+                                                            <span class="badge bg-info">Iniciada</span>
+                                                        {% elif practica.estado == 'EN_CURSO' %}
+                                                            <span class="badge bg-warning">En Curso</span>
+                                                        {% elif practica.estado == 'FINALIZADA' %}
+                                                            <span class="badge bg-success">Finalizada</span>
+                                                        {% else %}
+                                                            <span class="badge bg-danger">Cancelada</span>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-clipboard fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">No hay prácticas registradas para esta empresa</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

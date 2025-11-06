@@ -11,6 +11,7 @@ from .models import (
     Sustentacion, Evaluacion, SeguimientoSemanal
 )
 from . import serializers
+from .forms import CoordinadorLoginForm, VacanteForm
 
 
 # ============================================
@@ -115,7 +116,7 @@ def empresas_lista(request):
 
 @login_required
 def empresa_detalle(request, empresa_id):
-    """Ver detalles de una empresa"""
+    """Ver detalles completos de una empresa"""
     empresa = get_object_or_404(Empresa, id=empresa_id)
 
     context = {
@@ -133,28 +134,47 @@ def empresa_validar(request, empresa_id):
     """Validar/Aprobar o Rechazar una empresa"""
     empresa = get_object_or_404(Empresa, id=empresa_id)
 
+    # Verificar que la empresa esté en estado PENDIENTE
+    if empresa.estado != 'PENDIENTE':
+        messages.warning(request, f'Esta empresa ya fue {empresa.estado.lower()}')
+        return redirect('coordinacion:empresa_detalle', empresa_id=empresa.id)
+
     if request.method == 'POST':
         accion = request.POST.get('accion')
-        observaciones = request.POST.get('observaciones', '')
+        observaciones = request.POST.get('observaciones', '').strip()
 
+        # Obtener el coordinador actual
         coordinador = request.user.coordinador
 
         if accion == 'aprobar':
             empresa.estado = 'APROBADA'
             empresa.fecha_aprobacion = timezone.now()
             empresa.aprobada_por = coordinador
-            empresa.observaciones = observaciones
+            empresa.observaciones = observaciones if observaciones else 'Empresa aprobada correctamente'
             empresa.save()
-            messages.success(request, f'Empresa {empresa.razon_social} aprobada correctamente')
+
+            messages.success(
+                request,
+                f'✅ Empresa "{empresa.razon_social}" aprobada correctamente. Ahora puede crear vacantes de práctica.'
+            )
 
         elif accion == 'rechazar':
+            if not observaciones:
+                messages.error(request, 'Debes proporcionar observaciones al rechazar una empresa')
+                return render(request, 'coordinacion/empresas/validar.html', {'empresa': empresa})
+
             empresa.estado = 'RECHAZADA'
             empresa.observaciones = observaciones
             empresa.save()
-            messages.warning(request, f'Empresa {empresa.razon_social} rechazada')
+
+            messages.warning(
+                request,
+                f'❌ Empresa "{empresa.razon_social}" rechazada. Motivo: {observaciones[:50]}...'
+            )
 
         return redirect('coordinacion:empresa_detalle', empresa_id=empresa.id)
 
+    # GET request - mostrar formulario
     return render(request, 'coordinacion/empresas/validar.html', {'empresa': empresa})
 
 
@@ -173,9 +193,35 @@ def vacantes_lista(request):
         vacantes = vacantes.filter(estado=estado_filtro)
 
     # Serializar vacantes para React
-    vacantes_json = serializers.to_json([
-        serializers.serialize_vacante(vacante) for vacante in vacantes
-    ])
+    vacantes_serializadas = []
+    for vacante in vacantes:
+        vacantes_serializadas.append({
+            'id': vacante.id,
+            'titulo': vacante.titulo,
+            'area_practica': vacante.area_practica,
+            'descripcion': vacante.descripcion,
+            'cantidad_cupos': vacante.cantidad_cupos,
+            'cupos_ocupados': vacante.cupos_ocupados,
+            'cupos_disponibles': vacante.cupos_disponibles,
+            'programa_academico': vacante.programa_academico,
+            'semestre_minimo': vacante.semestre_minimo,
+            'horario': vacante.horario,
+            'duracion_meses': vacante.duracion_meses,
+            'estado': vacante.estado,
+            'fecha_creacion': vacante.fecha_creacion.isoformat() if vacante.fecha_creacion else None,
+            'fecha_publicacion': vacante.fecha_publicacion.isoformat() if vacante.fecha_publicacion else None,
+            'empresa': {
+                'id': vacante.empresa.id,
+                'razon_social': vacante.empresa.razon_social,
+                'nit': vacante.empresa.nit,
+            },
+            'creada_por': vacante.creada_por.nombre_completo if vacante.creada_por else None,
+        })
+
+    # Convertir a JSON de forma segura
+    import json
+    from django.core.serializers.json import DjangoJSONEncoder
+    vacantes_json = json.dumps(vacantes_serializadas, cls=DjangoJSONEncoder)
 
     context = {
         'vacantes': vacantes_json,
@@ -188,19 +234,86 @@ def vacantes_lista(request):
 @login_required
 def vacante_crear(request):
     """Crear una nueva vacante oficial"""
-    empresas_aprobadas = Empresa.objects.filter(estado='APROBADA')
 
     if request.method == 'POST':
-        # Aquí procesarías el formulario
-        # Por ahora solo un placeholder
-        messages.success(request, 'Vacante creada exitosamente')
-        return redirect('coordinacion:vacantes_lista')
+        form = VacanteForm(request.POST)
+        if form.is_valid():
+            vacante = form.save(commit=False)
+            vacante.creada_por = request.user.coordinador
+            vacante.fecha_publicacion = timezone.now()
+            vacante.cupos_ocupados = 0
+            vacante.save()
+
+            messages.success(
+                request,
+                f'✅ Vacante "{vacante.titulo}" creada exitosamente para {vacante.empresa.razon_social}'
+            )
+            return redirect('coordinacion:vacante_detalle', vacante_id=vacante.id)
+        else:
+            messages.error(request, '❌ Por favor, corrige los errores en el formulario')
+    else:
+        form = VacanteForm()
+
+    # Verificar si hay empresas aprobadas
+    empresas_aprobadas = Empresa.objects.filter(estado='APROBADA')
+
+    if not empresas_aprobadas.exists():
+        messages.warning(
+            request,
+            'No hay empresas aprobadas. Debes aprobar al menos una empresa antes de crear vacantes.'
+        )
 
     context = {
-        'empresas': empresas_aprobadas,
+        'form': form,
+        'empresas_aprobadas': empresas_aprobadas,
     }
 
     return render(request, 'coordinacion/vacantes/crear.html', context)
+
+
+@login_required
+def vacante_editar(request, vacante_id):
+    """Editar una vacante existente"""
+    vacante = get_object_or_404(Vacante, id=vacante_id)
+
+    # Contar postulaciones activas
+    postulaciones_count = vacante.postulaciones.exclude(estado='RECHAZADO').count()
+
+    if request.method == 'POST':
+        form = VacanteForm(request.POST, instance=vacante)
+        if form.is_valid():
+            # Validar que no se reduzcan cupos por debajo de los ocupados
+            nueva_cantidad = form.cleaned_data.get('cantidad_cupos')
+            if nueva_cantidad < vacante.cupos_ocupados:
+                messages.error(
+                    request,
+                    f'❌ No puedes reducir los cupos por debajo de {vacante.cupos_ocupados} (cupos ya ocupados)'
+                )
+                return render(request, 'coordinacion/vacantes/editar.html', {
+                    'form': form,
+                    'vacante': vacante,
+                    'postulaciones_count': postulaciones_count,
+                })
+
+            vacante = form.save()
+
+            messages.success(
+                request,
+                f'✅ Vacante "{vacante.titulo}" actualizada exitosamente'
+            )
+            return redirect('coordinacion:vacante_detalle', vacante_id=vacante.id)
+        else:
+            messages.error(request, '❌ Por favor, corrige los errores en el formulario')
+    else:
+        form = VacanteForm(instance=vacante)
+
+    context = {
+        'form': form,
+        'vacante': vacante,
+        'postulaciones_count': postulaciones_count,
+    }
+
+    return render(request, 'coordinacion/vacantes/editar.html', context)
 
 
 @login_required
@@ -210,7 +323,7 @@ def vacante_detalle(request, vacante_id):
 
     context = {
         'vacante': vacante,
-        'postulaciones': vacante.postulaciones.all(),
+        'postulaciones': vacante.postulaciones.select_related('estudiante').all(),
     }
 
     return render(request, 'coordinacion/vacantes/detalle.html', context)

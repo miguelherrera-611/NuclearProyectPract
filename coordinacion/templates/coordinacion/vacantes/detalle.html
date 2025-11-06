@@ -1,0 +1,296 @@
+{% extends 'coordinacion/base.html' %}
+{% load static %}
+
+{% block title %}Detalle de Vacante{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'coordinacion:dashboard' %}">
+            <i class="fas fa-graduation-cap me-2"></i>Sistema de Prácticas
+        </a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-1"></i>{{ request.user.username }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{% url 'coordinacion:logout' %}">
+                            <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                        </a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 sidebar">
+            <div class="list-group">
+                <a href="{% url 'coordinacion:dashboard' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-home me-2"></i>Dashboard
+                </a>
+                <a href="{% url 'coordinacion:empresas_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-building me-2"></i>Empresas
+                </a>
+                <a href="{% url 'coordinacion:vacantes_lista' %}" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-briefcase me-2"></i>Vacantes
+                </a>
+                <a href="{% url 'coordinacion:estudiantes_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-user-graduate me-2"></i>Estudiantes
+                </a>
+                <a href="{% url 'coordinacion:postulaciones_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-clipboard-list me-2"></i>Postulaciones
+                </a>
+                <a href="{% url 'coordinacion:practicas_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-tasks me-2"></i>Prácticas
+                </a>
+                <a href="{% url 'coordinacion:tutores_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chalkboard-teacher me-2"></i>Tutores
+                </a>
+                <a href="{% url 'coordinacion:sustentaciones_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-graduation-cap me-2"></i>Sustentaciones
+                </a>
+                <a href="{% url 'coordinacion:reportes_dashboard' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chart-line me-2"></i>Reportes
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'coordinacion:dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'coordinacion:vacantes_lista' %}">Vacantes</a></li>
+                    <li class="breadcrumb-item active">{{ vacante.titulo }}</li>
+                </ol>
+            </nav>
+
+            <!-- Header con estado -->
+            <div class="d-flex justify-content-between align-items-start mb-4">
+                <div>
+                    <h2>
+                        <i class="fas fa-briefcase me-2 text-primary"></i>
+                        {{ vacante.titulo }}
+                    </h2>
+                    <p class="text-muted mb-0">
+                        <i class="fas fa-building me-2"></i>
+                        <a href="{% url 'coordinacion:empresa_detalle' vacante.empresa.id %}">{{ vacante.empresa.razon_social }}</a>
+                    </p>
+                </div>
+                <div class="text-end">
+                    {% if vacante.estado == 'DISPONIBLE' %}
+                        <span class="badge bg-success fs-5">
+                            <i class="fas fa-check-circle me-1"></i>Disponible
+                        </span>
+                    {% elif vacante.estado == 'OCUPADA' %}
+                        <span class="badge bg-info fs-5">
+                            <i class="fas fa-users me-1"></i>Ocupada
+                        </span>
+                    {% else %}
+                        <span class="badge bg-secondary fs-5">
+                            <i class="fas fa-ban me-1"></i>Cerrada
+                        </span>
+                    {% endif %}
+                    <div class="mt-2">
+                        <small class="text-muted">
+                            Cupos: {{ vacante.cupos_ocupados }}/{{ vacante.cantidad_cupos }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="mb-4">
+                <a href="{% url 'coordinacion:vacantes_lista' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Volver al Listado
+                </a>
+            </div>
+
+            <div class="row g-4">
+                <!-- Información General -->
+                <div class="col-lg-8">
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-info-circle me-2"></i>Información de la Vacante
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-4">
+                                <h6 class="fw-bold text-primary">Descripción</h6>
+                                <p class="text-justify">{{ vacante.descripcion }}</p>
+                            </div>
+
+                            <hr>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <h6 class="fw-bold text-primary">Área de Práctica</h6>
+                                    <p><i class="fas fa-tag me-2"></i>{{ vacante.area_practica }}</p>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <h6 class="fw-bold text-primary">Programa Académico</h6>
+                                    <p><i class="fas fa-graduation-cap me-2"></i>{{ vacante.programa_academico }}</p>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <h6 class="fw-bold text-primary">Horario</h6>
+                                    <p><i class="fas fa-clock me-2"></i>{{ vacante.horario }}</p>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <h6 class="fw-bold text-primary">Duración</h6>
+                                    <p><i class="fas fa-calendar me-2"></i>{{ vacante.duracion_meses }} meses</p>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <h6 class="fw-bold text-primary">Semestre Mínimo</h6>
+                                    <p><i class="fas fa-layer-group me-2"></i>{{ vacante.semestre_minimo }}° semestre</p>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <h6 class="fw-bold text-primary">Cupos</h6>
+                                    <p>
+                                        <span class="badge bg-primary">Total: {{ vacante.cantidad_cupos }}</span>
+                                        <span class="badge bg-success">Ocupados: {{ vacante.cupos_ocupados }}</span>
+                                        <span class="badge bg-warning">Disponibles: {{ vacante.cupos_disponibles }}</span>
+                                    </p>
+                                </div>
+
+                                {% if vacante.habilidades_requeridas %}
+                                <div class="col-12 mb-3">
+                                    <h6 class="fw-bold text-primary">Habilidades Requeridas</h6>
+                                    <p class="text-justify">{{ vacante.habilidades_requeridas }}</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Postulaciones -->
+                    <div class="card">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-users me-2"></i>Postulaciones ({{ postulaciones.count }})
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if postulaciones %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Estudiante</th>
+                                                <th>Código</th>
+                                                <th>Programa</th>
+                                                <th>Fecha Postulación</th>
+                                                <th>Estado</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for postulacion in postulaciones %}
+                                                <tr>
+                                                    <td><strong>{{ postulacion.estudiante.nombre_completo }}</strong></td>
+                                                    <td>{{ postulacion.estudiante.codigo }}</td>
+                                                    <td><small>{{ postulacion.estudiante.programa_academico }}</small></td>
+                                                    <td><small>{{ postulacion.fecha_postulacion|date:"d/m/Y" }}</small></td>
+                                                    <td>
+                                                        {% if postulacion.estado == 'POSTULADO' %}
+                                                            <span class="badge bg-warning">Postulado</span>
+                                                        {% elif postulacion.estado == 'SELECCIONADO' %}
+                                                            <span class="badge bg-success">Seleccionado</span>
+                                                        {% elif postulacion.estado == 'RECHAZADO' %}
+                                                            <span class="badge bg-danger">Rechazado</span>
+                                                        {% else %}
+                                                            <span class="badge bg-info">Vinculado</span>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">No hay postulaciones para esta vacante</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel Lateral -->
+                <div class="col-lg-4">
+                    <!-- Información de la Empresa -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-success text-white">
+                            <h6 class="mb-0">
+                                <i class="fas fa-building me-2"></i>Empresa
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <h5>{{ vacante.empresa.razon_social }}</h5>
+                            <p class="small mb-2">
+                                <i class="fas fa-id-card me-2"></i><strong>NIT:</strong> {{ vacante.empresa.nit }}
+                            </p>
+                            <p class="small mb-2">
+                                <i class="fas fa-map-marker-alt me-2"></i><strong>Ciudad:</strong> {{ vacante.empresa.ciudad }}
+                            </p>
+                            <p class="small mb-2">
+                                <i class="fas fa-phone me-2"></i><strong>Tel:</strong> {{ vacante.empresa.telefono }}
+                            </p>
+                            <p class="small mb-3">
+                                <i class="fas fa-envelope me-2"></i><strong>Email:</strong> {{ vacante.empresa.email }}
+                            </p>
+                            <a href="{% url 'coordinacion:empresa_detalle' vacante.empresa.id %}" class="btn btn-sm btn-outline-success w-100">
+                                Ver Empresa Completa
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Metadatos -->
+                    <div class="card">
+                        <div class="card-header bg-secondary text-white">
+                            <h6 class="mb-0">
+                                <i class="fas fa-info me-2"></i>Información Adicional
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <p class="small mb-2">
+                                <strong>Creada por:</strong><br>
+                                {{ vacante.creada_por.nombre_completo }}
+                            </p>
+                            <p class="small mb-2">
+                                <strong>Fecha de creación:</strong><br>
+                                {{ vacante.fecha_creacion|date:"d/m/Y H:i" }}
+                            </p>
+                            {% if vacante.fecha_publicacion %}
+                            <p class="small mb-2">
+                                <strong>Fecha de publicación:</strong><br>
+                                {{ vacante.fecha_publicacion|date:"d/m/Y H:i" }}
+                            </p>
+                            {% endif %}
+                            {% if vacante.fecha_cierre %}
+                            <p class="small mb-0">
+                                <strong>Fecha de cierre:</strong><br>
+                                {{ vacante.fecha_cierre|date:"d/m/Y H:i" }}
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

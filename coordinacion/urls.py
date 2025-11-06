@@ -29,6 +29,7 @@ urlpatterns = [
     path('vacantes/', views.vacantes_lista, name='vacantes_lista'),
     path('vacantes/crear/', views.vacante_crear, name='vacante_crear'),
     path('vacantes/<int:vacante_id>/', views.vacante_detalle, name='vacante_detalle'),
+    path('vacantes/<int:vacante_id>/editar/', views.vacante_editar, name='vacante_editar'),
 
     # ============================================
     # GESTIÓN DE ESTUDIANTES Y POSTULACIONES (RF-03)
