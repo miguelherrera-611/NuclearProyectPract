@@ -1,0 +1,332 @@
+{% extends 'coordinacion/base.html' %}
+{% load static %}
+
+{% block title %}Reportes e Indicadores{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'coordinacion:dashboard' %}">
+            <i class="fas fa-graduation-cap me-2"></i>Sistema de Prácticas
+        </a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-1"></i>{{ request.user.username }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{% url 'coordinacion:logout' %}">
+                            <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                        </a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 sidebar">
+            <div class="list-group">
+                <a href="{% url 'coordinacion:dashboard' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-home me-2"></i>Dashboard
+                </a>
+                <a href="{% url 'coordinacion:empresas_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-building me-2"></i>Empresas
+                </a>
+                <a href="{% url 'coordinacion:vacantes_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-briefcase me-2"></i>Vacantes
+                </a>
+                <a href="{% url 'coordinacion:estudiantes_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-user-graduate me-2"></i>Estudiantes
+                </a>
+                <a href="{% url 'coordinacion:postulaciones_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-clipboard-list me-2"></i>Postulaciones
+                </a>
+                <a href="{% url 'coordinacion:practicas_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-tasks me-2"></i>Prácticas
+                </a>
+                <a href="{% url 'coordinacion:tutores_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chalkboard-teacher me-2"></i>Tutores
+                </a>
+                <a href="{% url 'coordinacion:sustentaciones_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-graduation-cap me-2"></i>Sustentaciones
+                </a>
+                <a href="{% url 'coordinacion:reportes_dashboard' %}" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-chart-line me-2"></i>Reportes
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10">
+            <div id="reportes-root"></div>
+        </div>
+    </div>
+</div>
+
+<script type="text/babel">
+    const { useState } = React;
+
+    const estadisticasData = {{ estadisticas|safe }};
+    const empresasTopData = {{ empresas_top|safe }};
+
+    function ReportesApp() {
+        const stats = estadisticasData;
+        const empresasTop = empresasTopData;
+
+        const calcularPorcentaje = (valor, total) => {
+            if (total === 0) return 0;
+            return ((valor / total) * 100).toFixed(0);
+        };
+
+        return (
+            <div>
+                <div className="d-flex justify-content-between align-items-center mb-4">
+                    <h2>
+                        <i className="fas fa-chart-line me-2 text-primary"></i>
+                        Reportes e Indicadores
+                    </h2>
+                    <div className="btn-group">
+                        <button className="btn btn-outline-primary">
+                            <i className="fas fa-file-pdf me-2"></i>Exportar PDF
+                        </button>
+                        <button className="btn btn-outline-success">
+                            <i className="fas fa-file-excel me-2"></i>Exportar Excel
+                        </button>
+                    </div>
+                </div>
+
+                {/* Resumen General */}
+                <div className="card mb-4">
+                    <div className="card-header bg-primary text-white">
+                        <h5 className="mb-0">
+                            <i className="fas fa-chart-pie me-2"></i>
+                            Resumen General del Sistema
+                        </h5>
+                    </div>
+                    <div className="card-body">
+                        <div className="row g-4">
+                            <MetricCard
+                                icon="fa-building"
+                                title="Total Empresas"
+                                value={stats.total_empresas}
+                                subtitle={stats.empresas_activas + ' activas'}
+                                color="primary"
+                            />
+                            <MetricCard
+                                icon="fa-briefcase"
+                                title="Vacantes"
+                                value={stats.total_vacantes}
+                                subtitle={stats.vacantes_disponibles + ' disponibles'}
+                                color="success"
+                            />
+                            <MetricCard
+                                icon="fa-user-graduate"
+                                title="Estudiantes"
+                                value={stats.total_estudiantes}
+                                subtitle={stats.estudiantes_activos + ' activos'}
+                                color="info"
+                            />
+                            <MetricCard
+                                icon="fa-tasks"
+                                title="Prácticas"
+                                value={stats.practicas_finalizadas + stats.practicas_en_curso}
+                                subtitle={stats.practicas_en_curso + ' en curso'}
+                                color="warning"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="row g-4">
+                    {/* Estado de Prácticas */}
+                    <div className="col-md-6">
+                        <div className="card h-100">
+                            <div className="card-header bg-info text-white">
+                                <h6 className="mb-0">
+                                    <i className="fas fa-chart-bar me-2"></i>
+                                    Estado de Prácticas
+                                </h6>
+                            </div>
+                            <div className="card-body">
+                                <ProgressBar
+                                    label="En Curso"
+                                    value={stats.practicas_en_curso}
+                                    total={stats.practicas_en_curso + stats.practicas_finalizadas}
+                                    color="warning"
+                                />
+                                <ProgressBar
+                                    label="Finalizadas"
+                                    value={stats.practicas_finalizadas}
+                                    total={stats.practicas_en_curso + stats.practicas_finalizadas}
+                                    color="success"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Estado de Empresas */}
+                    <div className="col-md-6">
+                        <div className="card h-100">
+                            <div className="card-header bg-success text-white">
+                                <h6 className="mb-0">
+                                    <i className="fas fa-building me-2"></i>
+                                    Estado de Empresas
+                                </h6>
+                            </div>
+                            <div className="card-body">
+                                <ProgressBar
+                                    label="Aprobadas"
+                                    value={stats.empresas_activas}
+                                    total={stats.total_empresas}
+                                    color="success"
+                                />
+                                <ProgressBar
+                                    label="Total Registradas"
+                                    value={stats.total_empresas}
+                                    total={stats.total_empresas}
+                                    color="primary"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Top Empresas */}
+                <div className="card mt-4">
+                    <div className="card-header bg-primary text-white">
+                        <h6 className="mb-0">
+                            <i className="fas fa-trophy me-2"></i>
+                            Top 5 Empresas con Más Prácticas
+                        </h6>
+                    </div>
+                    <div className="card-body">
+                        {empresasTop.length === 0 ? (
+                            <p className="text-muted text-center">No hay datos disponibles</p>
+                        ) : (
+                            <div className="table-responsive">
+                                <table className="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Empresa</th>
+                                            <th>NIT</th>
+                                            <th>Ciudad</th>
+                                            <th className="text-center">Prácticas</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {empresasTop.map((empresa, index) => (
+                                            <tr key={empresa.id}>
+                                                <td>
+                                                    <span className="badge bg-primary">{index + 1}</span>
+                                                </td>
+                                                <td><strong>{empresa.razon_social}</strong></td>
+                                                <td>{empresa.nit}</td>
+                                                <td>{empresa.ciudad}</td>
+                                                <td className="text-center">
+                                                    <span className="badge bg-success">
+                                                        {empresa.num_practicas}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Indicadores Adicionales */}
+                <div className="row g-4 mt-2">
+                    <div className="col-md-4">
+                        <div className="card text-center">
+                            <div className="card-body">
+                                <i className="fas fa-percentage fa-3x text-success mb-3"></i>
+                                <h3 className="text-success">
+                                    {calcularPorcentaje(stats.practicas_finalizadas, stats.practicas_finalizadas + stats.practicas_en_curso)}%
+                                </h3>
+                                <p className="text-muted mb-0">Tasa de Finalización</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="col-md-4">
+                        <div className="card text-center">
+                            <div className="card-body">
+                                <i className="fas fa-chart-line fa-3x text-info mb-3"></i>
+                                <h3 className="text-info">
+                                    {stats.vacantes_disponibles}
+                                </h3>
+                                <p className="text-muted mb-0">Vacantes Disponibles</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="col-md-4">
+                        <div className="card text-center">
+                            <div className="card-body">
+                                <i className="fas fa-users fa-3x text-warning mb-3"></i>
+                                <h3 className="text-warning">
+                                    {stats.estudiantes_activos}
+                                </h3>
+                                <p className="text-muted mb-0">Estudiantes Activos</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    function MetricCard({ icon, title, value, subtitle, color }) {
+        return (
+            <div className="col-md-6 col-lg-3">
+                <div className={'card border-' + color + ' h-100'}>
+                    <div className="card-body">
+                        <div className="d-flex justify-content-between align-items-start">
+                            <div>
+                                <p className="text-muted mb-1 small">{title}</p>
+                                <h2 className={'text-' + color + ' mb-1'}>{value}</h2>
+                                <small className="text-muted">{subtitle}</small>
+                            </div>
+                            <div>
+                                <i className={'fas ' + icon + ' fa-2x text-' + color + ' opacity-50'}></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    function ProgressBar({ label, value, total, color }) {
+        const percentage = total === 0 ? 0 : ((value / total) * 100).toFixed(0);
+        const widthStyle = percentage + '%';
+
+        return (
+            <div className="mb-3">
+                <div className="d-flex justify-content-between mb-1">
+                    <span>{label}</span>
+                    <strong>{value}</strong>
+                </div>
+                <div className="progress" style={{height: '20px'}}>
+                    <div
+                        className={'progress-bar bg-' + color}
+                        style={{width: widthStyle}}
+                    >
+                        {percentage}%
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('reportes-root'));
+    root.render(<ReportesApp />);
+</script>
+{% endblock %}

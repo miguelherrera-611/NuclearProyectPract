@@ -1,0 +1,317 @@
+{% extends 'coordinacion/base.html' %}
+{% load static %}
+
+{% block title %}Gestión de Estudiantes{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'coordinacion:dashboard' %}">
+            <i class="fas fa-graduation-cap me-2"></i>Sistema de Prácticas
+        </a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-1"></i>{{ request.user.username }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{% url 'coordinacion:logout' %}">
+                            <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                        </a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 sidebar">
+            <div class="list-group">
+                <a href="{% url 'coordinacion:dashboard' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-home me-2"></i>Dashboard
+                </a>
+                <a href="{% url 'coordinacion:empresas_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-building me-2"></i>Empresas
+                </a>
+                <a href="{% url 'coordinacion:vacantes_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-briefcase me-2"></i>Vacantes
+                </a>
+                <a href="{% url 'coordinacion:estudiantes_lista' %}" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-user-graduate me-2"></i>Estudiantes
+                </a>
+                <a href="{% url 'coordinacion:postulaciones_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-clipboard-list me-2"></i>Postulaciones
+                </a>
+                <a href="{% url 'coordinacion:practicas_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-tasks me-2"></i>Prácticas
+                </a>
+                <a href="{% url 'coordinacion:tutores_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chalkboard-teacher me-2"></i>Tutores
+                </a>
+                <a href="{% url 'coordinacion:sustentaciones_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-graduation-cap me-2"></i>Sustentaciones
+                </a>
+                <a href="{% url 'coordinacion:reportes_dashboard' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chart-line me-2"></i>Reportes
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10">
+            <div id="estudiantes-root"></div>
+        </div>
+    </div>
+</div>
+
+<script type="text/babel">
+    const { useState, useEffect } = React;
+
+    const estudiantesData = {{ estudiantes|safe }};
+
+    function EstudiantesApp() {
+        const [estudiantes, setEstudiantes] = useState(estudiantesData);
+        const [filtroEstado, setFiltroEstado] = useState('');
+        const [filtroPrograma, setFiltroPrograma] = useState('');
+        const [busqueda, setBusqueda] = useState('');
+        const [estudiantesFiltrados, setEstudiantesFiltrados] = useState(estudiantesData);
+
+        // Obtener programas únicos
+        const programas = [...new Set(estudiantes.map(e => e.programa_academico))];
+
+        useEffect(() => {
+            let resultado = estudiantes;
+
+            if (filtroEstado) {
+                resultado = resultado.filter(e => e.estado === filtroEstado);
+            }
+
+            if (filtroPrograma) {
+                resultado = resultado.filter(e => e.programa_academico === filtroPrograma);
+            }
+
+            if (busqueda) {
+                resultado = resultado.filter(e =>
+                    e.nombre_completo.toLowerCase().includes(busqueda.toLowerCase()) ||
+                    e.codigo.includes(busqueda)
+                );
+            }
+
+            setEstudiantesFiltrados(resultado);
+        }, [filtroEstado, filtroPrograma, busqueda, estudiantes]);
+
+        return (
+            <div>
+                <div className="d-flex justify-content-between align-items-center mb-4">
+                    <h2>
+                        <i className="fas fa-user-graduate me-2 text-primary"></i>
+                        Gestión de Estudiantes
+                    </h2>
+                </div>
+
+                {/* Filtros */}
+                <div className="card mb-4">
+                    <div className="card-body">
+                        <div className="row g-3">
+                            <div className="col-md-4">
+                                <label className="form-label">Buscar</label>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    placeholder="Nombre o código..."
+                                    value={busqueda}
+                                    onChange={(e) => setBusqueda(e.target.value)}
+                                />
+                            </div>
+                            <div className="col-md-3">
+                                <label className="form-label">Estado</label>
+                                <select
+                                    className="form-select"
+                                    value={filtroEstado}
+                                    onChange={(e) => setFiltroEstado(e.target.value)}
+                                >
+                                    <option value="">Todos</option>
+                                    <option value="APTO">Apto</option>
+                                    <option value="EN_PRACTICA">En Práctica</option>
+                                    <option value="FINALIZADO">Finalizado</option>
+                                    <option value="NO_APTO">No Apto</option>
+                                </select>
+                            </div>
+                            <div className="col-md-3">
+                                <label className="form-label">Programa</label>
+                                <select
+                                    className="form-select"
+                                    value={filtroPrograma}
+                                    onChange={(e) => setFiltroPrograma(e.target.value)}
+                                >
+                                    <option value="">Todos</option>
+                                    {programas.map(prog => (
+                                        <option key={prog} value={prog}>{prog}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="col-md-2 d-flex align-items-end">
+                                <button
+                                    className="btn btn-secondary w-100"
+                                    onClick={() => {
+                                        setFiltroEstado('');
+                                        setFiltroPrograma('');
+                                        setBusqueda('');
+                                    }}
+                                >
+                                    <i className="fas fa-redo me-2"></i>Limpiar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Estadísticas */}
+                <div className="row g-3 mb-4">
+                    <StatCard
+                        icon="fa-users"
+                        title="Total Estudiantes"
+                        value={estudiantes.length}
+                        color="primary"
+                    />
+                    <StatCard
+                        icon="fa-check-circle"
+                        title="Aptos"
+                        value={estudiantes.filter(e => e.estado === 'APTO').length}
+                        color="success"
+                    />
+                    <StatCard
+                        icon="fa-briefcase"
+                        title="En Práctica"
+                        value={estudiantes.filter(e => e.estado === 'EN_PRACTICA').length}
+                        color="info"
+                    />
+                    <StatCard
+                        icon="fa-graduation-cap"
+                        title="Finalizados"
+                        value={estudiantes.filter(e => e.estado === 'FINALIZADO').length}
+                        color="secondary"
+                    />
+                </div>
+
+                {/* Lista de estudiantes */}
+                <div className="card">
+                    <div className="card-header bg-primary text-white">
+                        <h5 className="mb-0">
+                            <i className="fas fa-list me-2"></i>
+                            Listado de Estudiantes ({estudiantesFiltrados.length})
+                        </h5>
+                    </div>
+                    <div className="card-body">
+                        {estudiantesFiltrados.length === 0 ? (
+                            <div className="text-center py-5">
+                                <i className="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                <p className="text-muted">No se encontraron estudiantes</p>
+                            </div>
+                        ) : (
+                            <div className="table-responsive">
+                                <table className="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Código</th>
+                                            <th>Nombre Completo</th>
+                                            <th>Programa</th>
+                                            <th>Semestre</th>
+                                            <th>Promedio</th>
+                                            <th>Estado</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {estudiantesFiltrados.map(estudiante => (
+                                            <EstudianteRow key={estudiante.id} estudiante={estudiante} />
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    function StatCard({ icon, title, value, color }) {
+        return (
+            <div className="col-md-6 col-lg-3">
+                <div className={`card border-${color}`}>
+                    <div className="card-body">
+                        <div className="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p className="text-muted mb-1 small">{title}</p>
+                                <h4 className={`text-${color} mb-0`}>{value}</h4>
+                            </div>
+                            <i className={`fas ${icon} fa-2x text-${color} opacity-25`}></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    function EstudianteRow({ estudiante }) {
+        const getEstadoBadge = (estado) => {
+            const badges = {
+                'APTO': 'success',
+                'EN_PRACTICA': 'info',
+                'FINALIZADO': 'secondary',
+                'NO_APTO': 'danger'
+            };
+            return badges[estado] || 'secondary';
+        };
+
+        const getEstadoTexto = (estado) => {
+            const textos = {
+                'APTO': 'Apto',
+                'EN_PRACTICA': 'En Práctica',
+                'FINALIZADO': 'Finalizado',
+                'NO_APTO': 'No Apto'
+            };
+            return textos[estado] || estado;
+        };
+
+        return (
+            <tr>
+                <td><strong>{estudiante.codigo}</strong></td>
+                <td>{estudiante.nombre_completo}</td>
+                <td><small>{estudiante.programa_academico}</small></td>
+                <td className="text-center">{estudiante.semestre}</td>
+                <td className="text-center">
+                    {estudiante.promedio_academico ?
+                        <span className="badge bg-primary">{estudiante.promedio_academico}</span>
+                        : '-'
+                    }
+                </td>
+                <td>
+                    <span className={`badge bg-${getEstadoBadge(estudiante.estado)}`}>
+                        {getEstadoTexto(estudiante.estado)}
+                    </span>
+                </td>
+                <td>
+                    <div className="btn-group btn-group-sm">
+                        <button
+                            className="btn btn-outline-primary"
+                            title="Ver detalles"
+                        >
+                            <i className="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('estudiantes-root'));
+    root.render(<EstudiantesApp />);
+</script>
+{% endblock %}

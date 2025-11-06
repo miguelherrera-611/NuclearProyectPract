@@ -1,0 +1,299 @@
+{% extends 'coordinacion/base.html' %}
+{% load static %}
+
+{% block title %}Gestión de Empresas{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'coordinacion:dashboard' %}">
+            <i class="fas fa-graduation-cap me-2"></i>Sistema de Prácticas
+        </a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-1"></i>{{ request.user.username }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{% url 'coordinacion:logout' %}">
+                            <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                        </a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 sidebar">
+            <div class="list-group">
+                <a href="{% url 'coordinacion:dashboard' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-home me-2"></i>Dashboard
+                </a>
+                <a href="{% url 'coordinacion:empresas_lista' %}" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-building me-2"></i>Empresas
+                </a>
+                <a href="{% url 'coordinacion:vacantes_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-briefcase me-2"></i>Vacantes
+                </a>
+                <a href="{% url 'coordinacion:estudiantes_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-user-graduate me-2"></i>Estudiantes
+                </a>
+                <a href="{% url 'coordinacion:postulaciones_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-clipboard-list me-2"></i>Postulaciones
+                </a>
+                <a href="{% url 'coordinacion:practicas_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-tasks me-2"></i>Prácticas
+                </a>
+                <a href="{% url 'coordinacion:tutores_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chalkboard-teacher me-2"></i>Tutores
+                </a>
+                <a href="{% url 'coordinacion:sustentaciones_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-graduation-cap me-2"></i>Sustentaciones
+                </a>
+                <a href="{% url 'coordinacion:reportes_dashboard' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chart-line me-2"></i>Reportes
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10">
+            <div id="empresas-root"></div>
+        </div>
+    </div>
+</div>
+
+<script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // Datos de empresas desde Django
+    const empresasData = {{ empresas|safe }};
+
+    function EmpresasApp() {
+        const [empresas, setEmpresas] = useState(empresasData);
+        const [filtroEstado, setFiltroEstado] = useState('');
+        const [busqueda, setBusqueda] = useState('');
+        const [empresasFiltradas, setEmpresasFiltradas] = useState(empresasData);
+
+        useEffect(() => {
+            let resultado = empresas;
+
+            if (filtroEstado) {
+                resultado = resultado.filter(emp => emp.estado === filtroEstado);
+            }
+
+            if (busqueda) {
+                resultado = resultado.filter(emp =>
+                    emp.razon_social.toLowerCase().includes(busqueda.toLowerCase()) ||
+                    emp.nit.includes(busqueda)
+                );
+            }
+
+            setEmpresasFiltradas(resultado);
+        }, [filtroEstado, busqueda, empresas]);
+
+        return (
+            <div>
+                <div className="d-flex justify-content-between align-items-center mb-4">
+                    <h2>
+                        <i className="fas fa-building me-2 text-primary"></i>
+                        Gestión de Empresas
+                    </h2>
+                </div>
+
+                {/* Filtros */}
+                <div className="card mb-4">
+                    <div className="card-body">
+                        <div className="row g-3">
+                            <div className="col-md-4">
+                                <label className="form-label">Buscar</label>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    placeholder="Razón social o NIT..."
+                                    value={busqueda}
+                                    onChange={(e) => setBusqueda(e.target.value)}
+                                />
+                            </div>
+                            <div className="col-md-4">
+                                <label className="form-label">Estado</label>
+                                <select
+                                    className="form-select"
+                                    value={filtroEstado}
+                                    onChange={(e) => setFiltroEstado(e.target.value)}
+                                >
+                                    <option value="">Todos</option>
+                                    <option value="PENDIENTE">Pendiente</option>
+                                    <option value="APROBADA">Aprobada</option>
+                                    <option value="RECHAZADA">Rechazada</option>
+                                    <option value="INACTIVA">Inactiva</option>
+                                </select>
+                            </div>
+                            <div className="col-md-4 d-flex align-items-end">
+                                <button
+                                    className="btn btn-secondary w-100"
+                                    onClick={() => {
+                                        setFiltroEstado('');
+                                        setBusqueda('');
+                                    }}
+                                >
+                                    <i className="fas fa-redo me-2"></i>Limpiar Filtros
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Estadísticas rápidas */}
+                <div className="row g-3 mb-4">
+                    <StatCard
+                        icon="fa-building"
+                        title="Total Empresas"
+                        value={empresas.length}
+                        color="primary"
+                    />
+                    <StatCard
+                        icon="fa-clock"
+                        title="Pendientes"
+                        value={empresas.filter(e => e.estado === 'PENDIENTE').length}
+                        color="warning"
+                    />
+                    <StatCard
+                        icon="fa-check-circle"
+                        title="Aprobadas"
+                        value={empresas.filter(e => e.estado === 'APROBADA').length}
+                        color="success"
+                    />
+                    <StatCard
+                        icon="fa-times-circle"
+                        title="Rechazadas"
+                        value={empresas.filter(e => e.estado === 'RECHAZADA').length}
+                        color="danger"
+                    />
+                </div>
+
+                {/* Lista de empresas */}
+                <div className="card">
+                    <div className="card-header bg-primary text-white">
+                        <h5 className="mb-0">
+                            <i className="fas fa-list me-2"></i>
+                            Listado de Empresas ({empresasFiltradas.length})
+                        </h5>
+                    </div>
+                    <div className="card-body">
+                        {empresasFiltradas.length === 0 ? (
+                            <div className="text-center py-5">
+                                <i className="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                <p className="text-muted">No se encontraron empresas</p>
+                            </div>
+                        ) : (
+                            <div className="table-responsive">
+                                <table className="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Razón Social</th>
+                                            <th>NIT</th>
+                                            <th>Ciudad</th>
+                                            <th>Estado</th>
+                                            <th>Fecha Registro</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {empresasFiltradas.map(empresa => (
+                                            <EmpresaRow key={empresa.id} empresa={empresa} />
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    function StatCard({ icon, title, value, color }) {
+        return (
+            <div className="col-md-6 col-lg-3">
+                <div className={`card border-${color}`}>
+                    <div className="card-body">
+                        <div className="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p className="text-muted mb-1 small">{title}</p>
+                                <h4 className={`text-${color} mb-0`}>{value}</h4>
+                            </div>
+                            <i className={`fas ${icon} fa-2x text-${color} opacity-25`}></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    function EmpresaRow({ empresa }) {
+        const getEstadoBadge = (estado) => {
+            const badges = {
+                'PENDIENTE': 'warning',
+                'APROBADA': 'success',
+                'RECHAZADA': 'danger',
+                'INACTIVA': 'secondary'
+            };
+            return badges[estado] || 'secondary';
+        };
+
+        const getEstadoTexto = (estado) => {
+            const textos = {
+                'PENDIENTE': 'Pendiente',
+                'APROBADA': 'Aprobada',
+                'RECHAZADA': 'Rechazada',
+                'INACTIVA': 'Inactiva'
+            };
+            return textos[estado] || estado;
+        };
+
+        return (
+            <tr>
+                <td><strong>{empresa.razon_social}</strong></td>
+                <td>{empresa.nit}</td>
+                <td>{empresa.ciudad}</td>
+                <td>
+                    <span className={`badge bg-${getEstadoBadge(empresa.estado)}`}>
+                        {getEstadoTexto(empresa.estado)}
+                    </span>
+                </td>
+                <td>{new Date(empresa.fecha_registro).toLocaleDateString('es-CO')}</td>
+                <td>
+                    <div className="btn-group btn-group-sm">
+                        <a
+                            href={`/empresas/${empresa.id}/`}
+                            className="btn btn-outline-primary"
+                            title="Ver detalles"
+                        >
+                            <i className="fas fa-eye"></i>
+                        </a>
+                        {empresa.estado === 'PENDIENTE' && (
+                            <a
+                                href={`/empresas/${empresa.id}/validar/`}
+                                className="btn btn-outline-success"
+                                title="Validar"
+                            >
+                                <i className="fas fa-check"></i>
+                            </a>
+                        )}
+                    </div>
+                </td>
+            </tr>
+        );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('empresas-root'));
+    root.render(<EmpresasApp />);
+</script>
+{% endblock %}

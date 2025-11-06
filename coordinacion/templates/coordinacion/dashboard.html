@@ -1,0 +1,195 @@
+{% extends 'coordinacion/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Coordinación Empresarial{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'coordinacion:dashboard' %}">
+            <i class="fas fa-graduation-cap me-2"></i>
+            Sistema de Prácticas
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-1"></i>
+                        {{ nombre_usuario }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{% url 'coordinacion:logout' %}">
+                            <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                        </a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 sidebar">
+            <div class="list-group">
+                <a href="{% url 'coordinacion:dashboard' %}" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-home me-2"></i>Dashboard
+                </a>
+                <a href="{% url 'coordinacion:empresas_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-building me-2"></i>Empresas
+                </a>
+                <a href="{% url 'coordinacion:vacantes_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-briefcase me-2"></i>Vacantes
+                </a>
+                <a href="{% url 'coordinacion:estudiantes_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-user-graduate me-2"></i>Estudiantes
+                </a>
+                <a href="{% url 'coordinacion:postulaciones_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-clipboard-list me-2"></i>Postulaciones
+                </a>
+                <a href="{% url 'coordinacion:practicas_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-tasks me-2"></i>Prácticas
+                </a>
+                <a href="{% url 'coordinacion:tutores_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chalkboard-teacher me-2"></i>Tutores
+                </a>
+                <a href="{% url 'coordinacion:sustentaciones_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-graduation-cap me-2"></i>Sustentaciones
+                </a>
+                <a href="{% url 'coordinacion:reportes_dashboard' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chart-line me-2"></i>Reportes
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Dashboard Area (React) -->
+        <div class="col-md-9 col-lg-10">
+            <div id="dashboard-react-root"></div>
+        </div>
+    </div>
+</div>
+
+<script type="text/babel">
+    const { useState, useEffect } = React;
+
+    function DashboardApp() {
+        const stats = {{ stats|safe }};
+
+        return (
+            <div>
+                <div className="welcome-section mb-4">
+                    <h1 className="display-5">
+                        <i className="fas fa-hand-wave me-2 text-warning"></i>
+                        ¡Hola, Coordinación Empresarial!
+                    </h1>
+                    <p className="lead text-muted">
+                        Bienvenido/a al sistema de gestión de prácticas empresariales
+                    </p>
+                </div>
+
+                <div className="row g-4">
+                    <StatCard
+                        icon="fa-building"
+                        title="Empresas Activas"
+                        value={stats.empresas_activas || 0}
+                        color="primary"
+                    />
+                    <StatCard
+                        icon="fa-briefcase"
+                        title="Vacantes Disponibles"
+                        value={stats.vacantes_disponibles || 0}
+                        color="success"
+                    />
+                    <StatCard
+                        icon="fa-user-graduate"
+                        title="Estudiantes en Práctica"
+                        value={stats.estudiantes_en_practica || 0}
+                        color="info"
+                    />
+                    <StatCard
+                        icon="fa-clipboard-check"
+                        title="Postulaciones Pendientes"
+                        value={stats.postulaciones_pendientes || 0}
+                        color="warning"
+                    />
+                </div>
+
+                <div className="row mt-4">
+                    <div className="col-12">
+                        <FunctionsCard />
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    function StatCard({ icon, title, value, color }) {
+        return (
+            <div className="col-md-6 col-lg-3">
+                <div className={`card stat-card border-${color}`}>
+                    <div className="card-body">
+                        <div className="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p className="text-muted mb-1">{title}</p>
+                                <h3 className={`text-${color} mb-0`}>{value}</h3>
+                            </div>
+                            <div>
+                                <i className={`fas ${icon} fa-3x text-${color} opacity-25`}></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    function FunctionsCard() {
+        const functions = [
+            { id: 1, icon: 'fa-check-circle', title: 'Validar Empresas', description: 'Aprobar empresas formadoras registradas', color: 'primary', url: '{% url "coordinacion:empresas_lista" %}' },
+            { id: 2, icon: 'fa-plus-circle', title: 'Crear Vacantes', description: 'Publicar vacantes oficiales de práctica', color: 'success', url: '{% url "coordinacion:vacantes_lista" %}' },
+            { id: 3, icon: 'fa-user-plus', title: 'Postular Estudiantes', description: 'Asignar estudiantes a vacantes', color: 'info', url: '{% url "coordinacion:postulaciones_lista" %}' },
+            { id: 4, icon: 'fa-users', title: 'Asignar Tutores', description: 'Asignar tutores y docentes asesores', color: 'warning', url: '{% url "coordinacion:tutores_lista" %}' },
+            { id: 5, icon: 'fa-graduation-cap', title: 'Gestionar Sustentaciones', description: 'Registrar fechas y jurados', color: 'purple', url: '{% url "coordinacion:sustentaciones_lista" %}' },
+            { id: 6, icon: 'fa-flag-checkered', title: 'Cerrar Prácticas', description: 'Finalizar proceso de práctica', color: 'danger', url: '{% url "coordinacion:practicas_lista" %}' },
+            { id: 7, icon: 'fa-chart-bar', title: 'Generar Reportes', description: 'Ver indicadores y estadísticas', color: 'dark', url: '{% url "coordinacion:reportes_dashboard" %}' },
+            { id: 8, icon: 'fa-folder-open', title: 'Gestión Documental', description: 'Administrar documentos del proceso', color: 'secondary', url: '#' },
+        ];
+
+        return (
+            <div className="card">
+                <div className="card-header bg-primary text-white">
+                    <h5 className="mb-0">
+                        <i className="fas fa-tasks me-2"></i>
+                        Funciones de Coordinación Empresarial
+                    </h5>
+                </div>
+                <div className="card-body">
+                    <div className="row g-3">
+                        {functions.map(func => (
+                            <div key={func.id} className="col-md-6 col-lg-3">
+                                <a href={func.url} className="text-decoration-none">
+                                    <div className="function-card">
+                                        <i className={`fas ${func.icon} fa-2x text-${func.color} mb-2`}></i>
+                                        <h6>{func.title}</h6>
+                                        <p className="text-muted small mb-0">{func.description}</p>
+                                    </div>
+                                </a>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Renderizar la aplicación React
+    const root = ReactDOM.createRoot(document.getElementById('dashboard-react-root'));
+    root.render(<DashboardApp />);
+</script>
+{% endblock %}

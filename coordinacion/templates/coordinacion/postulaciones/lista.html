@@ -1,0 +1,309 @@
+{% extends 'coordinacion/base.html' %}
+{% load static %}
+
+{% block title %}Gestión de Postulaciones{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'coordinacion:dashboard' %}">
+            <i class="fas fa-graduation-cap me-2"></i>Sistema de Prácticas
+        </a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-1"></i>{{ request.user.username }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{% url 'coordinacion:logout' %}">
+                            <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                        </a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 sidebar">
+            <div class="list-group">
+                <a href="{% url 'coordinacion:dashboard' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-home me-2"></i>Dashboard
+                </a>
+                <a href="{% url 'coordinacion:empresas_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-building me-2"></i>Empresas
+                </a>
+                <a href="{% url 'coordinacion:vacantes_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-briefcase me-2"></i>Vacantes
+                </a>
+                <a href="{% url 'coordinacion:estudiantes_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-user-graduate me-2"></i>Estudiantes
+                </a>
+                <a href="{% url 'coordinacion:postulaciones_lista' %}" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-clipboard-list me-2"></i>Postulaciones
+                </a>
+                <a href="{% url 'coordinacion:practicas_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-tasks me-2"></i>Prácticas
+                </a>
+                <a href="{% url 'coordinacion:tutores_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chalkboard-teacher me-2"></i>Tutores
+                </a>
+                <a href="{% url 'coordinacion:sustentaciones_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-graduation-cap me-2"></i>Sustentaciones
+                </a>
+                <a href="{% url 'coordinacion:reportes_dashboard' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chart-line me-2"></i>Reportes
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10">
+            <div id="postulaciones-root"></div>
+        </div>
+    </div>
+</div>
+
+<script type="text/babel">
+    const { useState, useEffect } = React;
+
+    const postulacionesData = {{ postulaciones|safe }};
+
+    function PostulacionesApp() {
+        const [postulaciones, setPostulaciones] = useState(postulacionesData);
+        const [filtroEstado, setFiltroEstado] = useState('');
+        const [busqueda, setBusqueda] = useState('');
+        const [postulacionesFiltradas, setPostulacionesFiltradas] = useState(postulacionesData);
+
+        useEffect(() => {
+            let resultado = postulaciones;
+
+            if (filtroEstado) {
+                resultado = resultado.filter(p => p.estado === filtroEstado);
+            }
+
+            if (busqueda) {
+                resultado = resultado.filter(p =>
+                    p.estudiante.nombre_completo.toLowerCase().includes(busqueda.toLowerCase()) ||
+                    p.estudiante.codigo.includes(busqueda) ||
+                    p.vacante.titulo.toLowerCase().includes(busqueda.toLowerCase())
+                );
+            }
+
+            setPostulacionesFiltradas(resultado);
+        }, [filtroEstado, busqueda, postulaciones]);
+
+        return (
+            <div>
+                <div className="d-flex justify-content-between align-items-center mb-4">
+                    <h2>
+                        <i className="fas fa-clipboard-list me-2 text-primary"></i>
+                        Gestión de Postulaciones
+                    </h2>
+                    <a href="{% url 'coordinacion:postulacion_crear' %}" className="btn btn-success">
+                        <i className="fas fa-plus me-2"></i>Nueva Postulación
+                    </a>
+                </div>
+
+                {/* Filtros */}
+                <div className="card mb-4">
+                    <div className="card-body">
+                        <div className="row g-3">
+                            <div className="col-md-6">
+                                <label className="form-label">Buscar</label>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    placeholder="Estudiante, código o vacante..."
+                                    value={busqueda}
+                                    onChange={(e) => setBusqueda(e.target.value)}
+                                />
+                            </div>
+                            <div className="col-md-3">
+                                <label className="form-label">Estado</label>
+                                <select
+                                    className="form-select"
+                                    value={filtroEstado}
+                                    onChange={(e) => setFiltroEstado(e.target.value)}
+                                >
+                                    <option value="">Todos</option>
+                                    <option value="POSTULADO">Postulado</option>
+                                    <option value="SELECCIONADO">Seleccionado</option>
+                                    <option value="RECHAZADO">Rechazado</option>
+                                    <option value="VINCULADO">Vinculado</option>
+                                </select>
+                            </div>
+                            <div className="col-md-3 d-flex align-items-end">
+                                <button
+                                    className="btn btn-secondary w-100"
+                                    onClick={() => {
+                                        setFiltroEstado('');
+                                        setBusqueda('');
+                                    }}
+                                >
+                                    <i className="fas fa-redo me-2"></i>Limpiar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Estadísticas */}
+                <div className="row g-3 mb-4">
+                    <StatCard
+                        icon="fa-clipboard-list"
+                        title="Total Postulaciones"
+                        value={postulaciones.length}
+                        color="primary"
+                    />
+                    <StatCard
+                        icon="fa-clock"
+                        title="Postulados"
+                        value={postulaciones.filter(p => p.estado === 'POSTULADO').length}
+                        color="warning"
+                    />
+                    <StatCard
+                        icon="fa-check-circle"
+                        title="Seleccionados"
+                        value={postulaciones.filter(p => p.estado === 'SELECCIONADO').length}
+                        color="success"
+                    />
+                    <StatCard
+                        icon="fa-link"
+                        title="Vinculados"
+                        value={postulaciones.filter(p => p.estado === 'VINCULADO').length}
+                        color="info"
+                    />
+                </div>
+
+                {/* Lista de postulaciones */}
+                <div className="card">
+                    <div className="card-header bg-primary text-white">
+                        <h5 className="mb-0">
+                            <i className="fas fa-list me-2"></i>
+                            Listado de Postulaciones ({postulacionesFiltradas.length})
+                        </h5>
+                    </div>
+                    <div className="card-body">
+                        {postulacionesFiltradas.length === 0 ? (
+                            <div className="text-center py-5">
+                                <i className="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                <p className="text-muted">No se encontraron postulaciones</p>
+                            </div>
+                        ) : (
+                            <div className="table-responsive">
+                                <table className="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Estudiante</th>
+                                            <th>Código</th>
+                                            <th>Vacante</th>
+                                            <th>Empresa</th>
+                                            <th>Programa</th>
+                                            <th>Fecha Postulación</th>
+                                            <th>Estado</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {postulacionesFiltradas.map(postulacion => (
+                                            <PostulacionRow key={postulacion.id} postulacion={postulacion} />
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    function StatCard({ icon, title, value, color }) {
+        return (
+            <div className="col-md-6 col-lg-3">
+                <div className={`card border-${color}`}>
+                    <div className="card-body">
+                        <div className="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p className="text-muted mb-1 small">{title}</p>
+                                <h4 className={`text-${color} mb-0`}>{value}</h4>
+                            </div>
+                            <i className={`fas ${icon} fa-2x text-${color} opacity-25`}></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    function PostulacionRow({ postulacion }) {
+        const getEstadoBadge = (estado) => {
+            const badges = {
+                'POSTULADO': 'warning',
+                'SELECCIONADO': 'success',
+                'RECHAZADO': 'danger',
+                'VINCULADO': 'info'
+            };
+            return badges[estado] || 'secondary';
+        };
+
+        const getEstadoTexto = (estado) => {
+            const textos = {
+                'POSTULADO': 'Postulado',
+                'SELECCIONADO': 'Seleccionado',
+                'RECHAZADO': 'Rechazado',
+                'VINCULADO': 'Vinculado'
+            };
+            return textos[estado] || estado;
+        };
+
+        const formatDate = (dateString) => {
+            if (!dateString) return '-';
+            return new Date(dateString).toLocaleDateString('es-CO');
+        };
+
+        return (
+            <tr>
+                <td><strong>{postulacion.estudiante.nombre_completo}</strong></td>
+                <td>{postulacion.estudiante.codigo}</td>
+                <td><small>{postulacion.vacante.titulo}</small></td>
+                <td><small>{postulacion.vacante.empresa}</small></td>
+                <td><small>{postulacion.estudiante.programa_academico}</small></td>
+                <td>{formatDate(postulacion.fecha_postulacion)}</td>
+                <td>
+                    <span className={`badge bg-${getEstadoBadge(postulacion.estado)}`}>
+                        {getEstadoTexto(postulacion.estado)}
+                    </span>
+                </td>
+                <td>
+                    <div className="btn-group btn-group-sm">
+                        <button
+                            className="btn btn-outline-primary"
+                            title="Ver detalles"
+                        >
+                            <i className="fas fa-eye"></i>
+                        </button>
+                        {postulacion.estado === 'SELECCIONADO' && (
+                            <button
+                                className="btn btn-outline-success"
+                                title="Vincular"
+                            >
+                                <i className="fas fa-link"></i>
+                            </button>
+                        )}
+                    </div>
+                </td>
+            </tr>
+        );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('postulaciones-root'));
+    root.render(<PostulacionesApp />);
+</script>
+{% endblock %}
