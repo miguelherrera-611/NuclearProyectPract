@@ -11,7 +11,8 @@ from .models import (
     Sustentacion, Evaluacion, SeguimientoSemanal
 )
 from . import serializers
-from .forms import CoordinadorLoginForm, VacanteForm
+from .forms import CoordinadorLoginForm, VacanteForm, PostulacionForm
+
 
 
 # ============================================
@@ -381,20 +382,64 @@ def postulaciones_lista(request):
     return render(request, 'coordinacion/postulaciones/lista.html', context)
 
 
+# Agregar esta función a tu archivo coordinacion/views.py
+
 @login_required
 def postulacion_crear(request):
-    """Crear una nueva postulación"""
-    estudiantes = Estudiante.objects.filter(estado='APTO')
-    vacantes = Vacante.objects.filter(estado='DISPONIBLE')
+    """
+    Crear una nueva postulación de estudiante a vacante (RF-03)
+    """
+
+    # Verificar que haya vacantes y estudiantes disponibles
+    vacantes_disponibles = Vacante.objects.filter(estado='DISPONIBLE').count()
+    estudiantes_aptos = Estudiante.objects.filter(estado='APTO').count()
+
+    if vacantes_disponibles == 0:
+        messages.warning(
+            request,
+            '⚠️ No hay vacantes disponibles en este momento. Crea una vacante primero.'
+        )
+        return redirect('coordinacion:vacantes_lista')
+
+    if estudiantes_aptos == 0:
+        messages.warning(
+            request,
+            '⚠️ No hay estudiantes aptos para postular en este momento.'
+        )
+        return redirect('coordinacion:estudiantes_lista')
 
     if request.method == 'POST':
-        # Procesar formulario
-        messages.success(request, 'Estudiante postulado exitosamente')
-        return redirect('coordinacion:postulaciones_lista')
+        form = PostulacionForm(request.POST)
 
+        if form.is_valid():
+            postulacion = form.save(commit=False)
+            postulacion.postulado_por = request.user.coordinador
+            postulacion.save()
+
+            # Mensaje de éxito detallado
+            messages.success(
+                request,
+                f'✅ Estudiante {postulacion.estudiante.nombre_completo} postulado exitosamente '
+                f'a la vacante "{postulacion.vacante.titulo}" de {postulacion.vacante.empresa.razon_social}'
+            )
+
+            # Opcional: Aquí podrías enviar notificación por correo a la empresa y al estudiante
+            # enviar_notificacion_postulacion(postulacion)
+
+            return redirect('coordinacion:postulaciones_lista')
+        else:
+            # Mostrar errores de validación
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'❌ {error}')
+    else:
+        form = PostulacionForm()
+
+    # Datos adicionales para el template
     context = {
-        'estudiantes': estudiantes,
-        'vacantes': vacantes,
+        'form': form,
+        'vacantes_disponibles': vacantes_disponibles,
+        'estudiantes_aptos': estudiantes_aptos,
     }
 
     return render(request, 'coordinacion/postulaciones/crear.html', context)

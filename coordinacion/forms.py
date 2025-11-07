@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
-from .models import Vacante, Empresa
+from .models import Vacante, Empresa, Postulacion, Estudiante
+from datetime import date, timedelta
 
 
 class CoordinadorLoginForm(AuthenticationForm):
@@ -156,3 +157,259 @@ class VacanteForm(forms.ModelForm):
         if duracion and duracion > 12:
             raise forms.ValidationError('La duración máxima debe ser 12 meses')
         return duracion
+
+
+class PostulacionForm(forms.ModelForm):
+    """
+    Formulario para postular estudiantes a vacantes de práctica (RF-03)
+    """
+
+    class Meta:
+        model = Postulacion
+        fields = [
+            'vacante',
+            'estudiante',
+            'observaciones',
+        ]
+
+        widgets = {
+            'vacante': forms.Select(attrs={
+                'class': 'form-select',
+                'required': True,
+                'id': 'id_vacante'
+            }),
+            'estudiante': forms.Select(attrs={
+                'class': 'form-select',
+                'required': True,
+                'id': 'id_estudiante'
+            }),
+            'observaciones': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'Observaciones adicionales sobre el estudiante y su idoneidad para esta vacante...',
+            }),
+        }
+
+        labels = {
+            'vacante': 'Vacante de Práctica',
+            'estudiante': 'Estudiante a Postular',
+            'observaciones': 'Observaciones',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Filtrar solo vacantes disponibles con cupos libres
+        self.fields['vacante'].queryset = Vacante.objects.filter(
+            estado='DISPONIBLE'
+        ).select_related('empresa')
+
+        # Filtrar solo estudiantes aptos para postular
+        self.fields['estudiante'].queryset = Estudiante.objects.filter(
+            estado='APTO'
+        ).order_by('nombre_completo')
+
+        # Mensajes si no hay opciones disponibles
+        if not self.fields['vacante'].queryset.exists():
+            self.fields['vacante'].empty_label = "No hay vacantes disponibles"
+
+        if not self.fields['estudiante'].queryset.exists():
+            self.fields['estudiante'].empty_label = "No hay estudiantes aptos"
+
+        # Personalizar la visualización de las opciones
+        self.fields['vacante'].label_from_instance = self._vacante_label
+        self.fields['estudiante'].label_from_instance = self._estudiante_label
+
+    def _vacante_label(self, obj):
+        """Personalizar cómo se muestra cada vacante en el select"""
+        cupos_disponibles = obj.cantidad_cupos - obj.cupos_ocupados
+        return f"{obj.titulo} - {obj.empresa.razon_social} ({cupos_disponibles} cupos disponibles)"
+
+    def _estudiante_label(self, obj):
+        """Personalizar cómo se muestra cada estudiante en el select"""
+        return f"{obj.codigo} - {obj.nombre_completo} ({obj.programa_academico} - {obj.semestre}° sem)"
+
+    def clean(self):
+        cleaned_data = super().clean()
+        vacante = cleaned_data.get('vacante')
+        estudiante = cleaned_data.get('estudiante')
+
+        if vacante and estudiante:
+            # VALIDACIÓN 1: Verificar que el estudiante no esté ya postulado a esta vacante
+            postulacion_existente = Postulacion.objects.filter(
+                vacante=vacante,
+                estudiante=estudiante
+            ).exists()
+
+            if postulacion_existente:
+                raise forms.ValidationError(
+                    f'El estudiante {estudiante.nombre_completo} ya está postulado a esta vacante.'
+                )
+
+            # VALIDACIÓN 2: Verificar que la vacante tenga cupos disponibles
+            if vacante.cupos_ocupados >= vacante.cantidad_cupos:
+                raise forms.ValidationError(
+                    f'La vacante "{vacante.titulo}" no tiene cupos disponibles.'
+                )
+
+            # VALIDACIÓN 3: Verificar requisitos académicos del estudiante
+            if estudiante.semestre < vacante.semestre_minimo:
+                raise forms.ValidationError(
+                    f'El estudiante no cumple el requisito de semestre mínimo ({vacante.semestre_minimo}°). '
+                    f'El estudiante está en {estudiante.semestre}° semestre.'
+                )
+
+            # VALIDACIÓN 4: Verificar que el programa académico coincida (opcional, con advertencia)
+            # Si quieres hacerlo estricto, descomenta esto:
+            # if estudiante.programa_academico != vacante.programa_academico:
+            #     raise forms.ValidationError(
+            #         f'El programa académico del estudiante ({estudiante.programa_academico}) '
+            #         f'no coincide con el requerido por la vacante ({vacante.programa_academico}).'
+            #     )
+
+            # VALIDACIÓN 5: Verificar que el estudiante no esté en demasiadas postulaciones activas
+            postulaciones_activas = Postulacion.objects.filter(
+                estudiante=estudiante,
+                estado__in=['POSTULADO', 'SELECCIONADO']
+            ).count()
+
+            if postulaciones_activas >= 3:
+                raise forms.ValidationError(
+                    f'El estudiante {estudiante.nombre_completo} ya tiene {postulaciones_activas} '
+                    f'postulaciones activas. Máximo permitido: 3.'
+                )
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        postulacion = super().save(commit=False)
+        postulacion.estado = 'POSTULADO'  # Estado inicial
+
+        if commit:
+            postulacion.save()
+
+        return postulacion
+
+
+class PostulacionForm(forms.ModelForm):
+    """
+    Formulario para postular estudiantes a vacantes de práctica (RF-03)
+    """
+
+    class Meta:
+        model = Postulacion
+        fields = [
+            'vacante',
+            'estudiante',
+            'observaciones',
+        ]
+
+        widgets = {
+            'vacante': forms.Select(attrs={
+                'class': 'form-select',
+                'required': True,
+                'id': 'id_vacante'
+            }),
+            'estudiante': forms.Select(attrs={
+                'class': 'form-select',
+                'required': True,
+                'id': 'id_estudiante'
+            }),
+            'observaciones': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'Observaciones adicionales sobre el estudiante y su idoneidad para esta vacante...',
+            }),
+        }
+
+        labels = {
+            'vacante': 'Vacante de Práctica',
+            'estudiante': 'Estudiante a Postular',
+            'observaciones': 'Observaciones',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Filtrar solo vacantes disponibles con cupos libres
+        self.fields['vacante'].queryset = Vacante.objects.filter(
+            estado='DISPONIBLE'
+        ).select_related('empresa')
+
+        # Filtrar solo estudiantes aptos para postular
+        self.fields['estudiante'].queryset = Estudiante.objects.filter(
+            estado='APTO'
+        ).order_by('nombre_completo')
+
+        # Mensajes si no hay opciones disponibles
+        if not self.fields['vacante'].queryset.exists():
+            self.fields['vacante'].empty_label = "No hay vacantes disponibles"
+
+        if not self.fields['estudiante'].queryset.exists():
+            self.fields['estudiante'].empty_label = "No hay estudiantes aptos"
+
+        # Personalizar la visualización de las opciones
+        self.fields['vacante'].label_from_instance = self._vacante_label
+        self.fields['estudiante'].label_from_instance = self._estudiante_label
+
+    def _vacante_label(self, obj):
+        """Personalizar cómo se muestra cada vacante en el select"""
+        cupos_disponibles = obj.cantidad_cupos - obj.cupos_ocupados
+        return f"{obj.titulo} - {obj.empresa.razon_social} ({cupos_disponibles} cupos disponibles)"
+
+    def _estudiante_label(self, obj):
+        """Personalizar cómo se muestra cada estudiante en el select"""
+        return f"{obj.codigo} - {obj.nombre_completo} ({obj.programa_academico} - {obj.semestre}° sem)"
+
+    def clean(self):
+        cleaned_data = super().clean()
+        vacante = cleaned_data.get('vacante')
+        estudiante = cleaned_data.get('estudiante')
+
+        if vacante and estudiante:
+            # VALIDACIÓN 1: Verificar que el estudiante no esté ya postulado a esta vacante
+            postulacion_existente = Postulacion.objects.filter(
+                vacante=vacante,
+                estudiante=estudiante
+            ).exists()
+
+            if postulacion_existente:
+                raise forms.ValidationError(
+                    f'El estudiante {estudiante.nombre_completo} ya está postulado a esta vacante.'
+                )
+
+            # VALIDACIÓN 2: Verificar que la vacante tenga cupos disponibles
+            if vacante.cupos_ocupados >= vacante.cantidad_cupos:
+                raise forms.ValidationError(
+                    f'La vacante "{vacante.titulo}" no tiene cupos disponibles.'
+                )
+
+            # VALIDACIÓN 3: Verificar requisitos académicos del estudiante
+            if estudiante.semestre < vacante.semestre_minimo:
+                raise forms.ValidationError(
+                    f'El estudiante no cumple el requisito de semestre mínimo ({vacante.semestre_minimo}°). '
+                    f'El estudiante está en {estudiante.semestre}° semestre.'
+                )
+
+            # VALIDACIÓN 4: Verificar que el estudiante no esté en demasiadas postulaciones activas
+            postulaciones_activas = Postulacion.objects.filter(
+                estudiante=estudiante,
+                estado__in=['POSTULADO', 'SELECCIONADO']
+            ).count()
+
+            if postulaciones_activas >= 3:
+                raise forms.ValidationError(
+                    f'El estudiante {estudiante.nombre_completo} ya tiene {postulaciones_activas} '
+                    f'postulaciones activas. Máximo permitido: 3.'
+                )
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        postulacion = super().save(commit=False)
+        postulacion.estado = 'POSTULADO'  # Estado inicial
+
+        if commit:
+            postulacion.save()
+
+        return postulacion
