@@ -14,7 +14,6 @@ from . import serializers
 from .forms import CoordinadorLoginForm, VacanteForm, PostulacionForm
 
 
-
 # ============================================
 # AUTENTICACIÓN
 # ============================================
@@ -193,36 +192,10 @@ def vacantes_lista(request):
     if estado_filtro:
         vacantes = vacantes.filter(estado=estado_filtro)
 
-    # Serializar vacantes para React
-    vacantes_serializadas = []
-    for vacante in vacantes:
-        vacantes_serializadas.append({
-            'id': vacante.id,
-            'titulo': vacante.titulo,
-            'area_practica': vacante.area_practica,
-            'descripcion': vacante.descripcion,
-            'cantidad_cupos': vacante.cantidad_cupos,
-            'cupos_ocupados': vacante.cupos_ocupados,
-            'cupos_disponibles': vacante.cupos_disponibles,
-            'programa_academico': vacante.programa_academico,
-            'semestre_minimo': vacante.semestre_minimo,
-            'horario': vacante.horario,
-            'duracion_meses': vacante.duracion_meses,
-            'estado': vacante.estado,
-            'fecha_creacion': vacante.fecha_creacion.isoformat() if vacante.fecha_creacion else None,
-            'fecha_publicacion': vacante.fecha_publicacion.isoformat() if vacante.fecha_publicacion else None,
-            'empresa': {
-                'id': vacante.empresa.id,
-                'razon_social': vacante.empresa.razon_social,
-                'nit': vacante.empresa.nit,
-            },
-            'creada_por': vacante.creada_por.nombre_completo if vacante.creada_por else None,
-        })
-
-    # Convertir a JSON de forma segura
-    import json
-    from django.core.serializers.json import DjangoJSONEncoder
-    vacantes_json = json.dumps(vacantes_serializadas, cls=DjangoJSONEncoder)
+    # ✅ CORRECCIÓN: Usar el serializador existente
+    vacantes_json = serializers.to_json([
+        serializers.serialize_vacante(vacante) for vacante in vacantes
+    ])
 
     context = {
         'vacantes': vacantes_json,
@@ -382,8 +355,6 @@ def postulaciones_lista(request):
     return render(request, 'coordinacion/postulaciones/lista.html', context)
 
 
-# Agregar esta función a tu archivo coordinacion/views.py
-
 @login_required
 def postulacion_crear(request):
     """
@@ -422,9 +393,6 @@ def postulacion_crear(request):
                 f'✅ Estudiante {postulacion.estudiante.nombre_completo} postulado exitosamente '
                 f'a la vacante "{postulacion.vacante.titulo}" de {postulacion.vacante.empresa.razon_social}'
             )
-
-            # Opcional: Aquí podrías enviar notificación por correo a la empresa y al estudiante
-            # enviar_notificacion_postulacion(postulacion)
 
             return redirect('coordinacion:postulaciones_lista')
         else:
@@ -653,7 +621,7 @@ def reportes_dashboard(request):
         num_practicas=Count('practicas')
     ).order_by('-num_practicas')[:5]
 
-    # Serializar datos
+    # ✅ CORRECCIÓN: Usar serialización consistente
     import json
     from django.core.serializers.json import DjangoJSONEncoder
 
