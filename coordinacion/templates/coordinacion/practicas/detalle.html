@@ -1,0 +1,336 @@
+{% extends 'coordinacion/base.html' %}
+{% load static %}
+
+{% block title %}Detalle de Práctica{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'coordinacion:dashboard' %}">
+            <i class="fas fa-graduation-cap me-2"></i>Sistema de Prácticas
+        </a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-1"></i>{{ request.user.username }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{% url 'coordinacion:logout' %}">
+                            <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                        </a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 sidebar">
+            <div class="list-group">
+                <a href="{% url 'coordinacion:dashboard' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-home me-2"></i>Dashboard
+                </a>
+                <a href="{% url 'coordinacion:empresas_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-building me-2"></i>Empresas
+                </a>
+                <a href="{% url 'coordinacion:vacantes_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-briefcase me-2"></i>Vacantes
+                </a>
+                <a href="{% url 'coordinacion:estudiantes_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-user-graduate me-2"></i>Estudiantes
+                </a>
+                <a href="{% url 'coordinacion:postulaciones_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-clipboard-list me-2"></i>Postulaciones
+                </a>
+                <a href="{% url 'coordinacion:practicas_lista' %}" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-tasks me-2"></i>Prácticas
+                </a>
+                <a href="{% url 'coordinacion:tutores_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chalkboard-teacher me-2"></i>Tutores
+                </a>
+                <a href="{% url 'coordinacion:sustentaciones_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-graduation-cap me-2"></i>Sustentaciones
+                </a>
+                <a href="{% url 'coordinacion:reportes_dashboard' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chart-line me-2"></i>Reportes
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'coordinacion:dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'coordinacion:practicas_lista' %}">Prácticas</a></li>
+                    <li class="breadcrumb-item active">Detalle</li>
+                </ol>
+            </nav>
+
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2>
+                        <i class="fas fa-briefcase me-2 text-primary"></i>
+                        Práctica Empresarial
+                    </h2>
+                    <p class="text-muted mb-0">{{ practica.estudiante.nombre_completo }} - {{ practica.empresa.razon_social }}</p>
+                </div>
+                <div>
+                    {% if practica.estado == 'INICIADA' %}
+                        <span class="badge bg-info fs-5">
+                            <i class="fas fa-play-circle me-1"></i>Iniciada
+                        </span>
+                    {% elif practica.estado == 'EN_CURSO' %}
+                        <span class="badge bg-warning fs-5">
+                            <i class="fas fa-spinner me-1"></i>En Curso
+                        </span>
+                    {% elif practica.estado == 'FINALIZADA' %}
+                        <span class="badge bg-success fs-5">
+                            <i class="fas fa-check-circle me-1"></i>Finalizada
+                        </span>
+                    {% elif practica.estado == 'CANCELADA' %}
+                        <span class="badge bg-danger fs-5">
+                            <i class="fas fa-times-circle me-1"></i>Cancelada
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Mensajes -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Botones de acción -->
+            <div class="mb-4">
+                <a href="{% url 'coordinacion:practicas_lista' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Volver al Listado
+                </a>
+                
+                {% if practica.estado == 'EN_CURSO' %}
+                    <form method="POST" action="{% url 'coordinacion:practica_finalizar' practica.id %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success" onclick="return confirm('¿Estás seguro de finalizar esta práctica?')">
+                            <i class="fas fa-check me-2"></i>Finalizar Práctica
+                        </button>
+                    </form>
+                {% endif %}
+                
+                {% if practica.estado == 'INICIADA' or practica.estado == 'EN_CURSO' %}
+                    <a href="{% url 'coordinacion:practica_cancelar' practica.id %}" class="btn btn-danger">
+                        <i class="fas fa-times me-2"></i>Cancelar Práctica
+                    </a>
+                {% endif %}
+            </div>
+
+            <div class="row g-4">
+                <!-- Información del Estudiante -->
+                <div class="col-lg-6">
+                    <div class="card h-100">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-user-graduate me-2"></i>Estudiante
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <h4>{{ practica.estudiante.nombre_completo }}</h4>
+                            <table class="table table-borderless mb-0">
+                                <tbody>
+                                    <tr>
+                                        <td class="fw-bold" style="width: 40%;">Código:</td>
+                                        <td>{{ practica.estudiante.codigo }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Programa:</td>
+                                        <td>{{ practica.estudiante.programa_academico }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Semestre:</td>
+                                        <td>{{ practica.estudiante.semestre }}°</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Email:</td>
+                                        <td>{{ practica.estudiante.email }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Teléfono:</td>
+                                        <td>{{ practica.estudiante.telefono }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información de la Empresa -->
+                <div class="col-lg-6">
+                    <div class="card h-100">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-building me-2"></i>Empresa
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <h5>{{ practica.empresa.razon_social }}</h5>
+                            <table class="table table-borderless mb-0">
+                                <tbody>
+                                    <tr>
+                                        <td class="fw-bold" style="width: 40%;">NIT:</td>
+                                        <td>{{ practica.empresa.nit }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Vacante:</td>
+                                        <td>{{ practica.vacante.titulo }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Área:</td>
+                                        <td>{{ practica.vacante.area_practica }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Dirección:</td>
+                                        <td>{{ practica.empresa.direccion }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Teléfono:</td>
+                                        <td>{{ practica.empresa.telefono }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tutor Empresarial -->
+                <div class="col-lg-6">
+                    <div class="card h-100">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-user-tie me-2"></i>Tutor Empresarial
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <h5>{{ practica.tutor_empresarial.nombre_completo }}</h5>
+                            <table class="table table-borderless mb-0">
+                                <tbody>
+                                    <tr>
+                                        <td class="fw-bold" style="width: 40%;">Cargo:</td>
+                                        <td>{{ practica.tutor_empresarial.cargo }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Email:</td>
+                                        <td>{{ practica.tutor_empresarial.email }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Teléfono:</td>
+                                        <td>{{ practica.tutor_empresarial.telefono }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Docente Asesor -->
+                <div class="col-lg-6">
+                    <div class="card h-100">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chalkboard-teacher me-2"></i>Docente Asesor
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <h5>{{ practica.docente_asesor.nombre_completo }}</h5>
+                            <table class="table table-borderless mb-0">
+                                <tbody>
+                                    <tr>
+                                        <td class="fw-bold" style="width: 40%;">Especialidad:</td>
+                                        <td>{{ practica.docente_asesor.especialidad }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Email:</td>
+                                        <td>{{ practica.docente_asesor.email }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Teléfono:</td>
+                                        <td>{{ practica.docente_asesor.telefono }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información de la Práctica -->
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header bg-secondary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-info-circle me-2"></i>Detalles de la Práctica
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Fecha de Inicio:</strong><br>{{ practica.fecha_inicio|date:"d/m/Y" }}</p>
+                                    <p><strong>Fecha Fin Estimada:</strong><br>
+                                        {% if practica.fecha_fin_estimada %}
+                                            {{ practica.fecha_fin_estimada|date:"d/m/Y" }}
+                                        {% else %}
+                                            <span class="text-muted">No definida</span>
+                                        {% endif %}
+                                    </p>
+                                    <p><strong>Fecha Fin Real:</strong><br>
+                                        {% if practica.fecha_fin %}
+                                            {{ practica.fecha_fin|date:"d/m/Y" }}
+                                        {% else %}
+                                            <span class="text-muted">En curso</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Estado:</strong><br>
+                                        {% if practica.estado == 'INICIADA' %}
+                                            <span class="badge bg-info">Iniciada</span>
+                                        {% elif practica.estado == 'EN_CURSO' %}
+                                            <span class="badge bg-warning">En Curso</span>
+                                        {% elif practica.estado == 'FINALIZADA' %}
+                                            <span class="badge bg-success">Finalizada</span>
+                                        {% elif practica.estado == 'CANCELADA' %}
+                                            <span class="badge bg-danger">Cancelada</span>
+                                        {% endif %}
+                                    </p>
+                                    <p><strong>Plan Aprobado:</strong><br>
+                                        {% if practica.plan_aprobado %}
+                                            <span class="badge bg-success"><i class="fas fa-check me-1"></i>Sí</span>
+                                        {% else %}
+                                            <span class="badge bg-warning"><i class="fas fa-clock me-1"></i>Pendiente</span>
+                                        {% endif %}
+                                    </p>
+                                    <p><strong>Asignada por:</strong><br>{{ practica.asignada_por.nombre_completo }}</p>
+                                </div>
+                            </div>
+                            {% if practica.observaciones %}
+                            <hr>
+                            <p><strong>Observaciones:</strong></p>
+                            <p class="text-justify" style="white-space: pre-line;">{{ practica.observaciones }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

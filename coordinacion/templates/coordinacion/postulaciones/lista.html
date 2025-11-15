@@ -132,7 +132,6 @@
                                     onChange={(e) => setFiltroEstado(e.target.value)}
                                 >
                                     <option value="">Todos</option>
-                                    <option value="POSTULADO">Postulado</option>
                                     <option value="SELECCIONADO">Seleccionado</option>
                                     <option value="RECHAZADO">Rechazado</option>
                                     <option value="VINCULADO">Vinculado</option>
@@ -162,12 +161,6 @@
                         color="primary"
                     />
                     <StatCard
-                        icon="fa-clock"
-                        title="Postulados"
-                        value={postulaciones.filter(p => p.estado === 'POSTULADO').length}
-                        color="warning"
-                    />
-                    <StatCard
                         icon="fa-check-circle"
                         title="Seleccionados"
                         value={postulaciones.filter(p => p.estado === 'SELECCIONADO').length}
@@ -178,6 +171,12 @@
                         title="Vinculados"
                         value={postulaciones.filter(p => p.estado === 'VINCULADO').length}
                         color="info"
+                    />
+                    <StatCard
+                        icon="fa-times-circle"
+                        title="Rechazados"
+                        value={postulaciones.filter(p => p.estado === 'RECHAZADO').length}
+                        color="danger"
                     />
                 </div>
 
@@ -245,7 +244,6 @@
     function PostulacionRow({ postulacion }) {
         const getEstadoBadge = (estado) => {
             const badges = {
-                'POSTULADO': 'warning',
                 'SELECCIONADO': 'success',
                 'RECHAZADO': 'danger',
                 'VINCULADO': 'info'
@@ -255,7 +253,6 @@
 
         const getEstadoTexto = (estado) => {
             const textos = {
-                'POSTULADO': 'Postulado',
                 'SELECCIONADO': 'Seleccionado',
                 'RECHAZADO': 'Rechazado',
                 'VINCULADO': 'Vinculado'
@@ -283,19 +280,30 @@
                 </td>
                 <td>
                     <div className="btn-group btn-group-sm">
-                        <button
+                        <a
+                            href={`/postulaciones/${postulacion.id}/`}
                             className="btn btn-outline-primary"
                             title="Ver detalles"
                         >
                             <i className="fas fa-eye"></i>
-                        </button>
+                        </a>
                         {postulacion.estado === 'SELECCIONADO' && (
-                            <button
-                                className="btn btn-outline-success"
-                                title="Vincular"
-                            >
-                                <i className="fas fa-link"></i>
-                            </button>
+                            <>
+                                <a
+                                    href={`/postulaciones/${postulacion.id}/aprobar/`}
+                                    className="btn btn-outline-success"
+                                    title="Aprobar y vincular"
+                                >
+                                    <i className="fas fa-check"></i>
+                                </a>
+                                <a
+                                    href={`/postulaciones/${postulacion.id}/rechazar/`}
+                                    className="btn btn-outline-danger"
+                                    title="Rechazar postulación"
+                                >
+                                    <i className="fas fa-times"></i>
+                                </a>
+                            </>
                         )}
                     </div>
                 </td>

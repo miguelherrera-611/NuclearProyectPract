@@ -182,7 +182,6 @@ def empresa_validar(request, empresa_id):
 # GESTIÓN DE VACANTES (RF-02)
 # ============================================
 
-@login_required
 def vacantes_lista(request):
     """Listar todas las vacantes"""
     estado_filtro = request.GET.get('estado', '')
@@ -329,6 +328,44 @@ def estudiantes_lista(request):
 
     return render(request, 'coordinacion/estudiantes/lista.html', context)
 
+@login_required
+def estudiante_detalle(request, estudiante_id):
+    """
+    Ver detalle completo de un estudiante incluyendo:
+    - Datos personales y académicos
+    - Postulaciones realizadas
+    - Práctica actual (si tiene)
+    - Historial de prácticas
+    """
+    estudiante = get_object_or_404(Estudiante, id=estudiante_id)
+
+    # Obtener postulaciones del estudiante
+    postulaciones = Postulacion.objects.filter(
+        estudiante=estudiante
+    ).select_related('vacante', 'vacante__empresa', 'postulado_por').order_by('-fecha_postulacion')
+
+    # Obtener práctica actual (si está en práctica)
+    practica_actual = None
+    if estudiante.estado == 'EN_PRACTICA':
+        practica_actual = PracticaEmpresarial.objects.filter(
+            estudiante=estudiante,
+            estado__in=['INICIADA', 'EN_CURSO']
+        ).select_related('empresa', 'tutor_empresarial', 'docente_asesor').first()
+
+    # Obtener historial de prácticas
+    practicas_historial = PracticaEmpresarial.objects.filter(
+        estudiante=estudiante
+    ).select_related('empresa', 'tutor_empresarial', 'docente_asesor').order_by('-fecha_inicio')
+
+    context = {
+        'estudiante': estudiante,
+        'postulaciones': postulaciones,
+        'practica_actual': practica_actual,
+        'practicas_historial': practicas_historial,
+    }
+
+    return render(request, 'coordinacion/estudiantes/detalle.html', context)
+
 
 @login_required
 def postulaciones_lista(request):
@@ -358,59 +395,345 @@ def postulaciones_lista(request):
 @login_required
 def postulacion_crear(request):
     """
-    Crear una nueva postulación de estudiante a vacante (RF-03)
+    RF-03: Crear nueva postulación de estudiante a vacante
+    El estudiante queda directamente en estado SELECCIONADO
     """
-
-    # Verificar que haya vacantes y estudiantes disponibles
-    vacantes_disponibles = Vacante.objects.filter(estado='DISPONIBLE').count()
-    estudiantes_aptos = Estudiante.objects.filter(estado='APTO').count()
-
-    if vacantes_disponibles == 0:
-        messages.warning(
-            request,
-            '⚠️ No hay vacantes disponibles en este momento. Crea una vacante primero.'
-        )
-        return redirect('coordinacion:vacantes_lista')
-
-    if estudiantes_aptos == 0:
-        messages.warning(
-            request,
-            '⚠️ No hay estudiantes aptos para postular en este momento.'
-        )
-        return redirect('coordinacion:estudiantes_lista')
-
     if request.method == 'POST':
         form = PostulacionForm(request.POST)
-
         if form.is_valid():
             postulacion = form.save(commit=False)
             postulacion.postulado_por = request.user.coordinador
+            postulacion.estado = 'SELECCIONADO'  # ✅ CAMBIO: Directamente SELECCIONADO
+            postulacion.fecha_respuesta = timezone.now()  # ✅ NUEVO: Registrar fecha
             postulacion.save()
 
-            # Mensaje de éxito detallado
             messages.success(
                 request,
-                f'✅ Estudiante {postulacion.estudiante.nombre_completo} postulado exitosamente '
-                f'a la vacante "{postulacion.vacante.titulo}" de {postulacion.vacante.empresa.razon_social}'
+                f'✅ Postulación creada exitosamente. '
+                f'{postulacion.estudiante.nombre_completo} está listo para vinculación.'
             )
-
             return redirect('coordinacion:postulaciones_lista')
         else:
-            # Mostrar errores de validación
             for field, errors in form.errors.items():
                 for error in errors:
                     messages.error(request, f'❌ {error}')
     else:
         form = PostulacionForm()
 
-    # Datos adicionales para el template
     context = {
         'form': form,
-        'vacantes_disponibles': vacantes_disponibles,
-        'estudiantes_aptos': estudiantes_aptos,
     }
 
     return render(request, 'coordinacion/postulaciones/crear.html', context)
+
+
+@login_required
+def postulacion_aprobar(request, postulacion_id):
+    """
+    RF-04: Aprobar o rechazar una postulación seleccionada por la empresa
+    Solo se pueden aprobar postulaciones en estado SELECCIONADO
+    """
+    postulacion = get_object_or_404(Postulacion, id=postulacion_id)
+
+    # Verificar que la postulación esté en estado SELECCIONADO
+    if postulacion.estado != 'SELECCIONADO':
+        messages.warning(
+            request,
+            f'Esta postulación está en estado "{postulacion.get_estado_display()}". '
+            f'Solo se pueden aprobar postulaciones seleccionadas por la empresa.'
+        )
+        return redirect('coordinacion:postulaciones_lista')
+
+    if request.method == 'POST':
+        accion = request.POST.get('accion')
+        observaciones = request.POST.get('observaciones', '').strip()
+
+        coordinador = request.user.coordinador
+
+        if accion == 'aprobar':
+            # APROBAR Y VINCULAR
+            postulacion.estado = 'VINCULADO'
+            postulacion.fecha_respuesta = timezone.now()
+            postulacion.observaciones = observaciones if observaciones else 'Postulación aprobada y estudiante vinculado'
+            postulacion.save()
+
+            # Actualizar el estado del estudiante
+            postulacion.estudiante.estado = 'EN_PRACTICA'
+            postulacion.estudiante.save()
+
+            # Incrementar cupos ocupados de la vacante
+            vacante = postulacion.vacante
+            vacante.cupos_ocupados += 1
+
+            # Actualizar estado de la vacante si se llenaron todos los cupos
+            if vacante.cupos_ocupados >= vacante.cantidad_cupos:
+                vacante.estado = 'OCUPADA'
+
+            vacante.save()
+
+            messages.success(
+                request,
+                f'✅ Postulación aprobada. {postulacion.estudiante.nombre_completo} '
+                f'ha sido vinculado a {postulacion.vacante.empresa.razon_social}'
+            )
+
+            # Redirigir a crear la práctica empresarial
+            return redirect('coordinacion:practica_crear_desde_postulacion', postulacion_id=postulacion.id)
+
+        elif accion == 'rechazar':
+            # RECHAZAR POSTULACIÓN
+            if not observaciones:
+                messages.error(
+                    request,
+                    'Debes proporcionar observaciones al rechazar una postulación seleccionada'
+                )
+                return render(request, 'coordinacion/postulaciones/aprobar.html', {
+                    'postulacion': postulacion
+                })
+
+            postulacion.estado = 'RECHAZADO'
+            postulacion.fecha_respuesta = timezone.now()
+            postulacion.observaciones = observaciones
+            postulacion.save()
+
+            # El estudiante vuelve a estar APTO
+            if postulacion.estudiante.estado != 'EN_PRACTICA':
+                postulacion.estudiante.estado = 'APTO'
+                postulacion.estudiante.save()
+
+            messages.warning(
+                request,
+                f'❌ Postulación rechazada. Motivo: {observaciones[:100]}'
+            )
+
+            return redirect('coordinacion:postulaciones_lista')
+
+    # GET request - mostrar formulario de aprobación
+    context = {
+        'postulacion': postulacion,
+    }
+
+    return render(request, 'coordinacion/postulaciones/aprobar.html', context)
+
+@login_required
+def postulacion_detalle(request, postulacion_id):
+    """
+    Ver detalles completos de una postulación
+    """
+    postulacion = get_object_or_404(Postulacion, id=postulacion_id)
+
+    context = {
+        'postulacion': postulacion,
+    }
+
+    return render(request, 'coordinacion/postulaciones/detalle.html', context)
+
+
+@login_required
+def practica_crear_desde_postulacion(request, postulacion_id):
+    """
+    Crear automáticamente una práctica empresarial desde una postulación vinculada
+    """
+    postulacion = get_object_or_404(Postulacion, id=postulacion_id)
+
+    # Verificar que la postulación esté vinculada
+    if postulacion.estado != 'VINCULADO':
+        messages.error(request, 'Solo se pueden crear prácticas desde postulaciones vinculadas')
+        return redirect('coordinacion:postulaciones_lista')
+
+    # Verificar que no exista ya una práctica para este estudiante y vacante
+    practica_existente = PracticaEmpresarial.objects.filter(
+        estudiante=postulacion.estudiante,
+        vacante=postulacion.vacante
+    ).first()
+
+    if practica_existente:
+        messages.info(request, 'Ya existe una práctica registrada para este estudiante')
+        return redirect('coordinacion:practica_detalle', practica_id=practica_existente.id)
+
+    # Obtener tutores y docentes disponibles
+    tutores = TutorEmpresarial.objects.filter(
+        empresa=postulacion.vacante.empresa,
+        activo=True
+    )
+    docentes = DocenteAsesor.objects.filter(activo=True)
+
+    if request.method == 'POST':
+        tutor_id = request.POST.get('tutor_empresarial')
+        docente_id = request.POST.get('docente_asesor')
+        fecha_inicio = request.POST.get('fecha_inicio')
+        duracion_meses = int(request.POST.get('duracion_meses', postulacion.vacante.duracion_meses))
+
+        # Validaciones
+        if not tutor_id:
+            messages.error(request, 'Debes seleccionar un tutor empresarial')
+            return render(request, 'coordinacion/practicas/crear_desde_postulacion.html', {
+                'postulacion': postulacion,
+                'tutores': tutores,
+                'docentes': docentes,
+            })
+
+        if not docente_id:
+            messages.error(request, 'Debes seleccionar un docente asesor')
+            return render(request, 'coordinacion/practicas/crear_desde_postulacion.html', {
+                'postulacion': postulacion,
+                'tutores': tutores,
+                'docentes': docentes,
+            })
+
+        # Crear la práctica empresarial
+        from datetime import datetime, timedelta
+
+        fecha_inicio_date = datetime.strptime(fecha_inicio, '%Y-%m-%d').date()
+        fecha_fin_estimada = fecha_inicio_date + timedelta(days=duracion_meses * 30)
+
+        practica = PracticaEmpresarial.objects.create(
+            estudiante=postulacion.estudiante,
+            empresa=postulacion.vacante.empresa,
+            vacante=postulacion.vacante,
+            tutor_empresarial_id=tutor_id,
+            docente_asesor_id=docente_id,
+            fecha_inicio=fecha_inicio_date,
+            fecha_fin_estimada=fecha_fin_estimada,
+            estado='INICIADA',
+            plan_aprobado=False,
+            asignada_por=request.user.coordinador,
+            observaciones=f'Práctica creada desde postulación #{postulacion.id}'
+        )
+
+        messages.success(
+            request,
+            f'✅ Práctica empresarial creada exitosamente para {practica.estudiante.nombre_completo}'
+        )
+
+        return redirect('coordinacion:practica_detalle', practica_id=practica.id)
+
+    # GET request
+    context = {
+        'postulacion': postulacion,
+        'tutores': tutores,
+        'docentes': docentes,
+    }
+
+    return render(request, 'coordinacion/practicas/crear_desde_postulacion.html', context)
+
+@login_required
+def postulacion_editar(request, postulacion_id):
+    """
+    Editar una postulación existente (solo si está en estado POSTULADO)
+    """
+    postulacion = get_object_or_404(Postulacion, id=postulacion_id)
+
+    # Verificar que la postulación esté en estado POSTULADO
+    if postulacion.estado != 'POSTULADO':
+        messages.warning(
+            request,
+            f'No se puede editar una postulación en estado "{postulacion.get_estado_display()}"'
+        )
+        return redirect('coordinacion:postulacion_detalle', postulacion_id=postulacion.id)
+
+    if request.method == 'POST':
+        form = PostulacionForm(request.POST, instance=postulacion)
+        if form.is_valid():
+            form.save()
+            messages.success(request, '✅ Postulación actualizada exitosamente')
+            return redirect('coordinacion:postulacion_detalle', postulacion_id=postulacion.id)
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'❌ {error}')
+    else:
+        form = PostulacionForm(instance=postulacion)
+
+    context = {
+        'form': form,
+        'postulacion': postulacion,
+    }
+
+    return render(request, 'coordinacion/postulaciones/editar.html', context)
+
+
+@login_required
+def postulacion_eliminar(request, postulacion_id):
+    """
+    Eliminar una postulación (solo si está en estado POSTULADO)
+    """
+    postulacion = get_object_or_404(Postulacion, id=postulacion_id)
+
+    # Verificar que la postulación esté en estado POSTULADO
+    if postulacion.estado != 'POSTULADO':
+        messages.warning(
+            request,
+            f'No se puede eliminar una postulación en estado "{postulacion.get_estado_display()}"'
+        )
+        return redirect('coordinacion:postulacion_detalle', postulacion_id=postulacion.id)
+
+    if request.method == 'POST':
+        estudiante_nombre = postulacion.estudiante.nombre_completo
+        vacante_titulo = postulacion.vacante.titulo
+
+        postulacion.delete()
+
+        messages.success(
+            request,
+            f'✅ Postulación eliminada: {estudiante_nombre} - {vacante_titulo}'
+        )
+        return redirect('coordinacion:postulaciones_lista')
+
+    # Si es GET, redirigir al detalle
+    return redirect('coordinacion:postulacion_detalle', postulacion_id=postulacion.id)
+
+@login_required
+def postulacion_rechazar(request, postulacion_id):
+    """
+    Rechazar una postulación directamente desde la lista
+    """
+    postulacion = get_object_or_404(Postulacion, id=postulacion_id)
+
+    # Verificar que la postulación esté en estado SELECCIONADO
+    if postulacion.estado != 'SELECCIONADO':
+        messages.warning(
+            request,
+            f'Esta postulación está en estado "{postulacion.get_estado_display()}". '
+            f'Solo se pueden rechazar postulaciones seleccionadas.'
+        )
+        return redirect('coordinacion:postulaciones_lista')
+
+    if request.method == 'POST':
+        observaciones = request.POST.get('observaciones', '').strip()
+
+        if not observaciones:
+            messages.error(request, 'Debes proporcionar un motivo para rechazar')
+            return render(request, 'coordinacion/postulaciones/rechazar.html', {
+                'postulacion': postulacion
+            })
+
+        # Rechazar postulación
+        postulacion.estado = 'RECHAZADO'
+        postulacion.fecha_respuesta = timezone.now()
+        postulacion.observaciones = observaciones
+        postulacion.save()
+
+        # El estudiante vuelve a estar APTO
+        if postulacion.estudiante.estado != 'EN_PRACTICA':
+            postulacion.estudiante.estado = 'APTO'
+            postulacion.estudiante.save()
+
+        messages.warning(
+            request,
+            f'❌ Postulación rechazada: {postulacion.estudiante.nombre_completo}'
+        )
+
+        return redirect('coordinacion:postulaciones_lista')
+
+    # GET request - mostrar formulario
+    context = {
+        'postulacion': postulacion,
+    }
+
+    return render(request, 'coordinacion/postulaciones/rechazar.html', context)
+
+
 
 
 # ============================================
@@ -502,16 +825,97 @@ def practicas_lista(request):
 
 @login_required
 def practica_detalle(request, practica_id):
-    """Ver detalles de una práctica"""
-    practica = get_object_or_404(PracticaEmpresarial, id=practica_id)
+    """
+    Ver detalle completo de una práctica empresarial
+    """
+    practica = get_object_or_404(
+        PracticaEmpresarial.objects.select_related(
+            'estudiante',
+            'empresa',
+            'vacante',
+            'tutor_empresarial',
+            'docente_asesor',
+            'asignada_por'
+        ),
+        id=practica_id
+    )
 
     context = {
         'practica': practica,
-        'seguimientos': practica.seguimientos.all(),
-        'evaluaciones': practica.evaluaciones.all(),
     }
 
     return render(request, 'coordinacion/practicas/detalle.html', context)
+
+
+@login_required
+def practica_cancelar(request, practica_id):
+    """
+    Cancelar una práctica empresarial con motivo
+    Solo se pueden cancelar prácticas en estado INICIADA o EN_CURSO
+    """
+    practica = get_object_or_404(PracticaEmpresarial, id=practica_id)
+
+    # Verificar que la práctica pueda ser cancelada
+    if practica.estado not in ['INICIADA', 'EN_CURSO']:
+        messages.warning(
+            request,
+            f'No se puede cancelar una práctica en estado "{practica.get_estado_display()}"'
+        )
+        return redirect('coordinacion:practica_detalle', practica_id=practica.id)
+
+    if request.method == 'POST':
+        motivo_cancelacion = request.POST.get('motivo_cancelacion', '').strip()
+
+        if not motivo_cancelacion or len(motivo_cancelacion) < 20:
+            messages.error(
+                request,
+                'Debes proporcionar un motivo de cancelación con al menos 20 caracteres'
+            )
+            return render(request, 'coordinacion/practicas/cancelar.html', {
+                'practica': practica
+            })
+
+        # Cancelar la práctica
+        practica.estado = 'CANCELADA'
+        practica.fecha_fin = timezone.now().date()
+
+        # Agregar motivo a observaciones
+        if practica.observaciones:
+            practica.observaciones += f"\n\n--- CANCELACIÓN ---\nFecha: {timezone.now().strftime('%d/%m/%Y %H:%M')}\nMotivo: {motivo_cancelacion}"
+        else:
+            practica.observaciones = f"PRÁCTICA CANCELADA\nFecha: {timezone.now().strftime('%d/%m/%Y %H:%M')}\nMotivo: {motivo_cancelacion}"
+
+        practica.save()
+
+        # Actualizar estado del estudiante a APTO
+        estudiante = practica.estudiante
+        estudiante.estado = 'APTO'
+        estudiante.save()
+
+        # Liberar cupo de la vacante
+        vacante = practica.vacante
+        if vacante and vacante.cupos_ocupados > 0:
+            vacante.cupos_ocupados -= 1
+
+            # Si la vacante estaba ocupada y ahora tiene cupos, cambiar a disponible
+            if vacante.estado == 'OCUPADA' and vacante.cupos_ocupados < vacante.cantidad_cupos:
+                vacante.estado = 'DISPONIBLE'
+
+            vacante.save()
+
+        messages.warning(
+            request,
+            f'⚠️ Práctica cancelada: {estudiante.nombre_completo} - {practica.empresa.razon_social}'
+        )
+
+        return redirect('coordinacion:practicas_lista')
+
+    # GET request - mostrar formulario
+    context = {
+        'practica': practica,
+    }
+
+    return render(request, 'coordinacion/practicas/cancelar.html', context)
 
 
 # ============================================
@@ -594,6 +998,42 @@ def practica_cerrar(request, practica_id):
     }
 
     return render(request, 'coordinacion/practicas/cerrar.html', context)
+
+@login_required
+def practica_finalizar(request, practica_id):
+    """
+    Marcar una práctica como finalizada exitosamente
+    """
+    practica = get_object_or_404(PracticaEmpresarial, id=practica_id)
+
+    # Verificar que la práctica esté EN_CURSO
+    if practica.estado != 'EN_CURSO':
+        messages.warning(
+            request,
+            f'Solo se pueden finalizar prácticas en estado "En Curso"'
+        )
+        return redirect('coordinacion:practica_detalle', practica_id=practica.id)
+
+    if request.method == 'POST':
+        # Finalizar la práctica
+        practica.estado = 'FINALIZADA'
+        practica.fecha_fin = timezone.now().date()
+        practica.save()
+
+        # Actualizar estado del estudiante
+        estudiante = practica.estudiante
+        estudiante.estado = 'FINALIZADO'
+        estudiante.save()
+
+        messages.success(
+            request,
+            f'✅ Práctica finalizada exitosamente: {estudiante.nombre_completo}'
+        )
+
+        return redirect('coordinacion:practica_detalle', practica_id=practica.id)
+
+    # Si es GET, redirigir al detalle
+    return redirect('coordinacion:practica_detalle', practica_id=practica.id)
 
 
 # ============================================

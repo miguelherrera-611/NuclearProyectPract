@@ -31,12 +31,20 @@ urlpatterns = [
     path('vacantes/<int:vacante_id>/', views.vacante_detalle, name='vacante_detalle'),
     path('vacantes/<int:vacante_id>/editar/', views.vacante_editar, name='vacante_editar'),
 
+
     # ============================================
     # GESTIÓN DE ESTUDIANTES Y POSTULACIONES (RF-03)
     # ============================================
     path('estudiantes/', views.estudiantes_lista, name='estudiantes_lista'),
+    path('estudiantes/<int:estudiante_id>/', views.estudiante_detalle, name='estudiante_detalle'),
     path('postulaciones/', views.postulaciones_lista, name='postulaciones_lista'),
     path('postulaciones/crear/', views.postulacion_crear, name='postulacion_crear'),
+    path('postulaciones/<int:postulacion_id>/', views.postulacion_detalle, name='postulacion_detalle'),
+    path('postulaciones/<int:postulacion_id>/aprobar/', views.postulacion_aprobar, name='postulacion_aprobar'),
+    path('postulaciones/<int:postulacion_id>/crear-practica/', views.practica_crear_desde_postulacion, name='practica_crear_desde_postulacion'),
+    path('postulaciones/<int:postulacion_id>/editar/', views.postulacion_editar, name='postulacion_editar'),
+    path('postulaciones/<int:postulacion_id>/eliminar/', views.postulacion_eliminar, name='postulacion_eliminar'),
+    path('postulaciones/<int:postulacion_id>/rechazar/', views.postulacion_rechazar, name='postulacion_rechazar'),
 
     # ============================================
     # GESTIÓN DE TUTORES Y DOCENTES (RF-05)
@@ -51,6 +59,9 @@ urlpatterns = [
     path('practicas/', views.practicas_lista, name='practicas_lista'),
     path('practicas/<int:practica_id>/', views.practica_detalle, name='practica_detalle'),
     path('practicas/<int:practica_id>/cerrar/', views.practica_cerrar, name='practica_cerrar'),
+    path('practicas/<int:practica_id>/', views.practica_detalle, name='practica_detalle'),
+    path('practicas/<int:practica_id>/cancelar/', views.practica_cancelar, name='practica_cancelar'),
+    path('practicas/<int:practica_id>/finalizar/', views.practica_finalizar, name='practica_finalizar'),
 
     # ============================================
     # GESTIÓN DE SUSTENTACIONES (RF-09)

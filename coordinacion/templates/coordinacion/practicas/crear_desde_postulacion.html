@@ -1,0 +1,339 @@
+{% extends 'coordinacion/base.html' %}
+{% load static %}
+
+{% block title %}Crear Práctica Empresarial{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'coordinacion:dashboard' %}">
+            <i class="fas fa-graduation-cap me-2"></i>Sistema de Prácticas
+        </a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-1"></i>{{ request.user.username }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{% url 'coordinacion:logout' %}">
+                            <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                        </a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 sidebar">
+            <div class="list-group">
+                <a href="{% url 'coordinacion:dashboard' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-home me-2"></i>Dashboard
+                </a>
+                <a href="{% url 'coordinacion:empresas_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-building me-2"></i>Empresas
+                </a>
+                <a href="{% url 'coordinacion:vacantes_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-briefcase me-2"></i>Vacantes
+                </a>
+                <a href="{% url 'coordinacion:estudiantes_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-user-graduate me-2"></i>Estudiantes
+                </a>
+                <a href="{% url 'coordinacion:postulaciones_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-clipboard-list me-2"></i>Postulaciones
+                </a>
+                <a href="{% url 'coordinacion:practicas_lista' %}" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-tasks me-2"></i>Prácticas
+                </a>
+                <a href="{% url 'coordinacion:tutores_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chalkboard-teacher me-2"></i>Tutores
+                </a>
+                <a href="{% url 'coordinacion:sustentaciones_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-graduation-cap me-2"></i>Sustentaciones
+                </a>
+                <a href="{% url 'coordinacion:reportes_dashboard' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chart-line me-2"></i>Reportes
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'coordinacion:dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'coordinacion:practicas_lista' %}">Prácticas</a></li>
+                    <li class="breadcrumb-item active">Crear Práctica</li>
+                </ol>
+            </nav>
+
+            <!-- Header -->
+            <div class="mb-4">
+                <h2>
+                    <i class="fas fa-plus-circle me-2 text-success"></i>
+                    Crear Práctica Empresarial
+                </h2>
+                <p class="text-muted">Asigna tutor empresarial y docente asesor para iniciar formalmente la práctica</p>
+            </div>
+
+            <!-- Alerta de éxito -->
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle me-2"></i>
+                <strong>¡Postulación aprobada exitosamente!</strong> Ahora debes completar la información para crear la práctica empresarial.
+            </div>
+
+            <!-- Mensajes -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="POST" id="practicaForm">
+                {% csrf_token %}
+                
+                <div class="row g-4">
+                    <!-- Resumen de la Postulación -->
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header bg-info text-white">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-info-circle me-2"></i>Resumen de la Postulación Aprobada
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <p><strong>Estudiante:</strong><br>{{ postulacion.estudiante.nombre_completo }}</p>
+                                        <p><strong>Código:</strong><br>{{ postulacion.estudiante.codigo }}</p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <p><strong>Empresa:</strong><br>{{ postulacion.vacante.empresa.razon_social }}</p>
+                                        <p><strong>Vacante:</strong><br>{{ postulacion.vacante.titulo }}</p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <p><strong>Programa:</strong><br>{{ postulacion.estudiante.programa_academico }}</p>
+                                        <p><strong>Duración sugerida:</strong><br>{{ postulacion.vacante.duracion_meses }} meses</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Asignación de Tutor Empresarial -->
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-user-tie me-2"></i>1. Asignar Tutor Empresarial
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                {% if tutores %}
+                                    <div class="mb-3">
+                                        <label for="tutor_empresarial" class="form-label fw-bold">
+                                            Seleccionar Tutor <span class="text-danger">*</span>
+                                        </label>
+                                        <select name="tutor_empresarial" id="tutor_empresarial" class="form-select" required>
+                                            <option value="">-- Seleccione un tutor --</option>
+                                            {% for tutor in tutores %}
+                                                <option value="{{ tutor.id }}">
+                                                    {{ tutor.nombre_completo }} - {{ tutor.cargo }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                        <small class="text-muted">
+                                            El tutor empresarial supervisará al estudiante en la empresa
+                                        </small>
+                                    </div>
+                                {% else %}
+                                    <div class="alert alert-warning">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                        <strong>Atención:</strong> Esta empresa no tiene tutores registrados. 
+                                        Debes registrar un tutor antes de continuar.
+                                    </div>
+                                    <a href="#" class="btn btn-warning">
+                                        <i class="fas fa-plus me-2"></i>Registrar Tutor
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Asignación de Docente Asesor -->
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-chalkboard-teacher me-2"></i>2. Asignar Docente Asesor
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                {% if docentes %}
+                                    <div class="mb-3">
+                                        <label for="docente_asesor" class="form-label fw-bold">
+                                            Seleccionar Docente Asesor <span class="text-danger">*</span>
+                                        </label>
+                                        <select name="docente_asesor" id="docente_asesor" class="form-select" required>
+                                            <option value="">-- Seleccione un docente --</option>
+                                            {% for docente in docentes %}
+                                                <option value="{{ docente.id }}">
+                                                    {{ docente.nombre_completo }} - {{ docente.especialidad }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                        <small class="text-muted">
+                                            El docente asesor hará seguimiento académico al estudiante
+                                        </small>
+                                    </div>
+                                {% else %}
+                                    <div class="alert alert-danger">
+                                        <i class="fas fa-times-circle me-2"></i>
+                                        <strong>Error:</strong> No hay docentes asesores disponibles en el sistema.
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fechas y Duración -->
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header bg-warning text-dark">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-calendar me-2"></i>3. Fechas y Duración
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="fecha_inicio" class="form-label fw-bold">
+                                            Fecha de Inicio <span class="text-danger">*</span>
+                                        </label>
+                                        <input 
+                                            type="date" 
+                                            name="fecha_inicio" 
+                                            id="fecha_inicio" 
+                                            class="form-control" 
+                                            required
+                                            min="{{ today|date:'Y-m-d' }}"
+                                        >
+                                        <small class="text-muted">Fecha en que el estudiante inicia la práctica</small>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label for="duracion_meses" class="form-label fw-bold">
+                                            Duración (meses) <span class="text-danger">*</span>
+                                        </label>
+                                        <input 
+                                            type="number" 
+                                            name="duracion_meses" 
+                                            id="duracion_meses" 
+                                            class="form-control" 
+                                            min="3" 
+                                            max="12" 
+                                            value="{{ postulacion.vacante.duracion_meses }}"
+                                            required
+                                        >
+                                        <small class="text-muted">Entre 3 y 12 meses</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Información Adicional -->
+                    <div class="col-12">
+                        <div class="card border-info">
+                            <div class="card-header bg-info text-white">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-lightbulb me-2"></i>Información Importante
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <ul class="mb-0">
+                                    <li>Al crear la práctica, el estudiante cambiará a estado <strong>"En Práctica"</strong></li>
+                                    <li>El tutor y docente asignados recibirán notificación (próximamente)</li>
+                                    <li>El estudiante deberá subir su plan de práctica para aprobación</li>
+                                    <li>Se iniciará el seguimiento semanal automáticamente</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botones -->
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'coordinacion:postulaciones_lista' %}" class="btn btn-secondary">
+                                        <i class="fas fa-times me-2"></i>Cancelar
+                                    </a>
+                                    <button type="submit" class="btn btn-success btn-lg" {% if not tutores or not docentes %}disabled{% endif %}>
+                                        <i class="fas fa-check me-2"></i>Crear Práctica Empresarial
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Script para validación -->
+<script>
+    document.getElementById('practicaForm').addEventListener('submit', function(e) {
+        const tutor = document.getElementById('tutor_empresarial').value;
+        const docente = document.getElementById('docente_asesor').value;
+        const fechaInicio = document.getElementById('fecha_inicio').value;
+        const duracion = document.getElementById('duracion_meses').value;
+
+        if (!tutor) {
+            e.preventDefault();
+            alert('Debes seleccionar un tutor empresarial');
+            return;
+        }
+
+        if (!docente) {
+            e.preventDefault();
+            alert('Debes seleccionar un docente asesor');
+            return;
+        }
+
+        if (!fechaInicio) {
+            e.preventDefault();
+            alert('Debes especificar la fecha de inicio');
+            return;
+        }
+
+        if (!duracion || duracion < 3 || duracion > 12) {
+            e.preventDefault();
+            alert('La duración debe estar entre 3 y 12 meses');
+            return;
+        }
+
+        // Confirmación
+        if (!confirm('¿Estás seguro de crear esta práctica empresarial?\n\nEsto iniciará formalmente el proceso de práctica del estudiante.')) {
+            e.preventDefault();
+        }
+    });
+
+    // Establecer fecha mínima como hoy
+    document.addEventListener('DOMContentLoaded', function() {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('fecha_inicio').setAttribute('min', today);
+        document.getElementById('fecha_inicio').value = today;
+    });
+</script>
+{% endblock %}

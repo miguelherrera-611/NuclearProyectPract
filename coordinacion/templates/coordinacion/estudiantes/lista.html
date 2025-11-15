@@ -81,9 +81,6 @@
         const [busqueda, setBusqueda] = useState('');
         const [estudiantesFiltrados, setEstudiantesFiltrados] = useState(estudiantesData);
 
-        // Obtener programas únicos
-        const programas = [...new Set(estudiantes.map(e => e.programa_academico))];
-
         useEffect(() => {
             let resultado = estudiantes;
 
@@ -105,9 +102,11 @@
             setEstudiantesFiltrados(resultado);
         }, [filtroEstado, filtroPrograma, busqueda, estudiantes]);
 
+        const programas = [...new Set(estudiantes.map(e => e.programa_academico))];
+
         return (
             <div>
-                <div className="d-flex justify-content-between align-items-center mb-4">
+                <div className="mb-4">
                     <h2>
                         <i className="fas fa-user-graduate me-2 text-primary"></i>
                         Gestión de Estudiantes
@@ -123,24 +122,10 @@
                                 <input
                                     type="text"
                                     className="form-control"
-                                    placeholder="Nombre o código..."
+                                    placeholder="Nombre o Código..."
                                     value={busqueda}
                                     onChange={(e) => setBusqueda(e.target.value)}
                                 />
-                            </div>
-                            <div className="col-md-3">
-                                <label className="form-label">Estado</label>
-                                <select
-                                    className="form-select"
-                                    value={filtroEstado}
-                                    onChange={(e) => setFiltroEstado(e.target.value)}
-                                >
-                                    <option value="">Todos</option>
-                                    <option value="APTO">Apto</option>
-                                    <option value="EN_PRACTICA">En Práctica</option>
-                                    <option value="FINALIZADO">Finalizado</option>
-                                    <option value="NO_APTO">No Apto</option>
-                                </select>
                             </div>
                             <div className="col-md-3">
                                 <label className="form-label">Programa</label>
@@ -155,7 +140,21 @@
                                     ))}
                                 </select>
                             </div>
-                            <div className="col-md-2 d-flex align-items-end">
+                            <div className="col-md-2">
+                                <label className="form-label">Estado</label>
+                                <select
+                                    className="form-select"
+                                    value={filtroEstado}
+                                    onChange={(e) => setFiltroEstado(e.target.value)}
+                                >
+                                    <option value="">Todos</option>
+                                    <option value="APTO">Apto</option>
+                                    <option value="EN_PRACTICA">En Práctica</option>
+                                    <option value="FINALIZADO">Finalizado</option>
+                                    <option value="NO_APTO">No Apto</option>
+                                </select>
+                            </div>
+                            <div className="col-md-3 d-flex align-items-end">
                                 <button
                                     className="btn btn-secondary w-100"
                                     onClick={() => {
@@ -174,7 +173,7 @@
                 {/* Estadísticas */}
                 <div className="row g-3 mb-4">
                     <StatCard
-                        icon="fa-users"
+                        icon="fa-user-graduate"
                         title="Total Estudiantes"
                         value={estudiantes.length}
                         color="primary"
@@ -287,10 +286,11 @@
                 <td><small>{estudiante.programa_academico}</small></td>
                 <td className="text-center">{estudiante.semestre}</td>
                 <td className="text-center">
-                    {estudiante.promedio_academico ?
+                    {estudiante.promedio_academico ? (
                         <span className="badge bg-primary">{estudiante.promedio_academico}</span>
-                        : '-'
-                    }
+                    ) : (
+                        <span className="text-muted">-</span>
+                    )}
                 </td>
                 <td>
                     <span className={`badge bg-${getEstadoBadge(estudiante.estado)}`}>
@@ -298,14 +298,13 @@
                     </span>
                 </td>
                 <td>
-                    <div className="btn-group btn-group-sm">
-                        <button
-                            className="btn btn-outline-primary"
-                            title="Ver detalles"
-                        >
-                            <i className="fas fa-eye"></i>
-                        </button>
-                    </div>
+                    <a
+                        href={`/estudiantes/${estudiante.id}/`}
+                        className="btn btn-sm btn-outline-primary"
+                        title="Ver detalles"
+                    >
+                        <i className="fas fa-eye"></i>
+                    </a>
                 </td>
             </tr>
         );

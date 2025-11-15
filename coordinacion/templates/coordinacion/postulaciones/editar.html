@@ -1,0 +1,235 @@
+{% extends 'coordinacion/base.html' %}
+{% load static %}
+
+{% block title %}Editar Postulación{% endblock %}
+
+{% block content %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'coordinacion:dashboard' %}">
+            <i class="fas fa-graduation-cap me-2"></i>Sistema de Prácticas
+        </a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-1"></i>{{ request.user.username }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{% url 'coordinacion:logout' %}">
+                            <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                        </a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-3 col-lg-2 sidebar">
+            <div class="list-group">
+                <a href="{% url 'coordinacion:dashboard' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-home me-2"></i>Dashboard
+                </a>
+                <a href="{% url 'coordinacion:empresas_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-building me-2"></i>Empresas
+                </a>
+                <a href="{% url 'coordinacion:vacantes_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-briefcase me-2"></i>Vacantes
+                </a>
+                <a href="{% url 'coordinacion:estudiantes_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-user-graduate me-2"></i>Estudiantes
+                </a>
+                <a href="{% url 'coordinacion:postulaciones_lista' %}" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-clipboard-list me-2"></i>Postulaciones
+                </a>
+                <a href="{% url 'coordinacion:practicas_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-tasks me-2"></i>Prácticas
+                </a>
+                <a href="{% url 'coordinacion:tutores_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chalkboard-teacher me-2"></i>Tutores
+                </a>
+                <a href="{% url 'coordinacion:sustentaciones_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-graduation-cap me-2"></i>Sustentaciones
+                </a>
+                <a href="{% url 'coordinacion:reportes_dashboard' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chart-line me-2"></i>Reportes
+                </a>
+            </div>
+        </div>
+
+        <div class="col-md-9 col-lg-10">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'coordinacion:dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'coordinacion:postulaciones_lista' %}">Postulaciones</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'coordinacion:postulacion_detalle' postulacion.id %}">Detalle</a></li>
+                    <li class="breadcrumb-item active">Editar</li>
+                </ol>
+            </nav>
+
+            <div class="mb-4">
+                <h2>
+                    <i class="fas fa-edit me-2 text-warning"></i>
+                    Editar Postulación
+                </h2>
+                <p class="text-muted">Actualiza la información de la postulación</p>
+            </div>
+
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Nota:</strong> Solo puedes editar postulaciones en estado "Postulado".
+            </div>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="POST" id="editarForm">
+                {% csrf_token %}
+                
+                <div class="row g-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header bg-secondary text-white">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-info-circle me-2"></i>Información Actual
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Estudiante Actual:</strong><br>{{ postulacion.estudiante.nombre_completo }} ({{ postulacion.estudiante.codigo }})</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>Vacante Actual:</strong><br>{{ postulacion.vacante.titulo }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-briefcase me-2"></i>1. Vacante
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="{{ form.vacante.id_for_label }}" class="form-label fw-bold">
+                                        {{ form.vacante.label }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.vacante }}
+                                    {% if form.vacante.errors %}
+                                        <div class="text-danger small mt-1">{{ form.vacante.errors }}</div>
+                                    {% endif %}
+                                    <small class="text-muted d-block mt-2">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Solo se muestran vacantes con estado "Disponible" y cupos libres
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-user-graduate me-2"></i>2. Estudiante
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="{{ form.estudiante.id_for_label }}" class="form-label fw-bold">
+                                        {{ form.estudiante.label }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.estudiante }}
+                                    {% if form.estudiante.errors %}
+                                        <div class="text-danger small mt-1">{{ form.estudiante.errors }}</div>
+                                    {% endif %}
+                                    <small class="text-muted d-block mt-2">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Solo se muestran estudiantes con estado "Apto para Práctica"
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header bg-warning text-dark">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-comment-alt me-2"></i>3. Observaciones (Opcional)
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="{{ form.observaciones.id_for_label }}" class="form-label fw-bold">
+                                        {{ form.observaciones.label }}
+                                    </label>
+                                    {{ form.observaciones }}
+                                    {% if form.observaciones.errors %}
+                                        <div class="text-danger small mt-1">{{ form.observaciones.errors }}</div>
+                                    {% endif %}
+                                    <small class="text-muted">
+                                        Agrega información relevante sobre esta postulación
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'coordinacion:postulacion_detalle' postulacion.id %}" class="btn btn-secondary">
+                                        <i class="fas fa-times me-2"></i>Cancelar
+                                    </a>
+                                    <button type="submit" class="btn btn-warning btn-lg">
+                                        <i class="fas fa-save me-2"></i>Guardar Cambios
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('editarForm').addEventListener('submit', function(e) {
+        const vacante = document.getElementById('id_vacante').value;
+        const estudiante = document.getElementById('id_estudiante').value;
+
+        if (!vacante) {
+            e.preventDefault();
+            alert('Debes seleccionar una vacante');
+            return;
+        }
+
+        if (!estudiante) {
+            e.preventDefault();
+            alert('Debes seleccionar un estudiante');
+            return;
+        }
+
+        if (!confirm('¿Estás seguro de guardar los cambios en esta postulación?')) {
+            e.preventDefault();
+        }
+    });
+</script>
+{% endblock %}

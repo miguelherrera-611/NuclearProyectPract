@@ -91,19 +91,36 @@
                 resultado = resultado.filter(p =>
                     p.estudiante.nombre_completo.toLowerCase().includes(busqueda.toLowerCase()) ||
                     p.estudiante.codigo.includes(busqueda) ||
-                    p.empresa.razon_social.toLowerCase().includes(busqueda.toLowerCase())
+                    p.empresa.toLowerCase().includes(busqueda.toLowerCase())
                 );
             }
 
             setPracticasFiltradas(resultado);
         }, [filtroEstado, busqueda, practicas]);
 
+        const handleFinalizar = async (practicaId) => {
+            if (confirm('¿Estás seguro de marcar esta práctica como FINALIZADA?')) {
+                // Enviar formulario POST
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/practicas/${practicaId}/finalizar/`;
+
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+                if (csrfToken) {
+                    form.appendChild(csrfToken.cloneNode());
+                }
+
+                document.body.appendChild(form);
+                form.submit();
+            }
+        };
+
         return (
             <div>
-                <div className="d-flex justify-content-between align-items-center mb-4">
+                <div className="mb-4">
                     <h2>
                         <i className="fas fa-tasks me-2 text-primary"></i>
-                        Gestión de Prácticas
+                        Gestión de Prácticas Empresariales
                     </h2>
                 </div>
 
@@ -209,7 +226,11 @@
                                     </thead>
                                     <tbody>
                                         {practicasFiltradas.map(practica => (
-                                            <PracticaRow key={practica.id} practica={practica} />
+                                            <PracticaRow
+                                                key={practica.id}
+                                                practica={practica}
+                                                onFinalizar={handleFinalizar}
+                                            />
                                         ))}
                                     </tbody>
                                 </table>
@@ -239,7 +260,7 @@
         );
     }
 
-    function PracticaRow({ practica }) {
+    function PracticaRow({ practica, onFinalizar }) {
         const getEstadoBadge = (estado) => {
             const badges = {
                 'INICIADA': 'info',
@@ -269,9 +290,9 @@
             <tr>
                 <td><strong>{practica.estudiante.nombre_completo}</strong></td>
                 <td>{practica.estudiante.codigo}</td>
-                <td><small>{practica.empresa.razon_social}</small></td>
-                <td><small>{practica.tutor_empresarial ? practica.tutor_empresarial.nombre_completo : 'Sin asignar'}</small></td>
-                <td><small>{practica.docente_asesor ? practica.docente_asesor.nombre_completo : 'Sin asignar'}</small></td>
+                <td><small>{practica.empresa}</small></td>
+                <td><small>{practica.tutor_empresarial}</small></td>
+                <td><small>{practica.docente_asesor}</small></td>
                 <td>{formatDate(practica.fecha_inicio)}</td>
                 <td>
                     <span className={`badge bg-${getEstadoBadge(practica.estado)}`}>
@@ -288,13 +309,13 @@
                             <i className="fas fa-eye"></i>
                         </a>
                         {practica.estado === 'EN_CURSO' && (
-                            <a
-                                href={`/practicas/${practica.id}/cerrar/`}
+                            <button
+                                onClick={() => onFinalizar(practica.id)}
                                 className="btn btn-outline-success"
-                                title="Cerrar práctica"
+                                title="Finalizar práctica"
                             >
                                 <i className="fas fa-check"></i>
-                            </a>
+                            </button>
                         )}
                     </div>
                 </td>
@@ -305,4 +326,9 @@
     const root = ReactDOM.createRoot(document.getElementById('practicas-root'));
     root.render(<PracticasApp />);
 </script>
+
+<!-- CSRF Token para formularios POST -->
+<form style="display: none;">
+    {% csrf_token %}
+</form>
 {% endblock %}

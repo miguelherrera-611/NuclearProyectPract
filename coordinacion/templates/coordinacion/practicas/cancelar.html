@@ -1,0 +1,254 @@
+{% extends 'coordinacion/base.html' %}
+{% load static %}
+
+{% block title %}Cancelar Práctica{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'coordinacion:dashboard' %}">
+            <i class="fas fa-graduation-cap me-2"></i>Sistema de Prácticas
+        </a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-1"></i>{{ request.user.username }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{% url 'coordinacion:logout' %}">
+                            <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                        </a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 sidebar">
+            <div class="list-group">
+                <a href="{% url 'coordinacion:dashboard' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-home me-2"></i>Dashboard
+                </a>
+                <a href="{% url 'coordinacion:empresas_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-building me-2"></i>Empresas
+                </a>
+                <a href="{% url 'coordinacion:vacantes_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-briefcase me-2"></i>Vacantes
+                </a>
+                <a href="{% url 'coordinacion:estudiantes_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-user-graduate me-2"></i>Estudiantes
+                </a>
+                <a href="{% url 'coordinacion:postulaciones_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-clipboard-list me-2"></i>Postulaciones
+                </a>
+                <a href="{% url 'coordinacion:practicas_lista' %}" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-tasks me-2"></i>Prácticas
+                </a>
+                <a href="{% url 'coordinacion:tutores_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chalkboard-teacher me-2"></i>Tutores
+                </a>
+                <a href="{% url 'coordinacion:sustentaciones_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-graduation-cap me-2"></i>Sustentaciones
+                </a>
+                <a href="{% url 'coordinacion:reportes_dashboard' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chart-line me-2"></i>Reportes
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'coordinacion:dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'coordinacion:practicas_lista' %}">Prácticas</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'coordinacion:practica_detalle' practica.id %}">Detalle</a></li>
+                    <li class="breadcrumb-item active">Cancelar</li>
+                </ol>
+            </nav>
+
+            <!-- Header -->
+            <div class="mb-4">
+                <h2>
+                    <i class="fas fa-times-circle me-2 text-danger"></i>
+                    Cancelar Práctica Empresarial
+                </h2>
+                <p class="text-muted">Esta acción cancelará la práctica y notificará al estudiante</p>
+            </div>
+
+            <!-- Alerta de advertencia -->
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>¡ATENCIÓN!</strong> Esta acción cancelará permanentemente la práctica y no se puede deshacer.
+            </div>
+
+            <!-- Mensajes -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="row g-4">
+                <!-- Información de la Práctica -->
+                <div class="col-lg-8">
+                    <!-- Resumen de la Práctica -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-info-circle me-2"></i>Información de la Práctica a Cancelar
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Estudiante:</strong><br>{{ practica.estudiante.nombre_completo }}</p>
+                                    <p><strong>Código:</strong><br>{{ practica.estudiante.codigo }}</p>
+                                    <p><strong>Programa:</strong><br>{{ practica.estudiante.programa_academico }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Empresa:</strong><br>{{ practica.empresa.razon_social }}</p>
+                                    <p><strong>Fecha Inicio:</strong><br>{{ practica.fecha_inicio|date:"d/m/Y" }}</p>
+                                    <p><strong>Estado Actual:</strong><br>
+                                        <span class="badge bg-warning">{{ practica.get_estado_display }}</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Formulario de Cancelación -->
+                    <div class="card">
+                        <div class="card-header bg-danger text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-exclamation-triangle me-2"></i>Motivo de Cancelación
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST" id="cancelarForm">
+                                {% csrf_token %}
+
+                                <div class="mb-4">
+                                    <label for="motivo_cancelacion" class="form-label fw-bold">
+                                        Motivo de Cancelación <span class="text-danger">*</span>
+                                    </label>
+                                    <textarea 
+                                        class="form-control" 
+                                        id="motivo_cancelacion" 
+                                        name="motivo_cancelacion" 
+                                        rows="6" 
+                                        placeholder="Explica detalladamente el motivo de la cancelación (mínimo 20 caracteres). Este mensaje será enviado al estudiante."
+                                        required
+                                    ></textarea>
+                                    <small class="text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Sé claro y específico. El estudiante recibirá esta información.
+                                    </small>
+                                </div>
+
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-lightbulb me-2"></i>
+                                    <strong>Sugerencias de motivos comunes:</strong>
+                                    <ul class="mb-0 mt-2">
+                                        <li>Incumplimiento de horarios o asistencia</li>
+                                        <li>Bajo rendimiento académico o laboral</li>
+                                        <li>Problemas de conducta o disciplina</li>
+                                        <li>Incompatibilidad con el perfil requerido</li>
+                                        <li>Decisión del estudiante de retirarse</li>
+                                        <li>Cierre temporal de la empresa</li>
+                                        <li>Otros (especificar claramente)</li>
+                                    </ul>
+                                </div>
+
+                                <!-- Botones -->
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'coordinacion:practica_detalle' practica.id %}" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left me-2"></i>Volver
+                                    </a>
+                                    <button type="submit" class="btn btn-danger btn-lg">
+                                        <i class="fas fa-times me-2"></i>Confirmar Cancelación
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel Lateral - Consecuencias -->
+                <div class="col-lg-4">
+                    <div class="card border-danger sticky-top" style="top: 20px;">
+                        <div class="card-header bg-danger text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-exclamation-circle me-2"></i>Consecuencias
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="fw-bold mb-3">Al cancelar esta práctica:</p>
+                            
+                            <ul class="list-unstyled">
+                                <li class="mb-3">
+                                    <i class="fas fa-check text-danger me-2"></i>
+                                    La práctica cambiará a estado <strong>"CANCELADA"</strong>
+                                </li>
+                                <li class="mb-3">
+                                    <i class="fas fa-check text-danger me-2"></i>
+                                    El estudiante volverá a estado <strong>"APTO"</strong>
+                                </li>
+                                <li class="mb-3">
+                                    <i class="fas fa-check text-danger me-2"></i>
+                                    Se liberará un cupo en la vacante
+                                </li>
+                                <li class="mb-3">
+                                    <i class="fas fa-check text-danger me-2"></i>
+                                    Se registrará la fecha de cancelación
+                                </li>
+                                <li class="mb-3">
+                                    <i class="fas fa-check text-danger me-2"></i>
+                                    El motivo quedará registrado en observaciones
+                                </li>
+                                <li class="mb-3">
+                                    <i class="fas fa-check text-danger me-2"></i>
+                                    El estudiante será notificado (próximamente)
+                                </li>
+                            </ul>
+
+                            <hr>
+
+                            <div class="alert alert-warning small mb-0">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Nota:</strong> Esta acción es permanente y no se puede deshacer
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('cancelarForm').addEventListener('submit', function(e) {
+    const motivo = document.getElementById('motivo_cancelacion').value.trim();
+
+    if (motivo.length < 20) {
+        e.preventDefault();
+        alert('El motivo de cancelación debe tener al menos 20 caracteres');
+        return;
+    }
+
+    if (!confirm('¿Estás COMPLETAMENTE SEGURO de CANCELAR esta práctica?\n\nEsta acción NO se puede deshacer y el estudiante será notificado.')) {
+        e.preventDefault();
+    }
+});
+</script>
+{% endblock %}

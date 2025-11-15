@@ -1,0 +1,362 @@
+{% extends 'coordinacion/base.html' %}
+{% load static %}
+
+{% block title %}Aprobar Postulación{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'coordinacion:dashboard' %}">
+            <i class="fas fa-graduation-cap me-2"></i>Sistema de Prácticas
+        </a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-1"></i>{{ request.user.username }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{% url 'coordinacion:logout' %}">
+                            <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                        </a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 sidebar">
+            <div class="list-group">
+                <a href="{% url 'coordinacion:dashboard' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-home me-2"></i>Dashboard
+                </a>
+                <a href="{% url 'coordinacion:empresas_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-building me-2"></i>Empresas
+                </a>
+                <a href="{% url 'coordinacion:vacantes_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-briefcase me-2"></i>Vacantes
+                </a>
+                <a href="{% url 'coordinacion:estudiantes_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-user-graduate me-2"></i>Estudiantes
+                </a>
+                <a href="{% url 'coordinacion:postulaciones_lista' %}" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-clipboard-list me-2"></i>Postulaciones
+                </a>
+                <a href="{% url 'coordinacion:practicas_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-tasks me-2"></i>Prácticas
+                </a>
+                <a href="{% url 'coordinacion:tutores_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chalkboard-teacher me-2"></i>Tutores
+                </a>
+                <a href="{% url 'coordinacion:sustentaciones_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-graduation-cap me-2"></i>Sustentaciones
+                </a>
+                <a href="{% url 'coordinacion:reportes_dashboard' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chart-line me-2"></i>Reportes
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'coordinacion:dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'coordinacion:postulaciones_lista' %}">Postulaciones</a></li>
+                    <li class="breadcrumb-item active">Aprobar Postulación</li>
+                </ol>
+            </nav>
+
+            <!-- Header -->
+            <div class="mb-4">
+                <h2>
+                    <i class="fas fa-check-circle me-2 text-success"></i>
+                    Aprobar Postulación Seleccionada
+                </h2>
+                <p class="text-muted">Revisa la información y decide si vincular formalmente al estudiante</p>
+            </div>
+
+            <!-- Alerta informativa -->
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Importante:</strong> Esta postulación fue <strong>seleccionada por la empresa</strong>. 
+                Como coordinador, debes verificar que el estudiante cumple todos los requisitos antes de vincularlo formalmente.
+            </div>
+
+            <!-- Mensajes -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="row g-4">
+                <!-- Información de la Postulación -->
+                <div class="col-lg-8">
+                    <!-- Datos del Estudiante -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-user-graduate me-2"></i>
+                                Datos del Estudiante
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Nombre Completo:</strong><br>{{ postulacion.estudiante.nombre_completo }}</p>
+                                    <p><strong>Código:</strong><br>{{ postulacion.estudiante.codigo }}</p>
+                                    <p><strong>Programa:</strong><br>{{ postulacion.estudiante.programa_academico }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Semestre:</strong><br>{{ postulacion.estudiante.semestre }}°</p>
+                                    <p><strong>Promedio:</strong><br>
+                                        {% if postulacion.estudiante.promedio_academico %}
+                                            <span class="badge bg-primary fs-6">{{ postulacion.estudiante.promedio_academico }}</span>
+                                        {% else %}
+                                            <span class="text-muted">No registrado</span>
+                                        {% endif %}
+                                    </p>
+                                    <p><strong>Email:</strong><br>{{ postulacion.estudiante.email }}</p>
+                                    <p><strong>Teléfono:</strong><br>{{ postulacion.estudiante.telefono }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Datos de la Vacante -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-briefcase me-2"></i>
+                                Datos de la Vacante
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="text-primary">{{ postulacion.vacante.titulo }}</h5>
+                            <p class="mb-2"><strong>Empresa:</strong> {{ postulacion.vacante.empresa.razon_social }}</p>
+                            <p class="mb-2"><strong>Área:</strong> {{ postulacion.vacante.area_practica }}</p>
+                            <p class="mb-2"><strong>Horario:</strong> {{ postulacion.vacante.horario }}</p>
+                            <p class="mb-2"><strong>Duración:</strong> {{ postulacion.vacante.duracion_meses }} meses</p>
+                            <p class="mb-0"><strong>Descripción:</strong></p>
+                            <p class="text-justify">{{ postulacion.vacante.descripcion }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Información de la Postulación -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Información de la Postulación
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Estado Actual:</strong><br>
+                                        <span class="badge bg-success fs-6">SELECCIONADO POR EMPRESA</span>
+                                    </p>
+                                    <p><strong>Postulado por:</strong><br>{{ postulacion.postulado_por.nombre_completo }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Fecha de Postulación:</strong><br>{{ postulacion.fecha_postulacion|date:"d/m/Y H:i" }}</p>
+                                    <p><strong>Fecha de Selección:</strong><br>
+                                        {% if postulacion.fecha_respuesta %}
+                                            {{ postulacion.fecha_respuesta|date:"d/m/Y H:i" }}
+                                        {% else %}
+                                            <span class="text-muted">N/A</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                            {% if postulacion.observaciones %}
+                            <hr>
+                            <p class="mb-0"><strong>Observaciones:</strong></p>
+                            <p class="text-justify">{{ postulacion.observaciones }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Formulario de Aprobación -->
+                    <div class="card">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="mb-0">
+                                <i class="fas fa-clipboard-check me-2"></i>
+                                Decisión de Aprobación
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST" id="aprobacionForm">
+                                {% csrf_token %}
+
+                                <!-- Radio buttons para decisión -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold">Decisión *</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="accion" id="aprobar" value="aprobar" required>
+                                        <label class="form-check-label" for="aprobar">
+                                            <i class="fas fa-check-circle text-success me-1"></i>
+                                            <strong>Aprobar y Vincular</strong>
+                                            <small class="d-block text-muted">El estudiante inicia formalmente su práctica empresarial</small>
+                                        </label>
+                                    </div>
+                                    <div class="form-check mt-3">
+                                        <input class="form-check-input" type="radio" name="accion" id="rechazar" value="rechazar" required>
+                                        <label class="form-check-label" for="rechazar">
+                                            <i class="fas fa-times-circle text-danger me-1"></i>
+                                            <strong>Rechazar Vinculación</strong>
+                                            <small class="d-block text-muted">El estudiante NO cumple los requisitos para la práctica</small>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Observaciones -->
+                                <div class="mb-4">
+                                    <label for="observaciones" class="form-label fw-bold">Observaciones</label>
+                                    <textarea 
+                                        class="form-control" 
+                                        id="observaciones" 
+                                        name="observaciones" 
+                                        rows="4" 
+                                        placeholder="Escribe aquí las razones de tu decisión o comentarios adicionales..."
+                                    ></textarea>
+                                    <small class="text-muted">
+                                        Las observaciones son <strong>obligatorias</strong> si rechazas la vinculación
+                                    </small>
+                                </div>
+
+                                <!-- Botones -->
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'coordinacion:postulaciones_lista' %}" class="btn btn-secondary">
+                                        <i class="fas fa-times me-2"></i>Cancelar
+                                    </a>
+                                    <button type="submit" class="btn btn-primary btn-lg" id="btnSubmit">
+                                        <i class="fas fa-save me-2"></i>Guardar Decisión
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel Lateral - Checklist -->
+                <div class="col-lg-4">
+                    <div class="card sticky-top" style="top: 20px;">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-tasks me-2"></i>Checklist de Verificación
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="small text-muted mb-3">Verifica los siguientes puntos antes de aprobar:</p>
+
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="check1">
+                                <label class="form-check-label" for="check1">
+                                    Empresa seleccionó al estudiante
+                                </label>
+                            </div>
+
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="check2">
+                                <label class="form-check-label" for="check2">
+                                    Estudiante cumple semestre mínimo
+                                </label>
+                            </div>
+
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="check3">
+                                <label class="form-check-label" for="check3">
+                                    Hoja de vida actualizada
+                                </label>
+                            </div>
+
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="check4">
+                                <label class="form-check-label" for="check4">
+                                    Estudiante está disponible
+                                </label>
+                            </div>
+
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="check5">
+                                <label class="form-check-label" for="check5">
+                                    Vacante tiene cupos disponibles
+                                </label>
+                            </div>
+
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="check6">
+                                <label class="form-check-label" for="check6">
+                                    Documentos de empresa vigentes
+                                </label>
+                            </div>
+
+                            <hr>
+
+                            <div class="alert alert-success small mb-0">
+                                <i class="fas fa-lightbulb me-2"></i>
+                                <strong>Siguiente paso:</strong> Al aprobar, se te redirigirá para asignar tutor y docente asesor
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script para validación del formulario -->
+<script>
+    document.getElementById('aprobacionForm').addEventListener('submit', function(e) {
+        const accion = document.querySelector('input[name="accion"]:checked');
+        const observaciones = document.getElementById('observaciones').value.trim();
+
+        if (!accion) {
+            e.preventDefault();
+            alert('Por favor, selecciona una decisión (Aprobar o Rechazar)');
+            return;
+        }
+
+        if (accion.value === 'rechazar' && observaciones === '') {
+            e.preventDefault();
+            alert('Las observaciones son obligatorias al rechazar una vinculación');
+            document.getElementById('observaciones').focus();
+            return;
+        }
+
+        // Confirmación
+        const mensaje = accion.value === 'aprobar' 
+            ? '¿Estás seguro de APROBAR y VINCULAR a este estudiante?\n\nSe creará automáticamente la práctica empresarial.' 
+            : '¿Estás seguro de RECHAZAR esta vinculación?';
+
+        if (!confirm(mensaje)) {
+            e.preventDefault();
+        }
+    });
+
+    // Cambiar color del botón según la opción seleccionada
+    document.querySelectorAll('input[name="accion"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const btnSubmit = document.getElementById('btnSubmit');
+            if (this.value === 'aprobar') {
+                btnSubmit.className = 'btn btn-success btn-lg';
+                btnSubmit.innerHTML = '<i class="fas fa-check me-2"></i>Aprobar y Vincular';
+            } else {
+                btnSubmit.className = 'btn btn-danger btn-lg';
+                btnSubmit.innerHTML = '<i class="fas fa-times me-2"></i>Rechazar Vinculación';
+            }
+        });
+    });
+</script>
+{% endblock %}

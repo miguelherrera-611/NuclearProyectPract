@@ -1,0 +1,363 @@
+{% extends 'coordinacion/base.html' %}
+{% load static %}
+
+{% block title %}Detalle de Estudiante{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'coordinacion:dashboard' %}">
+            <i class="fas fa-graduation-cap me-2"></i>Sistema de Prácticas
+        </a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-1"></i>{{ request.user.username }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{% url 'coordinacion:logout' %}">
+                            <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                        </a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 sidebar">
+            <div class="list-group">
+                <a href="{% url 'coordinacion:dashboard' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-home me-2"></i>Dashboard
+                </a>
+                <a href="{% url 'coordinacion:empresas_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-building me-2"></i>Empresas
+                </a>
+                <a href="{% url 'coordinacion:vacantes_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-briefcase me-2"></i>Vacantes
+                </a>
+                <a href="{% url 'coordinacion:estudiantes_lista' %}" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-user-graduate me-2"></i>Estudiantes
+                </a>
+                <a href="{% url 'coordinacion:postulaciones_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-clipboard-list me-2"></i>Postulaciones
+                </a>
+                <a href="{% url 'coordinacion:practicas_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-tasks me-2"></i>Prácticas
+                </a>
+                <a href="{% url 'coordinacion:tutores_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chalkboard-teacher me-2"></i>Tutores
+                </a>
+                <a href="{% url 'coordinacion:sustentaciones_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-graduation-cap me-2"></i>Sustentaciones
+                </a>
+                <a href="{% url 'coordinacion:reportes_dashboard' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chart-line me-2"></i>Reportes
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'coordinacion:dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'coordinacion:estudiantes_lista' %}">Estudiantes</a></li>
+                    <li class="breadcrumb-item active">{{ estudiante.nombre_completo }}</li>
+                </ol>
+            </nav>
+
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2>
+                        <i class="fas fa-user-graduate me-2 text-primary"></i>
+                        {{ estudiante.nombre_completo }}
+                    </h2>
+                    <p class="text-muted mb-0">Código: {{ estudiante.codigo }}</p>
+                </div>
+                <div>
+                    {% if estudiante.estado == 'APTO' %}
+                        <span class="badge bg-success fs-5">
+                            <i class="fas fa-check-circle me-1"></i>Apto
+                        </span>
+                    {% elif estudiante.estado == 'EN_PRACTICA' %}
+                        <span class="badge bg-info fs-5">
+                            <i class="fas fa-briefcase me-1"></i>En Práctica
+                        </span>
+                    {% elif estudiante.estado == 'FINALIZADO' %}
+                        <span class="badge bg-secondary fs-5">
+                            <i class="fas fa-graduation-cap me-1"></i>Finalizado
+                        </span>
+                    {% else %}
+                        <span class="badge bg-danger fs-5">
+                            <i class="fas fa-times-circle me-1"></i>No Apto
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="mb-4">
+                <a href="{% url 'coordinacion:estudiantes_lista' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Volver al Listado
+                </a>
+                {% if estudiante.estado == 'APTO' %}
+                    <a href="{% url 'coordinacion:postulacion_crear' %}" class="btn btn-success">
+                        <i class="fas fa-plus me-2"></i>Crear Postulación
+                    </a>
+                {% endif %}
+            </div>
+
+            <div class="row g-4">
+                <!-- Información Personal y Académica -->
+                <div class="col-lg-6">
+                    <div class="card h-100">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-user me-2"></i>Información Personal
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-borderless mb-0">
+                                <tbody>
+                                    <tr>
+                                        <td class="fw-bold" style="width: 40%;">Código:</td>
+                                        <td>{{ estudiante.codigo }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Email:</td>
+                                        <td>{{ estudiante.email }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Teléfono:</td>
+                                        <td>{{ estudiante.telefono }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Dirección:</td>
+                                        <td>{{ estudiante.direccion|default:"-" }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información Académica -->
+                <div class="col-lg-6">
+                    <div class="card h-100">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-book me-2"></i>Información Académica
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-borderless mb-0">
+                                <tbody>
+                                    <tr>
+                                        <td class="fw-bold" style="width: 40%;">Programa:</td>
+                                        <td>{{ estudiante.programa_academico }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Semestre:</td>
+                                        <td>{{ estudiante.semestre }}°</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Promedio:</td>
+                                        <td>
+                                            {% if estudiante.promedio_academico %}
+                                                <span class="badge bg-primary fs-6">{{ estudiante.promedio_academico }}</span>
+                                            {% else %}
+                                                <span class="text-muted">No registrado</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Estado:</td>
+                                        <td>
+                                            {% if estudiante.estado == 'APTO' %}
+                                                <span class="badge bg-success">Apto para Práctica</span>
+                                            {% elif estudiante.estado == 'EN_PRACTICA' %}
+                                                <span class="badge bg-info">En Práctica</span>
+                                            {% elif estudiante.estado == 'FINALIZADO' %}
+                                                <span class="badge bg-secondary">Práctica Finalizada</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">No Apto</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Práctica Actual -->
+                {% if practica_actual %}
+                <div class="col-12">
+                    <div class="card border-info">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-briefcase me-2"></i>Práctica Actual
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Empresa:</strong><br>{{ practica_actual.empresa.razon_social }}</p>
+                                    <p><strong>Vacante:</strong><br>{{ practica_actual.vacante.titulo }}</p>
+                                    <p><strong>Tutor Empresarial:</strong><br>{{ practica_actual.tutor_empresarial.nombre_completo }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Docente Asesor:</strong><br>{{ practica_actual.docente_asesor.nombre_completo }}</p>
+                                    <p><strong>Fecha Inicio:</strong><br>{{ practica_actual.fecha_inicio|date:"d/m/Y" }}</p>
+                                    <p><strong>Estado:</strong><br>
+                                        <span class="badge bg-info">{{ practica_actual.get_estado_display }}</span>
+                                    </p>
+                                </div>
+                            </div>
+                            <a href="{% url 'coordinacion:practica_detalle' practica_actual.id %}" class="btn btn-info">
+                                <i class="fas fa-eye me-2"></i>Ver Práctica Completa
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Postulaciones -->
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="mb-0">
+                                <i class="fas fa-clipboard-list me-2"></i>
+                                Postulaciones ({{ postulaciones.count }})
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if postulaciones %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Vacante</th>
+                                                <th>Empresa</th>
+                                                <th>Fecha</th>
+                                                <th>Estado</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for postulacion in postulaciones %}
+                                            <tr>
+                                                <td>{{ postulacion.vacante.titulo }}</td>
+                                                <td>{{ postulacion.vacante.empresa.razon_social }}</td>
+                                                <td>{{ postulacion.fecha_postulacion|date:"d/m/Y" }}</td>
+                                                <td>
+                                                    {% if postulacion.estado == 'SELECCIONADO' %}
+                                                        <span class="badge bg-success">Seleccionado</span>
+                                                    {% elif postulacion.estado == 'RECHAZADO' %}
+                                                        <span class="badge bg-danger">Rechazado</span>
+                                                    {% elif postulacion.estado == 'VINCULADO' %}
+                                                        <span class="badge bg-info">Vinculado</span>
+                                                    {% else %}
+                                                        <span class="badge bg-warning">{{ postulacion.get_estado_display }}</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <a href="{% url 'coordinacion:postulacion_detalle' postulacion.id %}" class="btn btn-sm btn-outline-primary">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">No hay postulaciones registradas</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Historial de Prácticas -->
+                {% if practicas_historial %}
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header bg-secondary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-history me-2"></i>
+                                Historial de Prácticas ({{ practicas_historial.count }})
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Empresa</th>
+                                            <th>Fecha Inicio</th>
+                                            <th>Fecha Fin</th>
+                                            <th>Duración</th>
+                                            <th>Estado</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for practica in practicas_historial %}
+                                        <tr>
+                                            <td>{{ practica.empresa.razon_social }}</td>
+                                            <td>{{ practica.fecha_inicio|date:"d/m/Y" }}</td>
+                                            <td>
+                                                {% if practica.fecha_fin %}
+                                                    {{ practica.fecha_fin|date:"d/m/Y" }}
+                                                {% else %}
+                                                    <span class="text-muted">En curso</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if practica.fecha_fin %}
+                                                    {{ practica.fecha_inicio|timesince:practica.fecha_fin }}
+                                                {% else %}
+                                                    <span class="text-muted">-</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if practica.estado == 'INICIADA' %}
+                                                    <span class="badge bg-primary">Iniciada</span>
+                                                {% elif practica.estado == 'EN_CURSO' %}
+                                                    <span class="badge bg-info">En Curso</span>
+                                                {% elif practica.estado == 'FINALIZADA' %}
+                                                    <span class="badge bg-success">Finalizada</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">{{ practica.get_estado_display }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <a href="{% url 'coordinacion:practica_detalle' practica.id %}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
