@@ -139,10 +139,6 @@
                                         <td class="fw-bold">Teléfono:</td>
                                         <td>{{ estudiante.telefono }}</td>
                                     </tr>
-                                    <tr>
-                                        <td class="fw-bold">Dirección:</td>
-                                        <td>{{ estudiante.direccion|default:"-" }}</td>
-                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -218,7 +214,13 @@
                                     <p><strong>Docente Asesor:</strong><br>{{ practica_actual.docente_asesor.nombre_completo }}</p>
                                     <p><strong>Fecha Inicio:</strong><br>{{ practica_actual.fecha_inicio|date:"d/m/Y" }}</p>
                                     <p><strong>Estado:</strong><br>
-                                        <span class="badge bg-info">{{ practica_actual.get_estado_display }}</span>
+                                        {% if practica_actual.estado == 'EN_CURSO' %}
+                                            <span class="badge bg-warning">En Curso</span>
+                                        {% elif practica_actual.estado == 'FINALIZADA' %}
+                                            <span class="badge bg-success">Finalizada</span>
+                                        {% elif practica_actual.estado == 'CANCELADA' %}
+                                            <span class="badge bg-danger">Cancelada</span>
+                                        {% endif %}
                                     </p>
                                 </div>
                             </div>
@@ -259,14 +261,14 @@
                                                 <td>{{ postulacion.vacante.empresa.razon_social }}</td>
                                                 <td>{{ postulacion.fecha_postulacion|date:"d/m/Y" }}</td>
                                                 <td>
-                                                    {% if postulacion.estado == 'SELECCIONADO' %}
+                                                    {% if postulacion.estado == 'POSTULADO' %}
+                                                        <span class="badge bg-warning">Postulado</span>
+                                                    {% elif postulacion.estado == 'SELECCIONADO' %}
                                                         <span class="badge bg-success">Seleccionado</span>
                                                     {% elif postulacion.estado == 'RECHAZADO' %}
                                                         <span class="badge bg-danger">Rechazado</span>
                                                     {% elif postulacion.estado == 'VINCULADO' %}
                                                         <span class="badge bg-info">Vinculado</span>
-                                                    {% else %}
-                                                        <span class="badge bg-warning">{{ postulacion.get_estado_display }}</span>
                                                     {% endif %}
                                                 </td>
                                                 <td>
@@ -318,26 +320,26 @@
                                             <td>{{ practica.empresa.razon_social }}</td>
                                             <td>{{ practica.fecha_inicio|date:"d/m/Y" }}</td>
                                             <td>
-                                                {% if practica.fecha_fin %}
-                                                    {{ practica.fecha_fin|date:"d/m/Y" }}
+                                                {% if practica.fecha_fin_real %}
+                                                    {{ practica.fecha_fin_real|date:"d/m/Y" }}
                                                 {% else %}
                                                     <span class="text-muted">En curso</span>
                                                 {% endif %}
                                             </td>
                                             <td>
-                                                {% if practica.fecha_fin %}
-                                                    {{ practica.fecha_inicio|timesince:practica.fecha_fin }}
+                                                {% if practica.fecha_fin_real %}
+                                                    {% widthratio practica.fecha_fin_real|timeuntil:practica.fecha_inicio 30 1 %} meses
                                                 {% else %}
                                                     <span class="text-muted">-</span>
                                                 {% endif %}
                                             </td>
                                             <td>
-                                                {% if practica.estado == 'INICIADA' %}
-                                                    <span class="badge bg-primary">Iniciada</span>
-                                                {% elif practica.estado == 'EN_CURSO' %}
-                                                    <span class="badge bg-info">En Curso</span>
+                                                {% if practica.estado == 'EN_CURSO' %}
+                                                    <span class="badge bg-warning">En Curso</span>
                                                 {% elif practica.estado == 'FINALIZADA' %}
                                                     <span class="badge bg-success">Finalizada</span>
+                                                {% elif practica.estado == 'CANCELADA' %}
+                                                    <span class="badge bg-danger">Cancelada</span>
                                                 {% else %}
                                                     <span class="badge bg-secondary">{{ practica.get_estado_display }}</span>
                                                 {% endif %}

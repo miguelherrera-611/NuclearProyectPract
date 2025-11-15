@@ -83,11 +83,7 @@
                     <p class="text-muted mb-0">{{ practica.estudiante.nombre_completo }} - {{ practica.empresa.razon_social }}</p>
                 </div>
                 <div>
-                    {% if practica.estado == 'INICIADA' %}
-                        <span class="badge bg-info fs-5">
-                            <i class="fas fa-play-circle me-1"></i>Iniciada
-                        </span>
-                    {% elif practica.estado == 'EN_CURSO' %}
+                    {% if practica.estado == 'EN_CURSO' %}
                         <span class="badge bg-warning fs-5">
                             <i class="fas fa-spinner me-1"></i>En Curso
                         </span>
@@ -118,7 +114,7 @@
                 <a href="{% url 'coordinacion:practicas_lista' %}" class="btn btn-secondary">
                     <i class="fas fa-arrow-left me-2"></i>Volver al Listado
                 </a>
-                
+
                 {% if practica.estado == 'EN_CURSO' %}
                     <form method="POST" action="{% url 'coordinacion:practica_finalizar' practica.id %}" style="display: inline;">
                         {% csrf_token %}
@@ -126,9 +122,6 @@
                             <i class="fas fa-check me-2"></i>Finalizar Práctica
                         </button>
                     </form>
-                {% endif %}
-                
-                {% if practica.estado == 'INICIADA' or practica.estado == 'EN_CURSO' %}
                     <a href="{% url 'coordinacion:practica_cancelar' practica.id %}" class="btn btn-danger">
                         <i class="fas fa-times me-2"></i>Cancelar Práctica
                     </a>
@@ -292,8 +285,8 @@
                                         {% endif %}
                                     </p>
                                     <p><strong>Fecha Fin Real:</strong><br>
-                                        {% if practica.fecha_fin %}
-                                            {{ practica.fecha_fin|date:"d/m/Y" }}
+                                        {% if practica.fecha_fin_real %}
+                                            {{ practica.fecha_fin_real|date:"d/m/Y" }}
                                         {% else %}
                                             <span class="text-muted">En curso</span>
                                         {% endif %}
@@ -301,9 +294,7 @@
                                 </div>
                                 <div class="col-md-6">
                                     <p><strong>Estado:</strong><br>
-                                        {% if practica.estado == 'INICIADA' %}
-                                            <span class="badge bg-info">Iniciada</span>
-                                        {% elif practica.estado == 'EN_CURSO' %}
+                                        {% if practica.estado == 'EN_CURSO' %}
                                             <span class="badge bg-warning">En Curso</span>
                                         {% elif practica.estado == 'FINALIZADA' %}
                                             <span class="badge bg-success">Finalizada</span>

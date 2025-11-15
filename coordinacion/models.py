@@ -261,7 +261,6 @@ class PracticaEmpresarial(models.Model):
     """Registro completo de una práctica empresarial"""
 
     ESTADO_CHOICES = [
-        ('INICIADA', 'Iniciada'),
         ('EN_CURSO', 'En Curso'),
         ('FINALIZADA', 'Finalizada'),
         ('CANCELADA', 'Cancelada'),

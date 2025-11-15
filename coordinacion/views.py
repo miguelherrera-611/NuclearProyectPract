@@ -595,7 +595,7 @@ def practica_crear_desde_postulacion(request, postulacion_id):
             docente_asesor_id=docente_id,
             fecha_inicio=fecha_inicio_date,
             fecha_fin_estimada=fecha_fin_estimada,
-            estado='INICIADA',
+            estado='EN_CURSO',  # ✅ CAMBIADO DE 'INICIADA' A 'EN_CURSO'
             plan_aprobado=False,
             asignada_por=request.user.coordinador,
             observaciones=f'Práctica creada desde postulación #{postulacion.id}'
@@ -815,6 +815,9 @@ def practicas_lista(request):
         serializers.serialize_practica(practica) for practica in practicas
     ])
 
+    print(f"DEBUG: Total prácticas: {practicas.count()}")  # ✅ AÑADIR ESTA LÍNEA PARA DEBUG
+    print(f"DEBUG: JSON generado: {practicas_json[:200]}")  # ✅ VER LOS PRIMEROS 200 CARACTERES
+
     context = {
         'practicas': practicas_json,
         'estado_filtro': estado_filtro,
@@ -851,12 +854,12 @@ def practica_detalle(request, practica_id):
 def practica_cancelar(request, practica_id):
     """
     Cancelar una práctica empresarial con motivo
-    Solo se pueden cancelar prácticas en estado INICIADA o EN_CURSO
+    Solo se pueden cancelar prácticas en estado EN_CURSO
     """
     practica = get_object_or_404(PracticaEmpresarial, id=practica_id)
 
-    # Verificar que la práctica pueda ser cancelada
-    if practica.estado not in ['INICIADA', 'EN_CURSO']:
+    # ✅ ACTUALIZADO: Solo verificar EN_CURSO
+    if practica.estado != 'EN_CURSO':
         messages.warning(
             request,
             f'No se puede cancelar una práctica en estado "{practica.get_estado_display()}"'
@@ -916,53 +919,6 @@ def practica_cancelar(request, practica_id):
     }
 
     return render(request, 'coordinacion/practicas/cancelar.html', context)
-
-
-# ============================================
-# GESTIÓN DE SUSTENTACIONES (RF-09)
-# ============================================
-
-@login_required
-def sustentaciones_lista(request):
-    """Listar sustentaciones"""
-    sustentaciones = Sustentacion.objects.select_related(
-        'practica', 'practica__estudiante', 'jurado_1', 'jurado_2'
-    ).all()
-
-    # Serializar sustentaciones para React
-    sustentaciones_json = serializers.to_json([
-        serializers.serialize_sustentacion(sustentacion) for sustentacion in sustentaciones
-    ])
-
-    context = {
-        'sustentaciones': sustentaciones_json,
-    }
-
-    return render(request, 'coordinacion/sustentaciones/lista.html', context)
-
-
-@login_required
-def sustentacion_crear(request, practica_id):
-    """Registrar una nueva sustentación"""
-    practica = get_object_or_404(PracticaEmpresarial, id=practica_id)
-    docentes = DocenteAsesor.objects.filter(activo=True)
-
-    if request.method == 'POST':
-        # Procesar formulario
-        messages.success(request, 'Sustentación registrada exitosamente')
-        return redirect('coordinacion:sustentaciones_lista')
-
-    context = {
-        'practica': practica,
-        'docentes': docentes,
-    }
-
-    return render(request, 'coordinacion/sustentaciones/crear.html', context)
-
-
-# ============================================
-# CIERRE DE PRÁCTICAS (RF-11)
-# ============================================
 
 @login_required
 def practica_cerrar(request, practica_id):
@@ -1035,6 +991,47 @@ def practica_finalizar(request, practica_id):
     # Si es GET, redirigir al detalle
     return redirect('coordinacion:practica_detalle', practica_id=practica.id)
 
+
+# ============================================
+# GESTIÓN DE SUSTENTACIONES (RF-09)
+# ============================================
+
+@login_required
+def sustentaciones_lista(request):
+    """Listar sustentaciones"""
+    sustentaciones = Sustentacion.objects.select_related(
+        'practica', 'practica__estudiante', 'jurado_1', 'jurado_2'
+    ).all()
+
+    # Serializar sustentaciones para React
+    sustentaciones_json = serializers.to_json([
+        serializers.serialize_sustentacion(sustentacion) for sustentacion in sustentaciones
+    ])
+
+    context = {
+        'sustentaciones': sustentaciones_json,
+    }
+
+    return render(request, 'coordinacion/sustentaciones/lista.html', context)
+
+
+@login_required
+def sustentacion_crear(request, practica_id):
+    """Registrar una nueva sustentación"""
+    practica = get_object_or_404(PracticaEmpresarial, id=practica_id)
+    docentes = DocenteAsesor.objects.filter(activo=True)
+
+    if request.method == 'POST':
+        # Procesar formulario
+        messages.success(request, 'Sustentación registrada exitosamente')
+        return redirect('coordinacion:sustentaciones_lista')
+
+    context = {
+        'practica': practica,
+        'docentes': docentes,
+    }
+
+    return render(request, 'coordinacion/sustentaciones/crear.html', context)
 
 # ============================================
 # REPORTES E INDICADORES (RF-12)

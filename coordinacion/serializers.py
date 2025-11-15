@@ -104,18 +104,9 @@ def serialize_practica(practica):
             'codigo': practica.estudiante.codigo,
             'nombre_completo': practica.estudiante.nombre_completo,
         },
-        'empresa': {
-            'id': practica.empresa.id,
-            'razon_social': practica.empresa.razon_social,
-        },
-        'tutor_empresarial': {
-            'id': practica.tutor_empresarial.id,
-            'nombre_completo': practica.tutor_empresarial.nombre_completo,
-        } if practica.tutor_empresarial else None,
-        'docente_asesor': {
-            'id': practica.docente_asesor.id,
-            'nombre_completo': practica.docente_asesor.nombre_completo,
-        } if practica.docente_asesor else None,
+        'empresa': practica.empresa.razon_social,  # ✅ CORREGIDO: Solo el nombre
+        'tutor_empresarial': practica.tutor_empresarial.nombre_completo if practica.tutor_empresarial else 'Sin asignar',  # ✅ CORREGIDO
+        'docente_asesor': practica.docente_asesor.nombre_completo if practica.docente_asesor else 'Sin asignar',  # ✅ CORREGIDO
     }
 
 def serialize_tutor(tutor):
