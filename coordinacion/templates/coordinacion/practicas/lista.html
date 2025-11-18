@@ -175,6 +175,12 @@
                         color="primary"
                     />
                     <StatCard
+                        icon="fa-play-circle"
+                        title="Iniciadas"
+                        value={practicas.filter(p => p.estado === 'INICIADA').length}
+                        color="info"
+                    />
+                    <StatCard
                         icon="fa-spinner"
                         title="En Curso"
                         value={practicas.filter(p => p.estado === 'EN_CURSO').length}
@@ -185,12 +191,6 @@
                         title="Finalizadas"
                         value={practicas.filter(p => p.estado === 'FINALIZADA').length}
                         color="success"
-                    />
-                    <StatCard
-                        icon="fa-times-circle"
-                        title="Canceladas"
-                        value={practicas.filter(p => p.estado === 'CANCELADA').length}
-                        color="danger"
                     />
                 </div>
 
@@ -298,7 +298,7 @@
                 </td>
                 <td>
                     <div className="btn-group btn-group-sm">
-
+                        <a
                             href={`/practicas/${practica.id}/`}
                             className="btn btn-outline-primary"
                             title="Ver detalles"

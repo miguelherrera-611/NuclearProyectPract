@@ -90,7 +90,7 @@ def serialize_postulacion(postulacion):
     }
 
 def serialize_practica(practica):
-    """Serializar una práctica a formato JSON"""
+    """Serializar una práctica a formato JSON - VERSIÓN CORREGIDA"""
     return {
         'id': practica.id,
         'estado': practica.estado,
@@ -104,10 +104,12 @@ def serialize_practica(practica):
             'codigo': practica.estudiante.codigo,
             'nombre_completo': practica.estudiante.nombre_completo,
         },
-        'empresa': practica.empresa.razon_social,  # ✅ CORREGIDO: Solo el nombre
-        'tutor_empresarial': practica.tutor_empresarial.nombre_completo if practica.tutor_empresarial else 'Sin asignar',  # ✅ CORREGIDO
-        'docente_asesor': practica.docente_asesor.nombre_completo if practica.docente_asesor else 'Sin asignar',  # ✅ CORREGIDO
+        # ✅ CORREGIDO: Manejar None correctamente
+        'empresa': practica.empresa.razon_social if practica.empresa else 'Sin asignar',
+        'tutor_empresarial': practica.tutor_empresarial.nombre_completo if practica.tutor_empresarial else 'Sin asignar',
+        'docente_asesor': practica.docente_asesor.nombre_completo if practica.docente_asesor else 'Sin asignar',
     }
+
 
 def serialize_tutor(tutor):
     """Serializar un tutor empresarial a formato JSON"""
