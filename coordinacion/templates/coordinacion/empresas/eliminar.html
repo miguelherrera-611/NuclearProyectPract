@@ -1,0 +1,28 @@
+{% extends 'coordinacion/base.html' %}
+{% load static %}
+
+{% block title %}Eliminar Empresa{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Confirmar eliminación</h5>
+                </div>
+                <div class="card-body">
+                    <p>¿Estás seguro que deseas eliminar la empresa <strong>{{ empresa.razon_social }}</strong> (NIT: {{ empresa.nit }})?</p>
+                    <p class="text-danger">Esta acción no se puede deshacer y eliminará también las vacantes y tutores relacionados.</p>
+
+                    <form method="POST">
+                        {% csrf_token %}
+                        <a href="{% url 'coordinacion:empresa_detalle' empresa.id %}" class="btn btn-secondary">Cancelar</a>
+                        <button type="submit" class="btn btn-danger">Eliminar Empresa</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

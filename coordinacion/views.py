@@ -1,6 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout
-from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q, Count
 from django.utils import timezone
@@ -49,7 +48,25 @@ def coordinador_logout(request):
 # DASHBOARD PRINCIPAL
 # ============================================
 
-@login_required
+from functools import wraps
+from django.http import HttpResponseForbidden
+
+def coordinator_required(view_func):
+    """Decorador que exige que el usuario esté autenticado y tenga un objeto `coordinador` asociado."""
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        # Si no está autenticado, redirigir al login del coordinador
+        if not request.user.is_authenticated:
+            return redirect('coordinacion:login')
+        # Si no tiene atributo 'coordinador', denegar acceso
+        if not hasattr(request.user, 'coordinador'):
+            messages.error(request, 'Acceso denegado: se requiere rol Coordinador')
+            return HttpResponseForbidden('Acceso denegado')
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
+
+
+@coordinator_required
 def coordinador_dashboard(request):
     """Dashboard principal del Coordinador Empresarial"""
 
@@ -83,7 +100,7 @@ def coordinador_dashboard(request):
 # GESTIÓN DE EMPRESAS (RF-01)
 # ============================================
 
-@login_required
+@coordinator_required
 def empresas_lista(request):
     """Listar todas las empresas registradas"""
     estado_filtro = request.GET.get('estado', '')
@@ -114,7 +131,7 @@ def empresas_lista(request):
     return render(request, 'coordinacion/empresas/lista.html', context)
 
 
-@login_required
+@coordinator_required
 def empresa_detalle(request, empresa_id):
     """Ver detalles completos de una empresa"""
     empresa = get_object_or_404(Empresa, id=empresa_id)
@@ -129,7 +146,7 @@ def empresa_detalle(request, empresa_id):
     return render(request, 'coordinacion/empresas/detalle.html', context)
 
 
-@login_required
+@coordinator_required
 def empresa_validar(request, empresa_id):
     """Validar/Aprobar o Rechazar una empresa"""
     empresa = get_object_or_404(Empresa, id=empresa_id)
@@ -182,6 +199,7 @@ def empresa_validar(request, empresa_id):
 # GESTIÓN DE VACANTES (RF-02)
 # ============================================
 
+@coordinator_required
 def vacantes_lista(request):
     """Listar todas las vacantes"""
     estado_filtro = request.GET.get('estado', '')
@@ -204,7 +222,7 @@ def vacantes_lista(request):
     return render(request, 'coordinacion/vacantes/lista.html', context)
 
 
-@login_required
+@coordinator_required
 def vacante_crear(request):
     """Crear una nueva vacante oficial"""
 
@@ -244,7 +262,7 @@ def vacante_crear(request):
     return render(request, 'coordinacion/vacantes/crear.html', context)
 
 
-@login_required
+@coordinator_required
 def vacante_editar(request, vacante_id):
     """Editar una vacante existente"""
     vacante = get_object_or_404(Vacante, id=vacante_id)
@@ -289,7 +307,7 @@ def vacante_editar(request, vacante_id):
     return render(request, 'coordinacion/vacantes/editar.html', context)
 
 
-@login_required
+@coordinator_required
 def vacante_detalle(request, vacante_id):
     """Ver detalles de una vacante"""
     vacante = get_object_or_404(Vacante, id=vacante_id)
@@ -306,7 +324,7 @@ def vacante_detalle(request, vacante_id):
 # POSTULACIÓN DE ESTUDIANTES (RF-03)
 # ============================================
 
-@login_required
+@coordinator_required
 def estudiantes_lista(request):
     """Listar estudiantes aptos para postular"""
     estado_filtro = request.GET.get('estado', '')
@@ -328,7 +346,7 @@ def estudiantes_lista(request):
 
     return render(request, 'coordinacion/estudiantes/lista.html', context)
 
-@login_required
+@coordinator_required
 def estudiante_detalle(request, estudiante_id):
     """
     Ver detalle completo de un estudiante incluyendo:
@@ -367,7 +385,7 @@ def estudiante_detalle(request, estudiante_id):
     return render(request, 'coordinacion/estudiantes/detalle.html', context)
 
 
-@login_required
+@coordinator_required
 def postulaciones_lista(request):
     """Listar todas las postulaciones"""
     estado_filtro = request.GET.get('estado', '')
@@ -392,7 +410,7 @@ def postulaciones_lista(request):
     return render(request, 'coordinacion/postulaciones/lista.html', context)
 
 
-@login_required
+@coordinator_required
 def postulacion_crear(request):
     """
     RF-03: Crear nueva postulación de estudiante a vacante
@@ -427,7 +445,7 @@ def postulacion_crear(request):
     return render(request, 'coordinacion/postulaciones/crear.html', context)
 
 
-@login_required
+@coordinator_required
 def postulacion_aprobar(request, postulacion_id):
     """
     RF-04: Aprobar o rechazar una postulación seleccionada por la empresa
@@ -515,7 +533,7 @@ def postulacion_aprobar(request, postulacion_id):
 
     return render(request, 'coordinacion/postulaciones/aprobar.html', context)
 
-@login_required
+@coordinator_required
 def postulacion_detalle(request, postulacion_id):
     """
     Ver detalles completos de una postulación
@@ -529,7 +547,7 @@ def postulacion_detalle(request, postulacion_id):
     return render(request, 'coordinacion/postulaciones/detalle.html', context)
 
 
-@login_required
+@coordinator_required
 def practica_crear_desde_postulacion(request, postulacion_id):
     """
     Crear automáticamente una práctica empresarial desde una postulación vinculada
@@ -617,7 +635,7 @@ def practica_crear_desde_postulacion(request, postulacion_id):
 
     return render(request, 'coordinacion/practicas/crear_desde_postulacion.html', context)
 
-@login_required
+@coordinator_required
 def postulacion_editar(request, postulacion_id):
     """
     Editar una postulación existente (solo si está en estado POSTULADO)
@@ -653,7 +671,7 @@ def postulacion_editar(request, postulacion_id):
     return render(request, 'coordinacion/postulaciones/editar.html', context)
 
 
-@login_required
+@coordinator_required
 def postulacion_eliminar(request, postulacion_id):
     """
     Eliminar una postulación (solo si está en estado POSTULADO)
@@ -683,7 +701,7 @@ def postulacion_eliminar(request, postulacion_id):
     # Si es GET, redirigir al detalle
     return redirect('coordinacion:postulacion_detalle', postulacion_id=postulacion.id)
 
-@login_required
+@coordinator_required
 def postulacion_rechazar(request, postulacion_id):
     """
     Rechazar una postulación directamente desde la lista
@@ -740,7 +758,7 @@ def postulacion_rechazar(request, postulacion_id):
 # ASIGNACIÓN DE TUTORES Y DOCENTES (RF-05)
 # ============================================
 
-@login_required
+@coordinator_required
 def tutores_lista(request):
     """Listar tutores empresariales"""
     tutores = TutorEmpresarial.objects.select_related('empresa').all()
@@ -757,7 +775,7 @@ def tutores_lista(request):
     return render(request, 'coordinacion/tutores/lista.html', context)
 
 
-@login_required
+@coordinator_required
 def docentes_lista(request):
     """Listar docentes asesores"""
     docentes = DocenteAsesor.objects.filter(activo=True)
@@ -769,7 +787,7 @@ def docentes_lista(request):
     return render(request, 'coordinacion/docentes/lista.html', context)
 
 
-@login_required
+@coordinator_required
 def practica_asignar(request, postulacion_id):
     """Asignar tutor y docente a una práctica"""
     postulacion = get_object_or_404(Postulacion, id=postulacion_id)
@@ -798,7 +816,7 @@ def practica_asignar(request, postulacion_id):
 # GESTIÓN DE PRÁCTICAS
 # ============================================
 
-@login_required
+@coordinator_required
 def practicas_lista(request):
     """Listar todas las prácticas"""
     estado_filtro = request.GET.get('estado', '')
@@ -826,7 +844,7 @@ def practicas_lista(request):
     return render(request, 'coordinacion/practicas/lista.html', context)
 
 
-@login_required
+@coordinator_required
 def practica_detalle(request, practica_id):
     """
     Ver detalle completo de una práctica empresarial
@@ -850,7 +868,7 @@ def practica_detalle(request, practica_id):
     return render(request, 'coordinacion/practicas/detalle.html', context)
 
 
-@login_required
+@coordinator_required
 def practica_cancelar(request, practica_id):
     """
     Cancelar una práctica empresarial con motivo
@@ -920,7 +938,7 @@ def practica_cancelar(request, practica_id):
 
     return render(request, 'coordinacion/practicas/cancelar.html', context)
 
-@login_required
+@coordinator_required
 def practica_cerrar(request, practica_id):
     """Cerrar una práctica empresarial"""
     practica = get_object_or_404(PracticaEmpresarial, id=practica_id)
@@ -955,7 +973,7 @@ def practica_cerrar(request, practica_id):
 
     return render(request, 'coordinacion/practicas/cerrar.html', context)
 
-@login_required
+@coordinator_required
 def practica_finalizar(request, practica_id):
     """
     Marcar una práctica como finalizada exitosamente
@@ -996,7 +1014,7 @@ def practica_finalizar(request, practica_id):
 # GESTIÓN DE SUSTENTACIONES (RF-09)
 # ============================================
 
-@login_required
+@coordinator_required
 def sustentaciones_lista(request):
     """Listar sustentaciones"""
     sustentaciones = Sustentacion.objects.select_related(
@@ -1015,7 +1033,7 @@ def sustentaciones_lista(request):
     return render(request, 'coordinacion/sustentaciones/lista.html', context)
 
 
-@login_required
+@coordinator_required
 def sustentacion_crear(request, practica_id):
     """Registrar una nueva sustentación"""
     practica = get_object_or_404(PracticaEmpresarial, id=practica_id)
@@ -1037,7 +1055,7 @@ def sustentacion_crear(request, practica_id):
 # REPORTES E INDICADORES (RF-12)
 # ============================================
 
-@login_required
+@coordinator_required
 def reportes_dashboard(request):
     """Dashboard de reportes e indicadores"""
 

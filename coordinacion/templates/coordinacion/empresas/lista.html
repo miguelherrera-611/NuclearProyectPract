@@ -64,6 +64,11 @@
 
         <!-- Main Content -->
         <div class="col-md-9 col-lg-10">
+            <div class="mb-3 d-flex justify-content-end">
+                <a href="{% url 'coordinacion:empresa_crear' %}" class="btn btn-success">
+                    <i class="fas fa-plus me-2"></i>Crear Empresa
+                </a>
+            </div>
             <div id="empresas-root"></div>
         </div>
     </div>
@@ -277,6 +282,22 @@
                             title="Ver detalles"
                         >
                             <i className="fas fa-eye"></i>
+                        </a>
+                        {/* Editar */}
+                        <a
+                            href={`/empresas/${empresa.id}/editar/`}
+                            className="btn btn-outline-secondary"
+                            title="Editar empresa"
+                        >
+                            <i className="fas fa-edit"></i>
+                        </a>
+                        {/* Eliminar */}
+                        <a
+                            href={`/empresas/${empresa.id}/eliminar/`}
+                            className="btn btn-outline-danger"
+                            title="Eliminar empresa"
+                        >
+                            <i className="fas fa-trash"></i>
                         </a>
                         {empresa.estado === 'PENDIENTE' && (
                             <a

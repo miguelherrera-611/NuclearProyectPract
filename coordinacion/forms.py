@@ -281,3 +281,75 @@ class PostulacionForm(forms.ModelForm):
             postulacion.save()
 
         return postulacion
+
+
+# ==============================
+# EmpresaForm (CRUD para Empresa)
+# ==============================
+class EmpresaForm(forms.ModelForm):
+    class Meta:
+        model = Empresa
+        fields = [
+            'razon_social',
+            'nit',
+            'direccion',
+            'telefono',
+            'email',
+            'ciudad',
+            'representante_nombre',
+            'representante_cargo',
+            'representante_email',
+            'representante_telefono',
+            'camara_comercio',
+            'rut',
+            'estado',
+            'observaciones',
+        ]
+
+        widgets = {
+            'razon_social': forms.TextInput(attrs={'class': 'form-control', 'required': True}),
+            'nit': forms.TextInput(attrs={'class': 'form-control', 'required': True}),
+            'direccion': forms.TextInput(attrs={'class': 'form-control'}),
+            'telefono': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'ciudad': forms.TextInput(attrs={'class': 'form-control'}),
+            'representante_nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'representante_cargo': forms.TextInput(attrs={'class': 'form-control'}),
+            'representante_email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'representante_telefono': forms.TextInput(attrs={'class': 'form-control'}),
+            'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'estado': forms.Select(attrs={'class': 'form-select'}),
+        }
+
+        labels = {
+            'razon_social': 'Razón Social',
+            'nit': 'NIT',
+            'direccion': 'Dirección',
+            'telefono': 'Teléfono',
+            'email': 'Email',
+            'ciudad': 'Ciudad',
+            'representante_nombre': 'Nombre del Representante',
+            'representante_cargo': 'Cargo del Representante',
+            'representante_email': 'Email del Representante',
+            'representante_telefono': 'Teléfono del Representante',
+            'camara_comercio': 'Cámara de Comercio (PDF)',
+            'rut': 'RUT (PDF)',
+            'observaciones': 'Observaciones',
+            'estado': 'Estado',
+        }
+
+    def clean_nit(self):
+        nit = self.cleaned_data.get('nit')
+        if nit:
+            qs = Empresa.objects.filter(nit=nit)
+            # En edición, permitimos el mismo registro
+            if self.instance and self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+            if qs.exists():
+                raise forms.ValidationError('Ya existe una empresa con este NIT')
+        return nit
+
+    def clean(self):
+        cleaned = super().clean()
+        # Validaciones adicionales pueden añadirse aquí
+        return cleaned

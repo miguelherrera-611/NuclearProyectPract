@@ -127,3 +127,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'coordinacion:login'
 LOGIN_REDIRECT_URL = 'coordinacion:dashboard'
 LOGOUT_REDIRECT_URL = 'coordinacion:login'
+
+# Media files (uploads)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

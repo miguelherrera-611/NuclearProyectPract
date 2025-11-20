@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import company_views
 
 app_name = 'coordinacion'
 
@@ -20,7 +21,10 @@ urlpatterns = [
     # GESTIÓN DE EMPRESAS (RF-01)
     # ============================================
     path('empresas/', views.empresas_lista, name='empresas_lista'),
+    path('empresas/crear/', company_views.empresa_crear, name='empresa_crear'),
     path('empresas/<int:empresa_id>/', views.empresa_detalle, name='empresa_detalle'),
+    path('empresas/<int:empresa_id>/editar/', company_views.empresa_editar, name='empresa_editar'),
+    path('empresas/<int:empresa_id>/eliminar/', company_views.empresa_eliminar, name='empresa_eliminar'),
     path('empresas/<int:empresa_id>/validar/', views.empresa_validar, name='empresa_validar'),
 
     # ============================================
