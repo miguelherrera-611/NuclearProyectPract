@@ -201,31 +201,48 @@
                         <div class="card-body">
                             <div class="list-group">
                                 {% if empresa.camara_comercio %}
-                                    <a href="{{ empresa.camara_comercio.url }}" target="_blank" class="list-group-item list-group-item-action">
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
                                         <i class="fas fa-file-pdf text-danger me-2"></i>
                                         <strong>Cámara de Comercio</strong>
-                                        <span class="badge bg-success float-end">Disponible</span>
-                                    </a>
-                                {% else %}
-                                    <div class="list-group-item">
-                                        <i class="fas fa-file-pdf text-muted me-2"></i>
-                                        <strong>Cámara de Comercio</strong>
-                                        <span class="badge bg-secondary float-end">No adjuntado</span>
                                     </div>
+                                    <div>
+                                        <a href="{{ empresa.camara_comercio.url }}" target="_blank" class="btn btn-sm btn-outline-primary me-2">
+                                            <i class="fas fa-eye me-1"></i>Ver
+                                        </a>
+                                        <a href="{{ empresa.camara_comercio.url }}" download class="btn btn-sm btn-outline-success">
+                                            <i class="fas fa-download me-1"></i>Descargar
+                                        </a>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <div class="list-group-item">
+                                    <i class="fas fa-file-pdf text-muted me-2"></i>
+                                    <strong>Cámara de Comercio</strong>
+                                    <span class="badge bg-secondary float-end">No adjuntado</span>
+                                </div>
                                 {% endif %}
-
                                 {% if empresa.rut %}
-                                    <a href="{{ empresa.rut.url }}" target="_blank" class="list-group-item list-group-item-action">
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
                                         <i class="fas fa-file-pdf text-danger me-2"></i>
                                         <strong>RUT</strong>
-                                        <span class="badge bg-success float-end">Disponible</span>
-                                    </a>
-                                {% else %}
-                                    <div class="list-group-item">
-                                        <i class="fas fa-file-pdf text-muted me-2"></i>
-                                        <strong>RUT</strong>
-                                        <span class="badge bg-secondary float-end">No adjuntado</span>
                                     </div>
+                                    <div>
+                                        <a href="{{ empresa.rut.url }}" target="_blank" class="btn btn-sm btn-outline-primary me-2">
+                                            <i class="fas fa-eye me-1"></i>Ver
+                                        </a>
+                                        <a href="{{ empresa.rut.url }}" download class="btn btn-sm btn-outline-success">
+                                            <i class="fas fa-download me-1"></i>Descargar
+                                        </a>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <div class="list-group-item">
+                                    <i class="fas fa-file-pdf text-muted me-2"></i>
+                                    <strong>RUT</strong>
+                                    <span class="badge bg-secondary float-end">No adjuntado</span>
+                                </div>
                                 {% endif %}
                             </div>
                         </div>

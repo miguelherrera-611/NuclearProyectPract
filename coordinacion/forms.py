@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from .models import Vacante, Empresa, Postulacion, Estudiante
 from datetime import date, timedelta
+from django.core.exceptions import ValidationError
 
 
 class CoordinadorLoginForm(AuthenticationForm):
@@ -319,6 +320,17 @@ class EmpresaForm(forms.ModelForm):
             'representante_telefono': forms.TextInput(attrs={'class': 'form-control'}),
             'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'estado': forms.Select(attrs={'class': 'form-select'}),
+            # ✅ ACTUALIZAR WIDGETS PARA ARCHIVOS
+            'camara_comercio': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': '.pdf',
+                'onchange': 'validateFile(this, "camara")'
+            }),
+            'rut': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': '.pdf',
+                'onchange': 'validateFile(this, "rut")'
+            }),
         }
 
         labels = {
@@ -338,6 +350,29 @@ class EmpresaForm(forms.ModelForm):
             'estado': 'Estado',
         }
 
+    # ✅ AÑADIR VALIDACIÓN DE ARCHIVOS PDF
+    def clean_camara_comercio(self):
+        archivo = self.cleaned_data.get('camara_comercio')
+        if archivo:
+            # Validar tamaño (máximo 5MB)
+            if archivo.size > 5242880:
+                raise ValidationError('El archivo no debe superar los 5MB')
+            # Validar extensión
+            if not archivo.name.endswith('.pdf'):
+                raise ValidationError('Solo se permiten archivos PDF')
+        return archivo
+
+    def clean_rut(self):
+        archivo = self.cleaned_data.get('rut')
+        if archivo:
+            # Validar tamaño (máximo 5MB)
+            if archivo.size > 5242880:
+                raise ValidationError('El archivo no debe superar los 5MB')
+            # Validar extensión
+            if not archivo.name.endswith('.pdf'):
+                raise ValidationError('Solo se permiten archivos PDF')
+        return archivo
+
     def clean_nit(self):
         nit = self.cleaned_data.get('nit')
         if nit:
@@ -346,10 +381,5 @@ class EmpresaForm(forms.ModelForm):
             if self.instance and self.instance.pk:
                 qs = qs.exclude(pk=self.instance.pk)
             if qs.exists():
-                raise forms.ValidationError('Ya existe una empresa con este NIT')
+                raise ValidationError('Ya existe una empresa con este NIT')
         return nit
-
-    def clean(self):
-        cleaned = super().clean()
-        # Validaciones adicionales pueden añadirse aquí
-        return cleaned

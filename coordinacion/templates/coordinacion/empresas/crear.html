@@ -15,7 +15,6 @@
 <div class="container-fluid mt-4">
     <div class="row">
         <div class="col-md-3 col-lg-2 sidebar">
-            <!-- Sidebar similar al de vacantes -->
             <div class="list-group">
                 <a href="{% url 'coordinacion:empresas_lista' %}" class="list-group-item list-group-item-action active">
                     <i class="fas fa-building me-2"></i>Empresas
@@ -46,12 +45,15 @@
                 {% endfor %}
             {% endif %}
 
-            <form method="POST" enctype="multipart/form-data">
+            <form method="POST" enctype="multipart/form-data" id="empresaForm">
                 {% csrf_token %}
 
                 <div class="row g-4">
                     <div class="col-12">
                         <div class="card">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">Información Básica</h5>
+                            </div>
                             <div class="card-body">
                                 <div class="mb-3">
                                     <label class="form-label fw-bold">Razón Social *</label>
@@ -108,11 +110,19 @@
                                 <div class="mb-3">
                                     <label class="form-label">Cámara de Comercio (PDF)</label>
                                     {{ form.camara_comercio }}
+                                    <small class="form-text text-muted d-block">
+                                        Formato: PDF | Tamaño máximo: 5MB
+                                    </small>
+                                    <div id="camara-info" class="text-success small mt-1" style="display: none;"></div>
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label">RUT (PDF)</label>
                                     {{ form.rut }}
+                                    <small class="form-text text-muted d-block">
+                                        Formato: PDF | Tamaño máximo: 5MB
+                                    </small>
+                                    <div id="rut-info" class="text-success small mt-1" style="display: none;"></div>
                                 </div>
 
                                 <div class="mb-3">
@@ -127,7 +137,7 @@
 
                                 <div class="d-flex justify-content-end">
                                     <a href="{% url 'coordinacion:empresas_lista' %}" class="btn btn-secondary me-2">Cancelar</a>
-                                    <button class="btn btn-success">Crear Empresa</button>
+                                    <button type="submit" class="btn btn-success">Crear Empresa</button>
                                 </div>
                             </div>
                         </div>
@@ -137,4 +147,86 @@
         </div>
     </div>
 </div>
+
+<script>
+// Función de validación de archivos PDF
+function validateFile(input, fieldName, infoElementId) {
+    const file = input.files[0];
+    const infoElement = document.getElementById(infoElementId);
+
+    if (file) {
+        // Validar tamaño (5MB máximo)
+        const maxSize = 5 * 1024 * 1024; // 5MB en bytes
+        if (file.size > maxSize) {
+            alert(`El archivo de ${fieldName} excede el tamaño máximo permitido de 5MB`);
+            input.value = '';
+            infoElement.style.display = 'none';
+            return false;
+        }
+
+        // Validar extensión
+        const allowedExtensions = /(\.pdf)$/i;
+        if (!allowedExtensions.exec(file.name)) {
+            alert(`Solo se permiten archivos PDF para ${fieldName}`);
+            input.value = '';
+            infoElement.style.display = 'none';
+            return false;
+        }
+
+        // Mostrar información del archivo seleccionado
+        const fileName = file.name;
+        const fileSize = (file.size / 1024 / 1024).toFixed(2);
+        infoElement.innerHTML = `<i class="fas fa-check-circle me-1"></i>${fileName} (${fileSize}MB)`;
+        infoElement.style.display = 'block';
+
+        return true;
+    }
+
+    infoElement.style.display = 'none';
+    return true;
+}
+
+// Event listeners para validación en tiempo real
+document.addEventListener('DOMContentLoaded', function() {
+    const camaraInput = document.querySelector('input[name="camara_comercio"]');
+    const rutInput = document.querySelector('input[name="rut"]');
+
+    if (camaraInput) {
+        camaraInput.addEventListener('change', function() {
+            validateFile(this, 'Cámara de Comercio', 'camara-info');
+        });
+    }
+
+    if (rutInput) {
+        rutInput.addEventListener('change', function() {
+            validateFile(this, 'RUT', 'rut-info');
+        });
+    }
+});
+
+// Validación al enviar el formulario
+document.getElementById('empresaForm').addEventListener('submit', function(e) {
+    const camaraInput = document.querySelector('input[name="camara_comercio"]');
+    const rutInput = document.querySelector('input[name="rut"]');
+
+    let isValid = true;
+
+    if (camaraInput && camaraInput.files.length > 0) {
+        if (!validateFile(camaraInput, 'Cámara de Comercio', 'camara-info')) {
+            isValid = false;
+        }
+    }
+
+    if (rutInput && rutInput.files.length > 0) {
+        if (!validateFile(rutInput, 'RUT', 'rut-info')) {
+            isValid = false;
+        }
+    }
+
+    if (!isValid) {
+        e.preventDefault();
+        return false;
+    }
+});
+</script>
 {% endblock %}

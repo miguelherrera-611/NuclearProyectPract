@@ -45,12 +45,15 @@
                 {% endfor %}
             {% endif %}
 
-            <form method="POST" enctype="multipart/form-data">
+            <form method="POST" enctype="multipart/form-data" id="empresaForm">
                 {% csrf_token %}
 
                 <div class="row g-4">
                     <div class="col-12">
                         <div class="card">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">Información Básica</h5>
+                            </div>
                             <div class="card-body">
                                 <div class="mb-3">
                                     <label class="form-label fw-bold">Razón Social *</label>
@@ -109,9 +112,15 @@
                                     {{ form.camara_comercio }}
                                     {% if empresa.camara_comercio %}
                                         <div class="mt-2">
-                                            <a href="{{ empresa.camara_comercio.url }}" target="_blank" class="link-secondary">Ver documento actual</a>
+                                            <a href="{{ empresa.camara_comercio.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-file-pdf me-1"></i>Ver documento actual
+                                            </a>
                                         </div>
                                     {% endif %}
+                                    <small class="form-text text-muted d-block mt-2">
+                                        Formato: PDF | Tamaño máximo: 5MB | Dejar vacío para mantener el actual
+                                    </small>
+                                    <div id="camara-info" class="text-success small mt-1" style="display: none;"></div>
                                 </div>
 
                                 <div class="mb-3">
@@ -119,9 +128,15 @@
                                     {{ form.rut }}
                                     {% if empresa.rut %}
                                         <div class="mt-2">
-                                            <a href="{{ empresa.rut.url }}" target="_blank" class="link-secondary">Ver documento actual</a>
+                                            <a href="{{ empresa.rut.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-file-pdf me-1"></i>Ver documento actual
+                                            </a>
                                         </div>
                                     {% endif %}
+                                    <small class="form-text text-muted d-block mt-2">
+                                        Formato: PDF | Tamaño máximo: 5MB | Dejar vacío para mantener el actual
+                                    </small>
+                                    <div id="rut-info" class="text-success small mt-1" style="display: none;"></div>
                                 </div>
 
                                 <div class="mb-3">
@@ -136,7 +151,7 @@
 
                                 <div class="d-flex justify-content-end">
                                     <a href="{% url 'coordinacion:empresa_detalle' empresa.id %}" class="btn btn-secondary me-2">Cancelar</a>
-                                    <button class="btn btn-primary">Guardar Cambios</button>
+                                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
                                 </div>
                             </div>
                         </div>
@@ -146,4 +161,86 @@
         </div>
     </div>
 </div>
+
+<script>
+// Función de validación de archivos PDF
+function validateFile(input, fieldName, infoElementId) {
+    const file = input.files[0];
+    const infoElement = document.getElementById(infoElementId);
+
+    if (file) {
+        // Validar tamaño (5MB máximo)
+        const maxSize = 5 * 1024 * 1024; // 5MB en bytes
+        if (file.size > maxSize) {
+            alert(`El archivo de ${fieldName} excede el tamaño máximo permitido de 5MB`);
+            input.value = '';
+            infoElement.style.display = 'none';
+            return false;
+        }
+
+        // Validar extensión
+        const allowedExtensions = /(\.pdf)$/i;
+        if (!allowedExtensions.exec(file.name)) {
+            alert(`Solo se permiten archivos PDF para ${fieldName}`);
+            input.value = '';
+            infoElement.style.display = 'none';
+            return false;
+        }
+
+        // Mostrar información del archivo seleccionado
+        const fileName = file.name;
+        const fileSize = (file.size / 1024 / 1024).toFixed(2);
+        infoElement.innerHTML = `<i class="fas fa-check-circle me-1"></i>Nuevo archivo: ${fileName} (${fileSize}MB)`;
+        infoElement.style.display = 'block';
+
+        return true;
+    }
+
+    infoElement.style.display = 'none';
+    return true;
+}
+
+// Event listeners para validación en tiempo real
+document.addEventListener('DOMContentLoaded', function() {
+    const camaraInput = document.querySelector('input[name="camara_comercio"]');
+    const rutInput = document.querySelector('input[name="rut"]');
+
+    if (camaraInput) {
+        camaraInput.addEventListener('change', function() {
+            validateFile(this, 'Cámara de Comercio', 'camara-info');
+        });
+    }
+
+    if (rutInput) {
+        rutInput.addEventListener('change', function() {
+            validateFile(this, 'RUT', 'rut-info');
+        });
+    }
+});
+
+// Validación al enviar el formulario
+document.getElementById('empresaForm').addEventListener('submit', function(e) {
+    const camaraInput = document.querySelector('input[name="camara_comercio"]');
+    const rutInput = document.querySelector('input[name="rut"]');
+
+    let isValid = true;
+
+    if (camaraInput && camaraInput.files.length > 0) {
+        if (!validateFile(camaraInput, 'Cámara de Comercio', 'camara-info')) {
+            isValid = false;
+        }
+    }
+
+    if (rutInput && rutInput.files.length > 0) {
+        if (!validateFile(rutInput, 'RUT', 'rut-info')) {
+            isValid = false;
+        }
+    }
+
+    if (!isValid) {
+        e.preventDefault();
+        return false;
+    }
+});
+</script>
 {% endblock %}
