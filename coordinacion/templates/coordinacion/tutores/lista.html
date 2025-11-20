@@ -73,173 +73,195 @@
     const { useState, useEffect } = React;
 
     const tutoresData = {{ tutores|safe }};
+    const empresasData = {{ empresas|safe }};
 
     function TutoresApp() {
         const [tutores, setTutores] = useState(tutoresData);
-        const [busqueda, setBusqueda] = useState('');
-        const [filtroActivo, setFiltroActivo] = useState('');
+        const [empresas, setEmpresas] = useState(empresasData);
+        const [busqueda, setBusqueda] = useState('{{ busqueda }}');
+        const [filtroActivo, setFiltroActivo] = useState('{{ filtro_activo }}');
+        const [filtroEmpresa, setFiltroEmpresa] = useState('{{ filtro_empresa }}');
         const [tutoresFiltrados, setTutoresFiltrados] = useState(tutoresData);
 
         useEffect(() => {
             let resultado = tutores;
 
+            // Filtro por activo
             if (filtroActivo !== '') {
                 const activo = filtroActivo === 'true';
                 resultado = resultado.filter(t => t.activo === activo);
             }
 
+            // Filtro por empresa
+            if (filtroEmpresa) {
+                resultado = resultado.filter(t => t.empresa.id === parseInt(filtroEmpresa));
+            }
+
+            // Búsqueda
             if (busqueda) {
                 resultado = resultado.filter(t =>
                     t.nombre_completo.toLowerCase().includes(busqueda.toLowerCase()) ||
                     t.empresa.razon_social.toLowerCase().includes(busqueda.toLowerCase()) ||
-                    t.cargo.toLowerCase().includes(busqueda.toLowerCase())
+                    t.cargo.toLowerCase().includes(busqueda.toLowerCase()) ||
+                    t.email.toLowerCase().includes(busqueda.toLowerCase())
                 );
             }
 
             setTutoresFiltrados(resultado);
-        }, [busqueda, filtroActivo, tutores]);
+        }, [busqueda, filtroActivo, filtroEmpresa, tutores]);
+
+        const aplicarFiltros = () => {
+            const params = new URLSearchParams();
+            if (busqueda) params.append('busqueda', busqueda);
+            if (filtroActivo) params.append('activo', filtroActivo);
+            if (filtroEmpresa) params.append('empresa', filtroEmpresa);
+
+            window.location.href = `{% url 'coordinacion:tutores_lista' %}?${params.toString()}`;
+        };
+
+        const limpiarFiltros = () => {
+            window.location.href = '{% url "coordinacion:tutores_lista" %}';
+        };
 
         return (
             <div>
                 <div className="d-flex justify-content-between align-items-center mb-4">
                     <h2>
                         <i className="fas fa-chalkboard-teacher me-2 text-primary"></i>
-                        Gestión de Tutores Empresariales y Docentes
+                        Gestión de Tutores Empresariales
                     </h2>
+                    <a href="{% url 'coordinacion:tutor_crear' %}" className="btn btn-primary">
+                        <i className="fas fa-plus me-2"></i>Nuevo Tutor
+                    </a>
                 </div>
 
-                {/* Tabs */}
-                <ul className="nav nav-tabs mb-4" role="tablist">
-                    <li className="nav-item" role="presentation">
-                        <button className="nav-link active" data-bs-toggle="tab" data-bs-target="#tutores-tab">
-                            <i className="fas fa-user-tie me-2"></i>Tutores Empresariales
-                        </button>
-                    </li>
-                    <li className="nav-item" role="presentation">
-                        <button className="nav-link" data-bs-toggle="tab" data-bs-target="#docentes-tab">
-                            <i className="fas fa-chalkboard-teacher me-2"></i>Docentes Asesores
-                        </button>
-                    </li>
-                </ul>
-
-                <div className="tab-content">
-                    {/* Tab Tutores */}
-                    <div className="tab-pane fade show active" id="tutores-tab">
-                        {/* Filtros */}
-                        <div className="card mb-4">
-                            <div className="card-body">
-                                <div className="row g-3">
-                                    <div className="col-md-6">
-                                        <label className="form-label">Buscar</label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            placeholder="Nombre, empresa o cargo..."
-                                            value={busqueda}
-                                            onChange={(e) => setBusqueda(e.target.value)}
-                                        />
-                                    </div>
-                                    <div className="col-md-3">
-                                        <label className="form-label">Estado</label>
-                                        <select
-                                            className="form-select"
-                                            value={filtroActivo}
-                                            onChange={(e) => setFiltroActivo(e.target.value)}
-                                        >
-                                            <option value="">Todos</option>
-                                            <option value="true">Activo</option>
-                                            <option value="false">Inactivo</option>
-                                        </select>
-                                    </div>
-                                    <div className="col-md-3 d-flex align-items-end">
-                                        <button
-                                            className="btn btn-secondary w-100"
-                                            onClick={() => {
-                                                setBusqueda('');
-                                                setFiltroActivo('');
-                                            }}
-                                        >
-                                            <i className="fas fa-redo me-2"></i>Limpiar
-                                        </button>
-                                    </div>
-                                </div>
+                {/* Filtros */}
+                <div className="card mb-4">
+                    <div className="card-body">
+                        <div className="row g-3">
+                            <div className="col-md-4">
+                                <label className="form-label">Buscar</label>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    placeholder="Nombre, empresa, cargo o email..."
+                                    value={busqueda}
+                                    onChange={(e) => setBusqueda(e.target.value)}
+                                    onKeyPress={(e) => e.key === 'Enter' && aplicarFiltros()}
+                                />
                             </div>
-                        </div>
-
-                        {/* Estadísticas */}
-                        <div className="row g-3 mb-4">
-                            <StatCard
-                                icon="fa-users"
-                                title="Total Tutores"
-                                value={tutores.length}
-                                color="primary"
-                            />
-                            <StatCard
-                                icon="fa-check-circle"
-                                title="Activos"
-                                value={tutores.filter(t => t.activo).length}
-                                color="success"
-                            />
-                            <StatCard
-                                icon="fa-building"
-                                title="Empresas con Tutor"
-                                value={new Set(tutores.map(t => t.empresa.id)).size}
-                                color="info"
-                            />
-                            <StatCard
-                                icon="fa-ban"
-                                title="Inactivos"
-                                value={tutores.filter(t => !t.activo).length}
-                                color="secondary"
-                            />
-                        </div>
-
-                        {/* Lista de tutores */}
-                        <div className="card">
-                            <div className="card-header bg-primary text-white">
-                                <h5 className="mb-0">
-                                    <i className="fas fa-list me-2"></i>
-                                    Listado de Tutores Empresariales ({tutoresFiltrados.length})
-                                </h5>
+                            <div className="col-md-3">
+                                <label className="form-label">Empresa</label>
+                                <select
+                                    className="form-select"
+                                    value={filtroEmpresa}
+                                    onChange={(e) => setFiltroEmpresa(e.target.value)}
+                                >
+                                    <option value="">Todas las empresas</option>
+                                    {empresas.map(empresa => (
+                                        <option key={empresa.id} value={empresa.id}>
+                                            {empresa.razon_social}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
-                            <div className="card-body">
-                                {tutoresFiltrados.length === 0 ? (
-                                    <div className="text-center py-5">
-                                        <i className="fas fa-inbox fa-3x text-muted mb-3"></i>
-                                        <p className="text-muted">No se encontraron tutores</p>
-                                    </div>
-                                ) : (
-                                    <div className="table-responsive">
-                                        <table className="table table-hover">
-                                            <thead>
-                                                <tr>
-                                                    <th>Nombre Completo</th>
-                                                    <th>Empresa</th>
-                                                    <th>Cargo</th>
-                                                    <th>Email</th>
-                                                    <th>Teléfono</th>
-                                                    <th>Estado</th>
-                                                    <th>Acciones</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {tutoresFiltrados.map(tutor => (
-                                                    <TutorRow key={tutor.id} tutor={tutor} />
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                )}
+                            <div className="col-md-2">
+                                <label className="form-label">Estado</label>
+                                <select
+                                    className="form-select"
+                                    value={filtroActivo}
+                                    onChange={(e) => setFiltroActivo(e.target.value)}
+                                >
+                                    <option value="">Todos</option>
+                                    <option value="true">Activo</option>
+                                    <option value="false">Inactivo</option>
+                                </select>
+                            </div>
+                            <div className="col-md-3 d-flex align-items-end gap-2">
+                                <button
+                                    className="btn btn-primary w-50"
+                                    onClick={aplicarFiltros}
+                                >
+                                    <i className="fas fa-search me-2"></i>Buscar
+                                </button>
+                                <button
+                                    className="btn btn-secondary w-50"
+                                    onClick={limpiarFiltros}
+                                >
+                                    <i className="fas fa-redo me-2"></i>Limpiar
+                                </button>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    {/* Tab Docentes */}
-                    <div className="tab-pane fade" id="docentes-tab">
-                        <div className="alert alert-info">
-                            <i className="fas fa-info-circle me-2"></i>
-                            Lista de docentes asesores próximamente...
-                        </div>
+                {/* Estadísticas */}
+                <div className="row g-3 mb-4">
+                    <StatCard
+                        icon="fa-users"
+                        title="Total Tutores"
+                        value={tutores.length}
+                        color="primary"
+                    />
+                    <StatCard
+                        icon="fa-check-circle"
+                        title="Activos"
+                        value={tutores.filter(t => t.activo).length}
+                        color="success"
+                    />
+                    <StatCard
+                        icon="fa-building"
+                        title="Empresas con Tutor"
+                        value={new Set(tutores.map(t => t.empresa.id)).size}
+                        color="info"
+                    />
+                    <StatCard
+                        icon="fa-ban"
+                        title="Inactivos"
+                        value={tutores.filter(t => !t.activo).length}
+                        color="secondary"
+                    />
+                </div>
+
+                {/* Lista de tutores */}
+                <div className="card">
+                    <div className="card-header bg-primary text-white">
+                        <h5 className="mb-0">
+                            <i className="fas fa-list me-2"></i>
+                            Listado de Tutores Empresariales ({tutoresFiltrados.length})
+                        </h5>
+                    </div>
+                    <div className="card-body">
+                        {tutoresFiltrados.length === 0 ? (
+                            <div className="text-center py-5">
+                                <i className="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                <p className="text-muted">No se encontraron tutores</p>
+                                <a href="{% url 'coordinacion:tutor_crear' %}" className="btn btn-primary">
+                                    <i className="fas fa-plus me-2"></i>Crear Primer Tutor
+                                </a>
+                            </div>
+                        ) : (
+                            <div className="table-responsive">
+                                <table className="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Nombre Completo</th>
+                                            <th>Empresa</th>
+                                            <th>Cargo</th>
+                                            <th>Email</th>
+                                            <th>Teléfono</th>
+                                            <th>Estado</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {tutoresFiltrados.map(tutor => (
+                                            <TutorRow key={tutor.id} tutor={tutor} />
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -267,26 +289,50 @@
     function TutorRow({ tutor }) {
         return (
             <tr>
-                <td><strong>{tutor.nombre_completo}</strong></td>
-                <td><small>{tutor.empresa.razon_social}</small></td>
-                <td><small>{tutor.cargo}</small></td>
-                <td><small>{tutor.email}</small></td>
-                <td><small>{tutor.telefono}</small></td>
+                <td>
+                    <strong>{tutor.nombre_completo}</strong>
+                </td>
+                <td>
+                    <small className="text-muted">{tutor.empresa.razon_social}</small>
+                </td>
+                <td>
+                    <small>{tutor.cargo}</small>
+                </td>
+                <td>
+                    <a href={`mailto:${tutor.email}`} className="text-decoration-none">
+                        <small>{tutor.email}</small>
+                    </a>
+                </td>
+                <td>
+                    <small>{tutor.telefono}</small>
+                </td>
                 <td>
                     {tutor.activo ? (
-                        <span className="badge bg-success">Activo</span>
+                        <span className="badge bg-success">
+                            <i className="fas fa-check-circle me-1"></i>Activo
+                        </span>
                     ) : (
-                        <span className="badge bg-secondary">Inactivo</span>
+                        <span className="badge bg-secondary">
+                            <i className="fas fa-ban me-1"></i>Inactivo
+                        </span>
                     )}
                 </td>
                 <td>
                     <div className="btn-group btn-group-sm">
-                        <button
+
+                            href={`{% url 'coordinacion:tutor_detalle' tutor_id=0 %}`.replace('0', tutor.id)}
                             className="btn btn-outline-primary"
                             title="Ver detalles"
                         >
                             <i className="fas fa-eye"></i>
-                        </button>
+                        </a>
+
+                            href={`{% url 'coordinacion:tutor_editar' tutor_id=0 %}`.replace('0', tutor.id)}
+                            className="btn btn-outline-warning"
+                            title="Editar"
+                        >
+                            <i className="fas fa-edit"></i>
+                        </a>
                     </div>
                 </td>
             </tr>

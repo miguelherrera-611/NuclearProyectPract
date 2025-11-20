@@ -54,6 +54,11 @@ urlpatterns = [
     # GESTIÓN DE TUTORES Y DOCENTES (RF-05)
     # ============================================
     path('tutores/', views.tutores_lista, name='tutores_lista'),
+    path('tutores/crear/', views.tutor_crear, name='tutor_crear'),
+    path('tutores/<int:tutor_id>/', views.tutor_detalle, name='tutor_detalle'),
+    path('tutores/<int:tutor_id>/editar/', views.tutor_editar, name='tutor_editar'),
+    path('tutores/<int:tutor_id>/toggle/', views.tutor_toggle_activo, name='tutor_toggle_activo'),
+
     path('docentes/', views.docentes_lista, name='docentes_lista'),
     path('postulaciones/<int:postulacion_id>/asignar/', views.practica_asignar, name='practica_asignar'),
 

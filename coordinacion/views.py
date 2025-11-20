@@ -760,19 +760,179 @@ def postulacion_rechazar(request, postulacion_id):
 
 @coordinator_required
 def tutores_lista(request):
-    """Listar tutores empresariales"""
+    """Listar tutores empresariales con filtros"""
+    busqueda = request.GET.get('busqueda', '')
+    filtro_activo = request.GET.get('activo', '')
+    filtro_empresa = request.GET.get('empresa', '')
+
     tutores = TutorEmpresarial.objects.select_related('empresa').all()
+
+    # Aplicar filtros
+    if filtro_activo != '':
+        activo = filtro_activo == 'true'
+        tutores = tutores.filter(activo=activo)
+
+    if filtro_empresa:
+        tutores = tutores.filter(empresa_id=filtro_empresa)
+
+    if busqueda:
+        tutores = tutores.filter(
+            Q(nombre_completo__icontains=busqueda) |
+            Q(cargo__icontains=busqueda) |
+            Q(email__icontains=busqueda) |
+            Q(empresa__razon_social__icontains=busqueda)
+        )
+
+    # Obtener lista de empresas para el filtro
+    empresas = Empresa.objects.filter(estado='APROBADA').order_by('razon_social')
 
     # Serializar tutores para React
     tutores_json = serializers.to_json([
         serializers.serialize_tutor(tutor) for tutor in tutores
     ])
 
+    empresas_json = serializers.to_json([
+        {'id': e.id, 'razon_social': e.razon_social} for e in empresas
+    ])
+
     context = {
         'tutores': tutores_json,
+        'empresas': empresas_json,
+        'busqueda': busqueda,
+        'filtro_activo': filtro_activo,
+        'filtro_empresa': filtro_empresa,
     }
 
     return render(request, 'coordinacion/tutores/lista.html', context)
+
+@coordinator_required
+def tutor_crear(request):
+    """Crear un nuevo tutor empresarial"""
+    if request.method == 'POST':
+        form = TutorEmpresarialForm(request.POST)
+        if form.is_valid():
+            tutor = form.save()
+            messages.success(
+                request,
+                f'✅ Tutor "{tutor.nombre_completo}" creado exitosamente para {tutor.empresa.razon_social}'
+            )
+            return redirect('coordinacion:tutor_detalle', tutor_id=tutor.id)
+        else:
+            messages.error(request, '❌ Por favor corrige los errores en el formulario')
+    else:
+        form = TutorEmpresarialForm()
+
+    # Verificar si hay empresas aprobadas
+    empresas_aprobadas = Empresa.objects.filter(estado='APROBADA')
+    if not empresas_aprobadas.exists():
+        messages.warning(
+            request,
+            'No hay empresas aprobadas. Debes aprobar al menos una empresa antes de crear tutores.'
+        )
+
+    context = {
+        'form': form,
+        'empresas_aprobadas': empresas_aprobadas,
+    }
+
+    return render(request, 'coordinacion/tutores/crear.html', context)
+
+@coordinator_required
+def tutor_detalle(request, tutor_id):
+    """Ver detalles completos de un tutor empresarial"""
+    tutor = get_object_or_404(
+        TutorEmpresarial.objects.select_related('empresa'),
+        id=tutor_id
+    )
+
+    # Obtener prácticas que supervisa este tutor
+    practicas = PracticaEmpresarial.objects.filter(
+        tutor_empresarial=tutor
+    ).select_related('estudiante', 'empresa', 'docente_asesor').order_by('-fecha_inicio')
+
+    # Estadísticas
+    practicas_activas = practicas.filter(estado='EN_CURSO').count()
+    practicas_finalizadas = practicas.filter(estado='FINALIZADA').count()
+
+    context = {
+        'tutor': tutor,
+        'practicas': practicas,
+        'practicas_activas': practicas_activas,
+        'practicas_finalizadas': practicas_finalizadas,
+        'total_practicas': practicas.count(),
+    }
+
+    return render(request, 'coordinacion/tutores/detalle.html', context)
+
+
+@coordinator_required
+def tutor_editar(request, tutor_id):
+    """Editar un tutor empresarial existente"""
+    tutor = get_object_or_404(TutorEmpresarial, id=tutor_id)
+
+    # Verificar si tiene prácticas activas
+    practicas_activas = PracticaEmpresarial.objects.filter(
+        tutor_empresarial=tutor,
+        estado='EN_CURSO'
+    ).count()
+
+    if request.method == 'POST':
+        form = TutorEmpresarialForm(request.POST, instance=tutor)
+        if form.is_valid():
+            tutor = form.save()
+            messages.success(
+                request,
+                f'✅ Tutor "{tutor.nombre_completo}" actualizado exitosamente'
+            )
+            return redirect('coordinacion:tutor_detalle', tutor_id=tutor.id)
+        else:
+            messages.error(request, '❌ Por favor corrige los errores en el formulario')
+    else:
+        form = TutorEmpresarialForm(instance=tutor)
+
+    context = {
+        'form': form,
+        'tutor': tutor,
+        'practicas_activas': practicas_activas,
+    }
+
+    return render(request, 'coordinacion/tutores/editar.html', context)
+
+
+@coordinator_required
+def tutor_toggle_activo(request, tutor_id):
+    """Activar/Desactivar un tutor empresarial"""
+    tutor = get_object_or_404(TutorEmpresarial, id=tutor_id)
+
+    if request.method == 'POST':
+        # Verificar si tiene prácticas activas antes de desactivar
+        if tutor.activo:
+            practicas_activas = PracticaEmpresarial.objects.filter(
+                tutor_empresarial=tutor,
+                estado='EN_CURSO'
+            ).count()
+
+            if practicas_activas > 0:
+                messages.error(
+                    request,
+                    f'❌ No se puede desactivar este tutor porque tiene {practicas_activas} práctica(s) activa(s)'
+                )
+                return redirect('coordinacion:tutor_detalle', tutor_id=tutor.id)
+
+        # Toggle del estado
+        tutor.activo = not tutor.activo
+        tutor.save()
+
+        estado = 'activado' if tutor.activo else 'desactivado'
+        messages.success(
+            request,
+            f'✅ Tutor "{tutor.nombre_completo}" {estado} exitosamente'
+        )
+
+        return redirect('coordinacion:tutor_detalle', tutor_id=tutor.id)
+
+    # Si es GET, redirigir al detalle
+    return redirect('coordinacion:tutor_detalle', tutor_id=tutor.id)
 
 
 @coordinator_required

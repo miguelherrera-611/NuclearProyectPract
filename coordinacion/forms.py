@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
-from .models import Vacante, Empresa, Postulacion, Estudiante
+from .models import Vacante, Empresa, Postulacion, Estudiante, TutorEmpresarial
 from datetime import date, timedelta
 from django.core.exceptions import ValidationError
 
@@ -383,3 +383,76 @@ class EmpresaForm(forms.ModelForm):
             if qs.exists():
                 raise ValidationError('Ya existe una empresa con este NIT')
         return nit
+
+# ==============================
+# TutorEmpresarialForm (CRUD para Tutores)
+# ==============================
+class TutorEmpresarialForm(forms.ModelForm):
+    class Meta:
+        model = TutorEmpresarial
+        fields = [
+            'empresa',
+            'nombre_completo',
+            'cargo',
+            'email',
+            'telefono',
+            'activo',
+        ]
+
+        widgets = {
+            'empresa': forms.Select(attrs={
+                'class': 'form-select',
+                'required': True
+            }),
+            'nombre_completo': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej: Jorge Martínez López',
+                'required': True
+            }),
+            'cargo': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej: Líder de Desarrollo',
+                'required': True
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'ejemplo@empresa.com',
+                'required': True
+            }),
+            'telefono': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej: 3101234567',
+                'required': True
+            }),
+            'activo': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+        }
+
+        labels = {
+            'empresa': 'Empresa',
+            'nombre_completo': 'Nombre Completo',
+            'cargo': 'Cargo',
+            'email': 'Email',
+            'telefono': 'Teléfono',
+            'activo': 'Activo',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Filtrar solo empresas aprobadas
+        self.fields['empresa'].queryset = Empresa.objects.filter(estado='APROBADA')
+
+        if not self.fields['empresa'].queryset.exists():
+            self.fields['empresa'].empty_label = "No hay empresas aprobadas disponibles"
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if email:
+            # Validar que el email no esté duplicado (excluyendo la instancia actual si es edición)
+            qs = TutorEmpresarial.objects.filter(email=email)
+            if self.instance and self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+            if qs.exists():
+                raise ValidationError('Ya existe un tutor con este email')
+        return email
