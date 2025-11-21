@@ -1,7 +1,8 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from .models import Vacante, Empresa, Postulacion, Estudiante, TutorEmpresarial, PracticaEmpresarial, DocenteAsesor
-from datetime import date, timedelta, timezone
+from datetime import date, timedelta
+from django.utils import timezone
 from django.core.exceptions import ValidationError
 from .models import Sustentacion
 
@@ -567,5 +568,12 @@ class SustentacionForm(forms.ModelForm):
         if calificacion is not None:
             if calificacion < 0 or calificacion > 5:
                 raise ValidationError('La calificación debe estar entre 0.0 y 5.0')
+
+        # Validación defensiva: verificar que la práctica aún no tenga sustentación
+        practica = cleaned_data.get('practica')
+        if not self.instance.pk and practica:
+            # Si la práctica ya tiene una sustentación registrada, rechazar
+            if PracticaEmpresarial.objects.filter(id=practica.id, sustentacion__isnull=False).exists():
+                raise ValidationError('La práctica seleccionada ya tiene una sustentación registrada')
 
         return cleaned_data

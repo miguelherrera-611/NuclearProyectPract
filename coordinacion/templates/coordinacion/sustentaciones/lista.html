@@ -72,7 +72,7 @@
 <script type="text/babel">
     const { useState, useEffect } = React;
 
-    const sustentacionesData = {{ sustentaciones|safe }};
+    const sustentacionesData = {{ sustentaciones|default:"[]"|safe }};
 
     function SustentacionesApp() {
         const [sustentaciones, setSustentaciones] = useState(sustentacionesData);
@@ -292,7 +292,7 @@
                 </td>
                 <td>
                     <div className="btn-group btn-group-sm">
-
+                        <a
                             href={`/sustentaciones/${sustentacion.id}/`}
                             className="btn btn-outline-primary"
                             title="Ver detalles"
@@ -301,7 +301,7 @@
                         </a>
                         {sustentacion.estado === 'PROGRAMADA' && (
                             <React.Fragment>
-
+                                <a
                                     href={`/sustentaciones/${sustentacion.id}/editar/`}
                                     className="btn btn-outline-warning"
                                     title="Editar"
@@ -327,7 +327,10 @@
         );
     }
 
-    const root = ReactDOM.createRoot(document.getElementById('sustentaciones-root'));
-    root.render(<SustentacionesApp />);
+    const rootElement = document.getElementById('sustentaciones-root');
+    if (rootElement) {
+        const root = ReactDOM.createRoot(rootElement);
+        root.render(<SustentacionesApp />);
+    }
 </script>
 {% endblock %}

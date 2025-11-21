@@ -3,6 +3,7 @@ from django.contrib.auth import login, logout
 from django.contrib import messages
 from django.db.models import Q, Count
 from django.utils import timezone
+from django.db import IntegrityError
 from .forms import CoordinadorLoginForm, VacanteForm, PostulacionForm, TutorEmpresarialForm, \
     SustentacionForm
 from .models import (
@@ -1218,12 +1219,20 @@ def sustentaciones_lista(request):
 def sustentacion_crear(request):
     """Crear una nueva sustentación"""
     if request.method == 'POST':
-        form = SustentacionForm(request.POST)
+        form = SustentacionForm(request.POST, request.FILES)
         if form.is_valid():
             sustentacion = form.save(commit=False)
             sustentacion.estado = 'PROGRAMADA'
             sustentacion.registrada_por = request.user.coordinador
-            sustentacion.save()
+            try:
+                sustentacion.save()
+            except IntegrityError:
+                # Probable conflicto: ya existe una sustentación para esa práctica
+                messages.error(request, '❌ Ya existe una sustentación registrada para la práctica seleccionada')
+                return render(request, 'coordinacion/sustentaciones/crear.html', {
+                    'form': form,
+                    'practicas_disponibles': PracticaEmpresarial.objects.filter(estado='FINALIZADA', sustentacion__isnull=True).count()
+                })
 
             messages.success(
                 request,
@@ -1483,3 +1492,4 @@ def reportes_dashboard(request):
     }
 
     return render(request, 'coordinacion/reportes/dashboard.html', context)
+
