@@ -1,0 +1,320 @@
+{% extends 'estudiante/base.html' %}
+
+{% block title %}Mi Perfil - Portal Estudiantes{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark navbar-estudiante">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'estudiante:dashboard' %}">
+            <i class="fas fa-user-graduate me-2"></i>
+            Portal Estudiantes
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'estudiante:dashboard' %}">
+                        <i class="fas fa-home me-1"></i>Dashboard
+                    </a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-1"></i>
+                        {{ estudiante.nombre_completo }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item" href="{% url 'estudiante:perfil' %}">
+                                <i class="fas fa-user-edit me-2"></i>Mi Perfil
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item text-danger" href="{% url 'estudiante:logout' %}">
+                                <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'estudiante:dashboard' %}">Dashboard</a>
+                    </li>
+                    <li class="breadcrumb-item active">Mi Perfil</li>
+                </ol>
+            </nav>
+
+            <!-- Encabezado -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2>
+                        <i class="fas fa-user-edit me-2 text-success"></i>
+                        Mi Perfil
+                    </h2>
+                    <p class="text-muted mb-0">Administra tu información personal y académica</p>
+                </div>
+                <div>
+                    {% if estudiante.estado == 'APTO' %}
+                        <span class="badge badge-apto">
+                            <i class="fas fa-check-circle me-1"></i>Apto
+                        </span>
+                    {% elif estudiante.estado == 'NO_APTO' %}
+                        <span class="badge badge-no-apto">
+                            <i class="fas fa-exclamation-circle me-1"></i>No Apto
+                        </span>
+                    {% elif estudiante.estado == 'EN_PRACTICA' %}
+                        <span class="badge badge-en-practica">
+                            <i class="fas fa-tasks me-1"></i>En Práctica
+                        </span>
+                    {% elif estudiante.estado == 'FINALIZADO' %}
+                        <span class="badge badge-finalizado">
+                            <i class="fas fa-flag-checkered me-1"></i>Finalizado
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Mensajes -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Información Actual -->
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Información Actual
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <p class="mb-1"><strong>Código Estudiantil:</strong></p>
+                            <p class="text-muted mb-0">{{ estudiante.codigo }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <p class="mb-1"><strong>Estado:</strong></p>
+                            <p class="text-muted mb-0">{{ estudiante.get_estado_display }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <p class="mb-1"><strong>Programa Académico:</strong></p>
+                            <p class="text-muted mb-0">{{ estudiante.programa_academico }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <p class="mb-1"><strong>Semestre:</strong></p>
+                            <p class="text-muted mb-0">{{ estudiante.semestre }}°</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <p class="mb-1"><strong>Correo Electrónico:</strong></p>
+                            <p class="text-muted mb-0">{{ estudiante.email }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <p class="mb-1"><strong>Teléfono:</strong></p>
+                            <p class="text-muted mb-0">{{ estudiante.telefono }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <p class="mb-1"><strong>Promedio Académico:</strong></p>
+                            <p class="text-muted mb-0">
+                                {% if estudiante.promedio_academico %}
+                                    {{ estudiante.promedio_academico }}
+                                {% else %}
+                                    <span class="text-warning">No registrado</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <p class="mb-1"><strong>Hoja de Vida:</strong></p>
+                            <p class="mb-0">
+                                {% if estudiante.hoja_vida %}
+                                    <a href="{{ estudiante.hoja_vida.url }}" target="_blank" class="btn btn-sm btn-outline-success">
+                                        <i class="fas fa-file-pdf me-1"></i>Ver Hoja de Vida
+                                    </a>
+                                {% else %}
+                                    <span class="text-danger">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>
+                                        No subida
+                                    </span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alerta de Cambio de Estado -->
+            {% if estudiante.estado == 'NO_APTO' %}
+            <div class="alert alert-warning" role="alert">
+                <h5 class="alert-heading">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Sobre tu estado: NO APTO
+                </h5>
+                <p class="mb-0">
+                    Estás en <strong>{{ estudiante.semestre }}° semestre</strong>. 
+                    Cuando actualices tu semestre a 4 o superior, tu estado cambiará automáticamente a APTO.
+                </p>
+            </div>
+            {% endif %}
+
+            <!-- Formulario de Edición -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-edit me-2"></i>
+                    Editar Información
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <!-- Datos Personales -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.nombre_completo.id_for_label }}" class="form-label">
+                                    {{ form.nombre_completo.label }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.nombre_completo }}
+                                {% if form.nombre_completo.errors %}
+                                    <div class="text-danger small mt-1">{{ form.nombre_completo.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.email.id_for_label }}" class="form-label">
+                                    {{ form.email.label }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                    <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.telefono.id_for_label }}" class="form-label">
+                                    {{ form.telefono.label }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.telefono }}
+                                {% if form.telefono.errors %}
+                                    <div class="text-danger small mt-1">{{ form.telefono.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.programa_academico.id_for_label }}" class="form-label">
+                                    {{ form.programa_academico.label }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.programa_academico }}
+                                {% if form.programa_academico.errors %}
+                                    <div class="text-danger small mt-1">{{ form.programa_academico.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Datos Académicos -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.semestre.id_for_label }}" class="form-label">
+                                    {{ form.semestre.label }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.semestre }}
+                                <small class="text-muted d-block mt-1">
+                                    ⚠️ Si cambias tu semestre, tu estado se actualizará automáticamente
+                                </small>
+                                {% if form.semestre.errors %}
+                                    <div class="text-danger small mt-1">{{ form.semestre.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.promedio_academico.id_for_label }}" class="form-label">
+                                    {{ form.promedio_academico.label }}
+                                </label>
+                                {{ form.promedio_academico }}
+                                {% if form.promedio_academico.errors %}
+                                    <div class="text-danger small mt-1">{{ form.promedio_academico.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Hoja de Vida -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <label for="{{ form.hoja_vida.id_for_label }}" class="form-label">
+                                    {{ form.hoja_vida.label }}
+                                </label>
+                                
+                                {% if estudiante.hoja_vida %}
+                                    <div class="alert alert-info mb-2">
+                                        <i class="fas fa-file-pdf me-2"></i>
+                                        Hoja de vida actual: 
+                                        <a href="{{ estudiante.hoja_vida.url }}" target="_blank" class="alert-link">
+                                            {{ estudiante.hoja_vida.name }}
+                                        </a>
+                                    </div>
+                                {% endif %}
+
+                                {{ form.hoja_vida }}
+                                <small class="text-muted d-block mt-1">
+                                    Formato: PDF | Tamaño máximo: 5MB
+                                </small>
+                                {% if form.hoja_vida.errors %}
+                                    <div class="text-danger small mt-1">{{ form.hoja_vida.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Botones -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-between">
+                            <a href="{% url 'estudiante:dashboard' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Volver al Dashboard
+                            </a>
+                            <button type="submit" class="btn btn-estudiante">
+                                <i class="fas fa-save me-2"></i>Guardar Cambios
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Información Adicional -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-shield-alt me-2"></i>
+                    Seguridad de la Cuenta
+                </div>
+                <div class="card-body">
+                    <p class="mb-2">
+                        <strong>Usuario:</strong> {{ estudiante.user.username }}
+                    </p>
+                    <p class="mb-3 text-muted">
+                        Si necesitas cambiar tu contraseña, contacta con el administrador del sistema.
+                    </p>
+                    <p class="mb-0 text-muted small">
+                        <i class="fas fa-calendar me-2"></i>
+                        <strong>Cuenta creada:</strong> {{ estudiante.fecha_registro|date:"d/m/Y H:i" }}
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

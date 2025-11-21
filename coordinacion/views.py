@@ -20,19 +20,47 @@ from .forms import SustentacionForm
 # ============================================
 
 def coordinador_login(request):
-    """Vista para el login del Coordinador Empresarial"""
+    """
+    Vista para el login del Coordinador Empresarial
+    Redirige al login unificado si el usuario no es coordinador
+    """
+    # Si ya está autenticado, verificar su rol
     if request.user.is_authenticated:
-        return redirect('coordinacion:dashboard')
+        if hasattr(request.user, 'coordinador'):
+            # Es coordinador, redirigir a su dashboard
+            return redirect('coordinacion:dashboard')
+        else:
+            # No es coordinador, redirigir al login unificado
+            messages.warning(
+                request,
+                'Esta cuenta no pertenece a un coordinador. Por favor, usa el login principal.'
+            )
+            return redirect('login_unificado')
 
     if request.method == 'POST':
         form = CoordinadorLoginForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
+
+            # Verificar que el usuario sea realmente un coordinador
+            if not hasattr(user, 'coordinador'):
+                messages.error(
+                    request,
+                    '❌ Esta cuenta no está registrada como coordinador. '
+                    'Si eres estudiante, usa el login de estudiantes.'
+                )
+                return render(request, 'coordinacion/login.html', {'form': form})
+
+            # Login exitoso
             login(request, user)
-            messages.success(request, f'¡Bienvenido/a {user.username}!')
+            # Establecer rol activo en sesión
+            request.session['active_role'] = 'coordinador'
+            # Limpiar available_roles por si venía de login unificado
+            request.session.pop('available_roles', None)
+            messages.success(request, f'¡Bienvenido/a {user.coordinador.nombre_completo}!')
             return redirect('coordinacion:dashboard')
         else:
-            messages.error(request, 'Usuario o contraseña incorrectos')
+            messages.error(request, '❌ Usuario o contraseña incorrectos')
     else:
         form = CoordinadorLoginForm()
 
@@ -42,6 +70,9 @@ def coordinador_login(request):
 def coordinador_logout(request):
     """Cerrar sesión del Coordinador"""
     logout(request)
+    # Limpiar sesión relacionada a roles
+    request.session.pop('active_role', None)
+    request.session.pop('available_roles', None)
     messages.info(request, 'Has cerrado sesión correctamente')
     return redirect('coordinacion:login')
 
@@ -57,12 +88,22 @@ def coordinator_required(view_func):
     """Decorador que exige que el usuario esté autenticado y tenga un objeto `coordinador` asociado."""
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
-        # Si no está autenticado, redirigir al login del coordinador
+        # Si no está autenticado, redirigir al login unificado
         if not request.user.is_authenticated:
-            return redirect('coordinacion:login')
+            messages.warning(request, 'Debes iniciar sesión')
+            return redirect('login_unificado')
+        # Si el usuario no está activo, denegar
+        if not request.user.is_active:
+            messages.error(request, 'Tu cuenta está desactivada')
+            return HttpResponseForbidden('Cuenta inactiva')
         # Si no tiene atributo 'coordinador', denegar acceso
         if not hasattr(request.user, 'coordinador'):
             messages.error(request, 'Acceso denegado: se requiere rol Coordinador')
+            return HttpResponseForbidden('Acceso denegado')
+        # Verificar que el rol activo de la sesión sea coordinador (si existe)
+        active = request.session.get('active_role')
+        if active and active != 'coordinador':
+            messages.error(request, 'Acceso denegado con el rol activo actual')
             return HttpResponseForbidden('Acceso denegado')
         return view_func(request, *args, **kwargs)
     return _wrapped_view
@@ -1492,4 +1533,3 @@ def reportes_dashboard(request):
     }
 
     return render(request, 'coordinacion/reportes/dashboard.html', context)
-

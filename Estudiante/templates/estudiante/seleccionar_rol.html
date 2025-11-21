@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seleccionar Rol</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="d-flex align-items-center justify-content-center" style="min-height:100vh;background:#f5f7fb;">
+<div class="card p-4" style="max-width:520px;width:100%;border-radius:12px;">
+    <div class="card-body text-center">
+        <h4 class="mb-3">Selecciona el rol</h4>
+        <p class="text-muted">Tu cuenta tiene múltiples roles asignados. Elige con cuál quieres ingresar en esta sesión.</p>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="d-grid gap-2 mt-3">
+            {% for role in roles %}
+                <form method="post" style="margin-bottom:8px;">
+                    {% csrf_token %}
+                    <input type="hidden" name="role" value="{{ role.key }}">
+                    <button class="btn btn-primary" type="submit">Entrar como {{ role.label }}</button>
+                </form>
+            {% endfor %}
+        </div>
+
+        <div class="mt-4 text-muted small">
+            Si esta elección es incorrecta, <a href="{% url 'login_unificado' %}">cambia de cuenta</a>.
+        </div>
+    </div>
+</div>
+</body>
+</html>

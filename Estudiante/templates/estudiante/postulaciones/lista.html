@@ -1,0 +1,306 @@
+{% extends 'estudiantes/base.html' %}
+
+{% block title %}Mis Postulaciones - Portal Estudiantes{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark navbar-estudiante">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'estudiante:dashboard' %}">
+            <i class="fas fa-user-graduate me-2"></i>
+            Portal Estudiantes
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'estudiante:dashboard' %}">
+                        <i class="fas fa-home me-1"></i>Dashboard
+                    </a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-1"></i>
+                        Mi Cuenta
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item" href="{% url 'estudiante:perfil' %}">
+                                <i class="fas fa-user-edit me-2"></i>Mi Perfil
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item text-danger" href="{% url 'estudiante:logout' %}">
+                                <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 sidebar">
+            <div class="list-group">
+                <a href="{% url 'estudiante:dashboard' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-home me-2"></i>Dashboard
+                </a>
+                <a href="{% url 'estudiante:perfil' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-user-edit me-2"></i>Mi Perfil
+                </a>
+                <a href="{% url 'estudiante:vacantes_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-briefcase me-2"></i>Vacantes Disponibles
+                </a>
+                <a href="{% url 'estudiante:postulaciones_lista' %}" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-clipboard-list me-2"></i>Mis Postulaciones
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Area -->
+        <div class="col-md-9 col-lg-10">
+            <div id="postulaciones-react-root"></div>
+        </div>
+    </div>
+</div>
+
+<script type="text/babel">
+    const { useState, useEffect } = React;
+
+    function PostulacionesApp() {
+        const postulacionesData = {{ postulaciones|safe }};
+        const [postulaciones, setPostulaciones] = useState(postulacionesData);
+        const [filtroEstado, setFiltroEstado] = useState("{{ estado_filtro }}");
+
+        // Filtrar postulaciones localmente
+        useEffect(() => {
+            if (filtroEstado) {
+                const filtradas = postulacionesData.filter(p => p.estado === filtroEstado);
+                setPostulaciones(filtradas);
+            } else {
+                setPostulaciones(postulacionesData);
+            }
+        }, [filtroEstado]);
+
+        // Estadísticas
+        const stats = {
+            total: postulacionesData.length,
+            postuladas: postulacionesData.filter(p => p.estado === 'POSTULADO').length,
+            seleccionadas: postulacionesData.filter(p => p.estado === 'SELECCIONADO').length,
+            vinculadas: postulacionesData.filter(p => p.estado === 'VINCULADO').length,
+            rechazadas: postulacionesData.filter(p => p.estado === 'RECHAZADO').length,
+        };
+
+        return (
+            <div>
+                {/* Header */}
+                <div className="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2>
+                            <i className="fas fa-clipboard-list me-2 text-success"></i>
+                            Mis Postulaciones
+                        </h2>
+                        <p className="text-muted mb-0">
+                            Historial completo de tus postulaciones a prácticas
+                        </p>
+                    </div>
+                </div>
+
+                {/* Estadísticas */}
+                <div className="row g-3 mb-4">
+                    <div className="col-6 col-md-3">
+                        <div className="card text-center stat-card border-primary">
+                            <div className="card-body py-3">
+                                <h3 className="text-primary mb-1">{stats.total}</h3>
+                                <p className="text-muted mb-0 small">Total</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="col-6 col-md-3">
+                        <div className="card text-center stat-card border-info">
+                            <div className="card-body py-3">
+                                <h3 className="text-info mb-1">{stats.postuladas}</h3>
+                                <p className="text-muted mb-0 small">Postuladas</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="col-6 col-md-3">
+                        <div className="card text-center stat-card border-success">
+                            <div className="card-body py-3">
+                                <h3 className="text-success mb-1">{stats.seleccionadas + stats.vinculadas}</h3>
+                                <p className="text-muted mb-0 small">Aceptadas</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="col-6 col-md-3">
+                        <div className="card text-center stat-card border-danger">
+                            <div className="card-body py-3">
+                                <h3 className="text-danger mb-1">{stats.rechazadas}</h3>
+                                <p className="text-muted mb-0 small">Rechazadas</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Filtros */}
+                <FiltrosPostulaciones 
+                    filtroEstado={filtroEstado}
+                    setFiltroEstado={setFiltroEstado}
+                />
+
+                {/* Lista de Postulaciones */}
+                {postulaciones.length > 0 ? (
+                    <PostulacionesLista postulaciones={postulaciones} />
+                ) : (
+                    <div className="alert alert-info text-center py-5">
+                        <i className="fas fa-inbox fa-3x mb-3 text-muted"></i>
+                        <h4>No tienes postulaciones aún</h4>
+                        <p className="mb-3">
+                            La Coordinación Empresarial se encargará de postularte a vacantes compatibles con tu perfil.
+                        </p>
+                        <a href="{% url 'estudiante:vacantes_lista' %}" class="btn btn-success">
+                            <i className="fas fa-briefcase me-2"></i>Ver Vacantes Disponibles
+                        </a>
+                    </div>
+                )}
+            </div>
+        );
+    }
+
+    // ==========================================
+    // COMPONENTE: Filtros
+    // ==========================================
+    function FiltrosPostulaciones({ filtroEstado, setFiltroEstado }) {
+        return (
+            <div className="card mb-4">
+                <div className="card-body">
+                    <div className="row align-items-center">
+                        <div className="col-md-6">
+                            <label className="form-label fw-bold mb-2">
+                                <i className="fas fa-filter me-2"></i>Filtrar por Estado
+                            </label>
+                            <select 
+                                className="form-select"
+                                value={filtroEstado}
+                                onChange={(e) => setFiltroEstado(e.target.value)}
+                            >
+                                <option value="">Todos los estados</option>
+                                <option value="POSTULADO">Postulado</option>
+                                <option value="SELECCIONADO">Seleccionado</option>
+                                <option value="VINCULADO">Vinculado</option>
+                                <option value="RECHAZADO">Rechazado</option>
+                            </select>
+                        </div>
+                        <div className="col-md-6 text-md-end mt-3 mt-md-0">
+                            <p className="mb-0 text-muted small">
+                                <i className="fas fa-info-circle me-2"></i>
+                                Las postulaciones son realizadas por la Coordinación Empresarial
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // ==========================================
+    // COMPONENTE: Lista de Postulaciones
+    // ==========================================
+    function PostulacionesLista({ postulaciones }) {
+        return (
+            <div className="card">
+                <div className="card-body p-0">
+                    <div className="table-responsive">
+                        <table className="table table-hover mb-0">
+                            <thead className="table-light">
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Vacante</th>
+                                    <th>Empresa</th>
+                                    <th>Estado</th>
+                                    <th>Postulado Por</th>
+                                    <th className="text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {postulaciones.map(postulacion => (
+                                    <PostulacionRow key={postulacion.id} postulacion={postulacion} />
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // ==========================================
+    // COMPONENTE: Fila de Postulación
+    // ==========================================
+    function PostulacionRow({ postulacion }) {
+        const getEstadoBadge = (estado) => {
+            const badges = {
+                'POSTULADO': { color: 'primary', icon: 'clock', text: 'Postulado' },
+                'SELECCIONADO': { color: 'success', icon: 'check-circle', text: 'Seleccionado' },
+                'VINCULADO': { color: 'info', icon: 'link', text: 'Vinculado' },
+                'RECHAZADO': { color: 'danger', icon: 'times-circle', text: 'Rechazado' }
+            };
+            return badges[estado] || badges['POSTULADO'];
+        };
+
+        const badge = getEstadoBadge(postulacion.estado);
+        const fecha = new Date(postulacion.fecha_postulacion);
+
+        return (
+            <tr>
+                <td>
+                    <small className="text-muted">
+                        {fecha.toLocaleDateString('es-CO')}
+                    </small>
+                </td>
+                <td>
+                    <strong>{postulacion.vacante.titulo}</strong>
+                </td>
+                <td>
+                    <span className="text-muted">
+                        <i className="fas fa-building me-1"></i>
+                        {postulacion.vacante.empresa}
+                    </span>
+                </td>
+                <td>
+                    <span className={`badge bg-${badge.color}`}>
+                        <i className={`fas fa-${badge.icon} me-1`}></i>
+                        {badge.text}
+                    </span>
+                </td>
+                <td>
+                    <small className="text-muted">
+                        {postulacion.postulado_por}
+                    </small>
+                </td>
+                <td className="text-center">
+                    <a 
+                        href={`{% url 'estudiante:postulacion_detalle' 0 %}`.replace('0', postulacion.id)}
+                        className="btn btn-sm btn-outline-primary"
+                        title="Ver Detalle"
+                    >
+                        <i className="fas fa-eye"></i>
+                    </a>
+                </td>
+            </tr>
+        );
+    }
+
+    // Renderizar
+    const root = ReactDOM.createRoot(document.getElementById('postulaciones-react-root'));
+    root.render(<PostulacionesApp />);
+</script>
+{% endblock %}

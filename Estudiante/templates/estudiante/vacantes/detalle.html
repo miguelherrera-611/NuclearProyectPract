@@ -1,0 +1,268 @@
+{% extends 'estudiantes/base.html' %}
+
+{% block title %}{{ vacante.titulo }} - Detalle de Vacante{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark navbar-estudiante">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'estudiante:dashboard' %}">
+            <i class="fas fa-user-graduate me-2"></i>
+            Portal Estudiantes
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'estudiante:dashboard' %}">
+                        <i class="fas fa-home me-1"></i>Dashboard
+                    </a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-1"></i>
+                        Mi Cuenta
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item" href="{% url 'estudiante:perfil' %}">
+                                <i class="fas fa-user-edit me-2"></i>Mi Perfil
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item text-danger" href="{% url 'estudiante:logout' %}">
+                                <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'estudiante:dashboard' %}">Dashboard</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'estudiante:vacantes_lista' %}">Vacantes</a>
+                    </li>
+                    <li class="breadcrumb-item active">{{ vacante.titulo }}</li>
+                </ol>
+            </nav>
+
+            <!-- Header -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h6 class="text-muted mb-2">
+                                <i class="fas fa-building me-2"></i>
+                                {{ vacante.empresa.razon_social }}
+                            </h6>
+                            <h2 class="mb-3">{{ vacante.titulo }}</h2>
+                            
+                            <div class="d-flex gap-2 mb-3">
+                                <span class="badge bg-success">
+                                    <i class="fas fa-door-open me-1"></i>
+                                    {{ vacante.cupos_disponibles }} cupo{{ vacante.cupos_disponibles|pluralize }} disponible{{ vacante.cupos_disponibles|pluralize }}
+                                </span>
+                                <span class="badge bg-info">
+                                    {{ vacante.estado }}
+                                </span>
+                                {% if postulacion %}
+                                <span class="badge bg-warning">
+                                    <i class="fas fa-check-circle me-1"></i>
+                                    Ya estás postulado
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4 text-md-end">
+                            <p class="text-muted mb-2">
+                                <i class="fas fa-calendar me-2"></i>
+                                Publicada: {{ vacante.fecha_publicacion|date:"d/m/Y" }}
+                            </p>
+                            <p class="text-muted mb-0">
+                                <i class="fas fa-user me-2"></i>
+                                Por: {{ vacante.creada_por.nombre_completo }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Verificación de Requisitos -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header bg-primary text-white">
+                            <i class="fas fa-clipboard-check me-2"></i>
+                            Tus Requisitos
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                {% if cumple_semestre %}
+                                    <i class="fas fa-check-circle text-success fa-2x me-3"></i>
+                                {% else %}
+                                    <i class="fas fa-times-circle text-danger fa-2x me-3"></i>
+                                {% endif %}
+                                <div>
+                                    <strong>Semestre Requerido: {{ vacante.semestre_minimo }}°</strong><br>
+                                    <small class="text-muted">Tu semestre: {{ request.user.estudiante.semestre }}°</small>
+                                </div>
+                            </div>
+
+                            <div class="d-flex align-items-center">
+                                {% if cumple_programa %}
+                                    <i class="fas fa-check-circle text-success fa-2x me-3"></i>
+                                {% else %}
+                                    <i class="fas fa-times-circle text-danger fa-2x me-3"></i>
+                                {% endif %}
+                                <div>
+                                    <strong>Programa Compatible</strong><br>
+                                    <small class="text-muted">Requerido: {{ vacante.programa_academico }}</small>
+                                </div>
+                            </div>
+
+                            {% if cumple_semestre and cumple_programa %}
+                            <div class="alert alert-success mt-3 mb-0">
+                                <i class="fas fa-thumbs-up me-2"></i>
+                                ¡Cumples todos los requisitos!
+                            </div>
+                            {% else %}
+                            <div class="alert alert-warning mt-3 mb-0">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                No cumples todos los requisitos
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header bg-success text-white">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Información General
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-2">
+                                <i class="fas fa-briefcase me-2 text-success"></i>
+                                <strong>Área:</strong> {{ vacante.area_practica }}
+                            </p>
+                            <p class="mb-2">
+                                <i class="fas fa-clock me-2 text-info"></i>
+                                <strong>Duración:</strong> {{ vacante.duracion_meses }} meses
+                            </p>
+                            <p class="mb-2">
+                                <i class="fas fa-calendar-alt me-2 text-warning"></i>
+                                <strong>Horario:</strong> {{ vacante.horario }}
+                            </p>
+                            <p class="mb-0">
+                                <i class="fas fa-users me-2 text-primary"></i>
+                                <strong>Cupos Totales:</strong> {{ vacante.cantidad_cupos }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Descripción -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-align-left me-2"></i>
+                    Descripción de la Vacante
+                </div>
+                <div class="card-body">
+                    <p style="white-space: pre-line;">{{ vacante.descripcion }}</p>
+                </div>
+            </div>
+
+            <!-- Habilidades Requeridas -->
+            {% if vacante.habilidades_requeridas %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-tools me-2"></i>
+                    Habilidades Requeridas
+                </div>
+                <div class="card-body">
+                    <p style="white-space: pre-line;">{{ vacante.habilidades_requeridas }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Estado de Postulación -->
+            {% if postulacion %}
+            <div class="card border-warning mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Estado de tu Postulación
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-2">
+                                <strong>Estado:</strong> 
+                                <span class="badge bg-{{ postulacion.estado|lower }}">
+                                    {{ postulacion.get_estado_display }}
+                                </span>
+                            </p>
+                            <p class="mb-2">
+                                <strong>Fecha de Postulación:</strong> 
+                                {{ postulacion.fecha_postulacion|date:"d/m/Y H:i" }}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            {% if postulacion.fecha_respuesta %}
+                            <p class="mb-2">
+                                <strong>Fecha de Respuesta:</strong> 
+                                {{ postulacion.fecha_respuesta|date:"d/m/Y H:i" }}
+                            </p>
+                            {% endif %}
+                            {% if postulacion.observaciones %}
+                            <p class="mb-0">
+                                <strong>Observaciones:</strong> {{ postulacion.observaciones }}
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="text-end mt-3">
+                        <a href="{% url 'estudiante:postulacion_detalle' postulacion.id %}" class="btn btn-sm btn-warning">
+                            Ver Detalle de Postulación <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Botones de Acción -->
+            <div class="d-flex justify-content-between mb-5">
+                <a href="{% url 'estudiante:vacantes_lista' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Volver a Vacantes
+                </a>
+                
+                {% if not postulacion %}
+                <div class="alert alert-info mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Para postularte, contacta con la Coordinación Empresarial
+                </div>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

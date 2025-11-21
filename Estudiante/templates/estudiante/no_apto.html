@@ -1,0 +1,317 @@
+{% extends 'estudiante/base.html' %}
+
+{% block title %}Información - No Apto para Prácticas{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark navbar-estudiante">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'estudiante:dashboard' %}">
+            <i class="fas fa-user-graduate me-2"></i>
+            Portal Estudiantes
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'estudiante:dashboard' %}">
+                        <i class="fas fa-home me-1"></i>Dashboard
+                    </a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-1"></i>
+                        {{ estudiante.nombre_completo }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item" href="{% url 'estudiante:perfil' %}">
+                                <i class="fas fa-user-edit me-2"></i>Mi Perfil
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item text-danger" href="{% url 'estudiante:logout' %}">
+                                <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'estudiante:dashboard' %}">Dashboard</a>
+                    </li>
+                    <li class="breadcrumb-item active">Información de Prácticas</li>
+                </ol>
+            </nav>
+
+            <!-- Alerta Principal -->
+            <div class="alert alert-warning border-start border-5 border-warning shadow-sm" role="alert">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="fas fa-exclamation-triangle fa-3x me-3"></i>
+                    <div>
+                        <h3 class="alert-heading mb-1">Aún No Puedes Realizar Prácticas</h3>
+                        <p class="mb-0">Estás en <strong>{{ estudiante.semestre }}° semestre</strong></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card de Información -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <i class="fas fa-info-circle me-2"></i>
+                    ¿Por qué no puedo hacer prácticas?
+                </div>
+                <div class="card-body">
+                    <p class="lead">
+                        Según el reglamento de prácticas empresariales de la Universidad Alexander Von Humboldt, 
+                        los estudiantes deben cumplir ciertos requisitos académicos antes de poder realizar su práctica.
+                    </p>
+
+                    <hr>
+
+                    <h5 class="text-warning">
+                        <i class="fas fa-clipboard-check me-2"></i>
+                        Requisitos para realizar prácticas:
+                    </h5>
+
+                    <ul class="list-group list-group-flush mb-4">
+                        <li class="list-group-item d-flex align-items-center">
+                            <i class="fas fa-calendar-alt text-primary fa-lg me-3"></i>
+                            <div>
+                                <strong>Semestre Mínimo:</strong> 
+                                <span class="text-muted">Haber cursado y aprobado al menos 3 semestres (estar en 4to o superior)</span>
+                            </div>
+                        </li>
+                        <li class="list-group-item d-flex align-items-center">
+                            <i class="fas fa-check-circle text-success fa-lg me-3"></i>
+                            <div>
+                                <strong>Estado Académico:</strong> 
+                                <span class="text-muted">Estar a paz y salvo con la universidad</span>
+                            </div>
+                        </li>
+                        <li class="list-group-item d-flex align-items-center">
+                            <i class="fas fa-book text-info fa-lg me-3"></i>
+                            <div>
+                                <strong>Créditos Aprobados:</strong> 
+                                <span class="text-muted">Haber aprobado los créditos mínimos del programa</span>
+                            </div>
+                        </li>
+                    </ul>
+
+                    <div class="alert alert-info mb-0">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-lightbulb me-2"></i>
+                            Tu situación actual
+                        </h6>
+                        <p class="mb-2">
+                            Estás en <strong>{{ estudiante.semestre }}° semestre</strong>.
+                            {% if semestres_faltantes > 0 %}
+                                Te falta{{ semestres_faltantes|pluralize:"n" }} <strong>{{ semestres_faltantes }} semestre{{ semestres_faltantes|pluralize }}</strong> 
+                                para poder realizar prácticas empresariales.
+                            {% endif %}
+                        </p>
+                        <p class="mb-0">
+                            <i class="fas fa-calendar-check me-2"></i>
+                            Podrás postularte a prácticas cuando estés en <strong>4to semestre</strong>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-success text-white">
+                    <i class="fas fa-road me-2"></i>
+                    Tu Camino hacia las Prácticas
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <!-- Semestre Actual -->
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-primary"></div>
+                            <div class="timeline-content">
+                                <h6 class="text-primary">
+                                    <i class="fas fa-map-marker-alt me-2"></i>
+                                    Estás aquí - {{ estudiante.semestre }}° Semestre
+                                </h6>
+                                <p class="mb-0 text-muted small">
+                                    Enfócate en aprobar tus materias actuales y mantener un buen promedio académico.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Semestres Intermedios -->
+                        {% for sem in "123" %}
+                            {% if sem|add:"0" > estudiante.semestre and sem|add:"0" < 4 %}
+                            <div class="timeline-item">
+                                <div class="timeline-marker bg-secondary"></div>
+                                <div class="timeline-content">
+                                    <h6 class="text-secondary">{{ sem }}° Semestre</h6>
+                                    <p class="mb-0 text-muted small">
+                                        Continúa tu formación académica.
+                                    </p>
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+
+                        <!-- 4to Semestre (Elegible) -->
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-success"></div>
+                            <div class="timeline-content">
+                                <h6 class="text-success">
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    4° Semestre - ¡Elegible para Prácticas!
+                                </h6>
+                                <p class="mb-0 text-muted small">
+                                    Cuando llegues a 4to semestre, tu estado cambiará automáticamente a "APTO" 
+                                    y podrás ser postulado a vacantes de práctica.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card de Preparación -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-info text-white">
+                    <i class="fas fa-tasks me-2"></i>
+                    ¿Qué puedes hacer mientras tanto?
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="d-flex">
+                                <i class="fas fa-file-alt text-info fa-2x me-3"></i>
+                                <div>
+                                    <h6>Prepara tu Hoja de Vida</h6>
+                                    <p class="text-muted small mb-0">
+                                        Mantén actualizada tu información académica y experiencia.
+                                    </p>
+                                    <a href="{% url 'estudiante:perfil' %}" class="btn btn-sm btn-outline-info mt-2">
+                                        Ir a Mi Perfil
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="d-flex">
+                                <i class="fas fa-chart-line text-success fa-2x me-3"></i>
+                                <div>
+                                    <h6>Mantén un Buen Promedio</h6>
+                                    <p class="text-muted small mb-0">
+                                        Las empresas valoran estudiantes con buen desempeño académico.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="d-flex">
+                                <i class="fas fa-briefcase text-warning fa-2x me-3"></i>
+                                <div>
+                                    <h6>Explora Vacantes</h6>
+                                    <p class="text-muted small mb-0">
+                                        Puedes ver las vacantes disponibles aunque aún no puedas postularte.
+                                    </p>
+                                    <a href="{% url 'estudiante:vacantes_lista' %}" class="btn btn-sm btn-outline-warning mt-2">
+                                        Ver Vacantes
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="d-flex">
+                                <i class="fas fa-tools text-danger fa-2x me-3"></i>
+                                <div>
+                                    <h6>Desarrolla Habilidades</h6>
+                                    <p class="text-muted small mb-0">
+                                        Trabaja en proyectos personales y aprende nuevas tecnologías.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botón de Regreso -->
+            <div class="text-center mb-5">
+                <a href="{% url 'estudiante:dashboard' %}" class="btn btn-lg btn-estudiante">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Volver al Dashboard
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Timeline Styles */
+    .timeline {
+        position: relative;
+        padding: 20px 0;
+    }
+
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 10px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #dee2e6;
+    }
+
+    .timeline-item {
+        position: relative;
+        padding-left: 40px;
+        margin-bottom: 30px;
+    }
+
+    .timeline-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .timeline-marker {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: 3px solid #fff;
+        box-shadow: 0 0 0 2px #dee2e6;
+    }
+
+    .timeline-content {
+        padding: 10px 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border-left: 3px solid #dee2e6;
+    }
+
+    .timeline-item:hover .timeline-content {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+</style>
+{% endblock %}

@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'coordinacion',  # Nuestra app de coordinación empresarial
+    'Estudiante',    # App de estudiantes (registro, login, dashboard)
 ]
 
 MIDDLEWARE = [
@@ -55,7 +56,8 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'config' / 'templates',
+                 ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -124,9 +126,12 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Configuración de login
-LOGIN_URL = 'coordinacion:login'
-LOGIN_REDIRECT_URL = 'coordinacion:dashboard'
-LOGOUT_REDIRECT_URL = 'coordinacion:login'
+LOGIN_URL = 'login_unificado'
+LOGIN_REDIRECT_URL = 'login_unificado'
+LOGOUT_REDIRECT_URL = 'login_unificado'
+
+# Prioridad por defecto si se desea evitar la selección de rol cuando hay múltiples
+DEFAULT_ROLE_PRIORITY = ['coordinador', 'estudiante']
 
 # Media files (uploads)
 MEDIA_URL = '/media/'
