@@ -3,14 +3,13 @@ from django.contrib.auth import login, logout
 from django.contrib import messages
 from django.db.models import Q, Count
 from django.utils import timezone
-from .forms import CoordinadorLoginForm
+from .forms import CoordinadorLoginForm, VacanteForm, PostulacionForm, TutorEmpresarialForm  # ✅ AÑADIR TutorEmpresarialForm
 from .models import (
     Coordinador, Empresa, Vacante, Estudiante, Postulacion,
     TutorEmpresarial, DocenteAsesor, PracticaEmpresarial,
     Sustentacion, Evaluacion, SeguimientoSemanal
 )
 from . import serializers
-from .forms import CoordinadorLoginForm, VacanteForm, PostulacionForm
 
 
 # ============================================
