@@ -104,6 +104,9 @@
                         <i className="fas fa-graduation-cap me-2 text-primary"></i>
                         Gestión de Sustentaciones
                     </h2>
+                    <a href="{% url 'coordinacion:sustentacion_crear' %}" className="btn btn-primary">
+                        <i className="fas fa-plus me-2"></i>Nueva Sustentación
+                    </a>
                 </div>
 
                 {/* Filtros */}
@@ -129,9 +132,7 @@
                                 >
                                     <option value="">Todos</option>
                                     <option value="PROGRAMADA">Programada</option>
-                                    <option value="REALIZADA">Realizada</option>
                                     <option value="APROBADA">Aprobada</option>
-                                    <option value="NO_APROBADA">No Aprobada</option>
                                     <option value="CANCELADA">Cancelada</option>
                                 </select>
                             </div>
@@ -171,10 +172,10 @@
                         color="success"
                     />
                     <StatCard
-                        icon="fa-clipboard-check"
-                        title="Realizadas"
-                        value={sustentaciones.filter(s => s.estado === 'REALIZADA').length}
-                        color="info"
+                        icon="fa-times-circle"
+                        title="Canceladas"
+                        value={sustentaciones.filter(s => s.estado === 'CANCELADA').length}
+                        color="danger"
                     />
                 </div>
 
@@ -243,10 +244,8 @@
         const getEstadoBadge = (estado) => {
             const badges = {
                 'PROGRAMADA': 'warning',
-                'REALIZADA': 'info',
                 'APROBADA': 'success',
-                'NO_APROBADA': 'danger',
-                'CANCELADA': 'secondary'
+                'CANCELADA': 'danger'
             };
             return badges[estado] || 'secondary';
         };
@@ -254,9 +253,7 @@
         const getEstadoTexto = (estado) => {
             const textos = {
                 'PROGRAMADA': 'Programada',
-                'REALIZADA': 'Realizada',
                 'APROBADA': 'Aprobada',
-                'NO_APROBADA': 'No Aprobada',
                 'CANCELADA': 'Cancelada'
             };
             return textos[estado] || estado;
@@ -295,19 +292,34 @@
                 </td>
                 <td>
                     <div className="btn-group btn-group-sm">
-                        <button
+
+                            href={`/sustentaciones/${sustentacion.id}/`}
                             className="btn btn-outline-primary"
                             title="Ver detalles"
                         >
                             <i className="fas fa-eye"></i>
-                        </button>
+                        </a>
                         {sustentacion.estado === 'PROGRAMADA' && (
-                            <button
-                                className="btn btn-outline-success"
-                                title="Registrar resultado"
-                            >
-                                <i className="fas fa-check"></i>
-                            </button>
+                            <React.Fragment>
+
+                                    href={`/sustentaciones/${sustentacion.id}/editar/`}
+                                    className="btn btn-outline-warning"
+                                    title="Editar"
+                                >
+                                    <i className="fas fa-edit"></i>
+                                </a>
+                                <button
+                                    className="btn btn-outline-danger"
+                                    title="Eliminar"
+                                    onClick={() => {
+                                        if (confirm('¿Estás seguro de eliminar esta sustentación?')) {
+                                            window.location.href = `/sustentaciones/${sustentacion.id}/eliminar/`;
+                                        }
+                                    }}
+                                >
+                                    <i className="fas fa-trash"></i>
+                                </button>
+                            </React.Fragment>
                         )}
                     </div>
                 </td>

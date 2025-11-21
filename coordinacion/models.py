@@ -312,9 +312,7 @@ class Sustentacion(models.Model):
 
     ESTADO_CHOICES = [
         ('PROGRAMADA', 'Programada'),
-        ('REALIZADA', 'Realizada'),
         ('APROBADA', 'Aprobada'),
-        ('NO_APROBADA', 'No Aprobada'),
         ('CANCELADA', 'Cancelada'),
     ]
 

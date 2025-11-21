@@ -1,0 +1,85 @@
+{% extends 'coordinacion/base.html' %}
+{% load static %}
+
+{% block title %}Eliminar Sustentación{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'coordinacion:dashboard' %}">
+            <i class="fas fa-graduation-cap me-2"></i>Sistema de Prácticas
+        </a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-1"></i>{{ request.user.username }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{% url 'coordinacion:logout' %}">
+                            <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                        </a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-6 mx-auto">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'coordinacion:dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'coordinacion:sustentaciones_lista' %}">Sustentaciones</a></li>
+                    <li class="breadcrumb-item active">Eliminar</li>
+                </ol>
+            </nav>
+
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-trash me-2"></i>
+                        Eliminar Sustentación
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>¡Atención!</strong> Estás a punto de eliminar permanentemente esta sustentación.
+                    </div>
+
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Detalles de la Sustentación</h5>
+                            <p><strong>Estudiante:</strong> {{ sustentacion.practica.estudiante.nombre_completo }}</p>
+                            <p><strong>Fecha Programada:</strong> {{ sustentacion.fecha_programada|date:"d/m/Y H:i" }}</p>
+                            <p><strong>Lugar:</strong> {{ sustentacion.lugar }}</p>
+                            <p><strong>Jurado Principal:</strong> {{ sustentacion.jurado_1.nombre_completo }}</p>
+                            {% if sustentacion.jurado_2 %}
+                                <p><strong>Jurado Secundario:</strong> {{ sustentacion.jurado_2.nombre_completo }}</p>
+                            {% endif %}
+                            <p><strong>Estado:</strong> <span class="badge bg-warning">{{ sustentacion.get_estado_display }}</span></p>
+                        </div>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a href="{% url 'coordinacion:sustentacion_detalle' sustentacion.id %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-2"></i>Eliminar Definitivamente
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

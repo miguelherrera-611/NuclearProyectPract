@@ -1,0 +1,271 @@
+{% extends 'coordinacion/base.html' %}
+{% load static %}
+
+{% block title %}Detalle de Sustentación{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'coordinacion:dashboard' %}">
+            <i class="fas fa-graduation-cap me-2"></i>Sistema de Prácticas
+        </a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-1"></i>{{ request.user.username }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{% url 'coordinacion:logout' %}">
+                            <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                        </a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'coordinacion:dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'coordinacion:sustentaciones_lista' %}">Sustentaciones</a></li>
+                    <li class="breadcrumb-item active">Detalle</li>
+                </ol>
+            </nav>
+
+            <!-- Header con estado -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <i class="fas fa-graduation-cap me-2 text-primary"></i>
+                    Detalle de Sustentación
+                </h2>
+                <div>
+                    {% if sustentacion.estado == 'PROGRAMADA' %}
+                        <span class="badge bg-warning fs-5">
+                            <i class="fas fa-clock me-1"></i>PROGRAMADA
+                        </span>
+                    {% elif sustentacion.estado == 'APROBADA' %}
+                        <span class="badge bg-success fs-5">
+                            <i class="fas fa-check-circle me-1"></i>APROBADA
+                        </span>
+                    {% elif sustentacion.estado == 'CANCELADA' %}
+                        <span class="badge bg-danger fs-5">
+                            <i class="fas fa-times-circle me-1"></i>CANCELADA
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Información del Estudiante y Práctica -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user-graduate me-2"></i>
+                        Información del Estudiante y Práctica
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Estudiante:</strong> {{ sustentacion.practica.estudiante.nombre_completo }}</p>
+                            <p><strong>Código:</strong> {{ sustentacion.practica.estudiante.codigo }}</p>
+                            <p><strong>Programa:</strong> {{ sustentacion.practica.estudiante.programa_academico }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Empresa:</strong> {{ sustentacion.practica.empresa.razon_social }}</p>
+                            <p><strong>Periodo Práctica:</strong> 
+                                {{ sustentacion.practica.fecha_inicio|date:"d/m/Y" }} - 
+                                {{ sustentacion.practica.fecha_fin_estimada|date:"d/m/Y" }}
+                            </p>
+                            <p><strong>Estado Práctica:</strong>
+                                <span class="badge bg-info">{{ sustentacion.practica.get_estado_display }}</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información de la Sustentación -->
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calendar-alt me-2"></i>
+                        Datos de la Sustentación
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Fecha Programada:</strong> 
+                                {{ sustentacion.fecha_programada|date:"d/m/Y H:i" }}
+                            </p>
+                            <p><strong>Lugar:</strong> {{ sustentacion.lugar }}</p>
+                            <p><strong>Registrada por:</strong> {{ sustentacion.registrada_por.nombre_completo }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Jurado Principal:</strong> {{ sustentacion.jurado_1.nombre_completo }}</p>
+                            <p><strong>Jurado Secundario:</strong> 
+                                {% if sustentacion.jurado_2 %}
+                                    {{ sustentacion.jurado_2.nombre_completo }}
+                                {% else %}
+                                    <span class="text-muted">No asignado</span>
+                                {% endif %}
+                            </p>
+                            {% if sustentacion.calificacion %}
+                                <p><strong>Calificación:</strong> 
+                                    <span class="badge bg-primary fs-6">{{ sustentacion.calificacion }}</span>
+                                </p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if sustentacion.observaciones %}
+                        <hr>
+                        <div>
+                            <strong>Observaciones:</strong>
+                            <p class="mt-2" style="white-space: pre-line;">{{ sustentacion.observaciones }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Acciones -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cogs me-2"></i>
+                        Acciones
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a href="{% url 'coordinacion:sustentaciones_lista' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Volver a Lista
+                        </a>
+
+                        {% if sustentacion.estado == 'PROGRAMADA' %}
+                            <a href="{% url 'coordinacion:sustentacion_editar' sustentacion.id %}" class="btn btn-warning">
+                                <i class="fas fa-edit me-2"></i>Editar
+                            </a>
+
+                            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#aprobarModal">
+                                <i class="fas fa-check me-2"></i>Aprobar Sustentación
+                            </button>
+
+                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#cancelarModal">
+                                <i class="fas fa-times me-2"></i>Cancelar Sustentación
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Aprobar Sustentación -->
+<div class="modal fade" id="aprobarModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'coordinacion:sustentacion_aprobar' sustentacion.id %}">
+                {% csrf_token %}
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-check-circle me-2"></i>
+                        Aprobar Sustentación
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Vas a aprobar la sustentación de <strong>{{ sustentacion.practica.estudiante.nombre_completo }}</strong>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="calificacion" class="form-label">Calificación Final (0.0 - 5.0) *</label>
+                        <input 
+                            type="number" 
+                            class="form-control" 
+                            id="calificacion" 
+                            name="calificacion" 
+                            min="0" 
+                            max="5" 
+                            step="0.1" 
+                            required
+                            placeholder="Ej: 4.5"
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="observaciones" class="form-label">Observaciones</label>
+                        <textarea 
+                            class="form-control" 
+                            id="observaciones" 
+                            name="observaciones" 
+                            rows="3"
+                            placeholder="Observaciones sobre la sustentación..."
+                        ></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check me-2"></i>Aprobar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Cancelar Sustentación -->
+<div class="modal fade" id="cancelarModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'coordinacion:sustentacion_cancelar' sustentacion.id %}">
+                {% csrf_token %}
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-times-circle me-2"></i>
+                        Cancelar Sustentación
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Vas a cancelar la sustentación de <strong>{{ sustentacion.practica.estudiante.nombre_completo }}</strong>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="motivo" class="form-label">Motivo de Cancelación *</label>
+                        <textarea 
+                            class="form-control" 
+                            id="motivo" 
+                            name="motivo" 
+                            rows="4" 
+                            required
+                            minlength="10"
+                            placeholder="Explica el motivo de la cancelación (mínimo 10 caracteres)..."
+                        ></textarea>
+                        <small class="text-muted">Mínimo 10 caracteres</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-times me-2"></i>Cancelar Sustentación
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

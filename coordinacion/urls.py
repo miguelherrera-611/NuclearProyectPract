@@ -76,7 +76,12 @@ urlpatterns = [
     # GESTIÓN DE SUSTENTACIONES (RF-09)
     # ============================================
     path('sustentaciones/', views.sustentaciones_lista, name='sustentaciones_lista'),
-    path('practicas/<int:practica_id>/sustentacion/crear/', views.sustentacion_crear, name='sustentacion_crear'),
+    path('sustentaciones/crear/', views.sustentacion_crear, name='sustentacion_crear'),
+    path('sustentaciones/<int:sustentacion_id>/', views.sustentacion_detalle, name='sustentacion_detalle'),
+    path('sustentaciones/<int:sustentacion_id>/editar/', views.sustentacion_editar, name='sustentacion_editar'),
+    path('sustentaciones/<int:sustentacion_id>/eliminar/', views.sustentacion_eliminar, name='sustentacion_eliminar'),
+    path('sustentaciones/<int:sustentacion_id>/cancelar/', views.sustentacion_cancelar, name='sustentacion_cancelar'),
+    path('sustentaciones/<int:sustentacion_id>/aprobar/', views.sustentacion_aprobar, name='sustentacion_aprobar'),
 
     # ============================================
     # REPORTES E INDICADORES (RF-12)

@@ -3,13 +3,15 @@ from django.contrib.auth import login, logout
 from django.contrib import messages
 from django.db.models import Q, Count
 from django.utils import timezone
-from .forms import CoordinadorLoginForm, VacanteForm, PostulacionForm, TutorEmpresarialForm  # ✅ AÑADIR TutorEmpresarialForm
+from .forms import CoordinadorLoginForm, VacanteForm, PostulacionForm, TutorEmpresarialForm, \
+    SustentacionForm
 from .models import (
     Coordinador, Empresa, Vacante, Estudiante, Postulacion,
     TutorEmpresarial, DocenteAsesor, PracticaEmpresarial,
     Sustentacion, Evaluacion, SeguimientoSemanal
 )
 from . import serializers
+from .forms import SustentacionForm
 
 
 # ============================================
@@ -1173,12 +1175,30 @@ def practica_finalizar(request, practica_id):
 # GESTIÓN DE SUSTENTACIONES (RF-09)
 # ============================================
 
+# ============================================
+# GESTIÓN DE SUSTENTACIONES (RF-09)
+# ============================================
+
 @coordinator_required
 def sustentaciones_lista(request):
-    """Listar sustentaciones"""
+    """Listar sustentaciones con filtros"""
+    estado_filtro = request.GET.get('estado', '')
+    busqueda = request.GET.get('busqueda', '')
+
     sustentaciones = Sustentacion.objects.select_related(
-        'practica', 'practica__estudiante', 'jurado_1', 'jurado_2'
+        'practica', 'practica__estudiante', 'jurado_1', 'jurado_2', 'registrada_por'
     ).all()
+
+    # Aplicar filtros
+    if estado_filtro:
+        sustentaciones = sustentaciones.filter(estado=estado_filtro)
+
+    if busqueda:
+        sustentaciones = sustentaciones.filter(
+            Q(practica__estudiante__nombre_completo__icontains=busqueda) |
+            Q(lugar__icontains=busqueda) |
+            Q(jurado_1__nombre_completo__icontains=busqueda)
+        )
 
     # Serializar sustentaciones para React
     sustentaciones_json = serializers.to_json([
@@ -1187,28 +1207,234 @@ def sustentaciones_lista(request):
 
     context = {
         'sustentaciones': sustentaciones_json,
+        'estado_filtro': estado_filtro,
+        'busqueda': busqueda,
     }
 
     return render(request, 'coordinacion/sustentaciones/lista.html', context)
 
 
 @coordinator_required
-def sustentacion_crear(request, practica_id):
-    """Registrar una nueva sustentación"""
-    practica = get_object_or_404(PracticaEmpresarial, id=practica_id)
-    docentes = DocenteAsesor.objects.filter(activo=True)
-
+def sustentacion_crear(request):
+    """Crear una nueva sustentación"""
     if request.method == 'POST':
-        # Procesar formulario
-        messages.success(request, 'Sustentación registrada exitosamente')
-        return redirect('coordinacion:sustentaciones_lista')
+        form = SustentacionForm(request.POST)
+        if form.is_valid():
+            sustentacion = form.save(commit=False)
+            sustentacion.estado = 'PROGRAMADA'
+            sustentacion.registrada_por = request.user.coordinador
+            sustentacion.save()
+
+            messages.success(
+                request,
+                f'✅ Sustentación programada exitosamente para {sustentacion.practica.estudiante.nombre_completo}'
+            )
+            return redirect('coordinacion:sustentacion_detalle', sustentacion_id=sustentacion.id)
+        else:
+            messages.error(request, '❌ Por favor corrige los errores en el formulario')
+    else:
+        form = SustentacionForm()
+
+    # Verificar si hay prácticas disponibles
+    practicas_disponibles = PracticaEmpresarial.objects.filter(
+        estado='FINALIZADA',
+        sustentacion__isnull=True
+    ).count()
+
+    if practicas_disponibles == 0:
+        messages.warning(
+            request,
+            'No hay prácticas finalizadas sin sustentación. Debes finalizar al menos una práctica primero.'
+        )
 
     context = {
-        'practica': practica,
-        'docentes': docentes,
+        'form': form,
+        'practicas_disponibles': practicas_disponibles,
     }
 
     return render(request, 'coordinacion/sustentaciones/crear.html', context)
+
+
+@coordinator_required
+def sustentacion_detalle(request, sustentacion_id):
+    """Ver detalles completos de una sustentación"""
+    sustentacion = get_object_or_404(
+        Sustentacion.objects.select_related(
+            'practica',
+            'practica__estudiante',
+            'practica__empresa',
+            'jurado_1',
+            'jurado_2',
+            'registrada_por'
+        ),
+        id=sustentacion_id
+    )
+
+    context = {
+        'sustentacion': sustentacion,
+    }
+
+    return render(request, 'coordinacion/sustentaciones/detalle.html', context)
+
+
+@coordinator_required
+def sustentacion_editar(request, sustentacion_id):
+    """Editar una sustentación (solo si está PROGRAMADA)"""
+    sustentacion = get_object_or_404(Sustentacion, id=sustentacion_id)
+
+    # Solo se pueden editar sustentaciones programadas
+    if sustentacion.estado != 'PROGRAMADA':
+        messages.warning(
+            request,
+            f'No se puede editar una sustentación en estado "{sustentacion.get_estado_display()}"'
+        )
+        return redirect('coordinacion:sustentacion_detalle', sustentacion_id=sustentacion.id)
+
+    if request.method == 'POST':
+        form = SustentacionForm(request.POST, instance=sustentacion)
+        if form.is_valid():
+            sustentacion = form.save()
+            messages.success(
+                request,
+                f'✅ Sustentación actualizada exitosamente'
+            )
+            return redirect('coordinacion:sustentacion_detalle', sustentacion_id=sustentacion.id)
+        else:
+            messages.error(request, '❌ Por favor corrige los errores en el formulario')
+    else:
+        form = SustentacionForm(instance=sustentacion)
+
+    context = {
+        'form': form,
+        'sustentacion': sustentacion,
+    }
+
+    return render(request, 'coordinacion/sustentaciones/editar.html', context)
+
+
+@coordinator_required
+def sustentacion_eliminar(request, sustentacion_id):
+    """Eliminar una sustentación (solo si está PROGRAMADA)"""
+    sustentacion = get_object_or_404(Sustentacion, id=sustentacion_id)
+
+    # Solo se pueden eliminar sustentaciones programadas
+    if sustentacion.estado != 'PROGRAMADA':
+        messages.warning(
+            request,
+            f'No se puede eliminar una sustentación en estado "{sustentacion.get_estado_display()}"'
+        )
+        return redirect('coordinacion:sustentacion_detalle', sustentacion_id=sustentacion.id)
+
+    if request.method == 'POST':
+        estudiante = sustentacion.practica.estudiante.nombre_completo
+        sustentacion.delete()
+
+        messages.success(
+            request,
+            f'✅ Sustentación eliminada: {estudiante}'
+        )
+        return redirect('coordinacion:sustentaciones_lista')
+
+    # GET: mostrar confirmación
+    context = {
+        'sustentacion': sustentacion,
+    }
+
+    return render(request, 'coordinacion/sustentaciones/eliminar.html', context)
+
+
+@coordinator_required
+def sustentacion_cancelar(request, sustentacion_id):
+    """Cancelar una sustentación (solo si está PROGRAMADA)"""
+    sustentacion = get_object_or_404(Sustentacion, id=sustentacion_id)
+
+    # Solo se pueden cancelar sustentaciones programadas
+    if sustentacion.estado != 'PROGRAMADA':
+        messages.warning(
+            request,
+            f'No se puede cancelar una sustentación en estado "{sustentacion.get_estado_display()}"'
+        )
+        return redirect('coordinacion:sustentacion_detalle', sustentacion_id=sustentacion.id)
+
+    if request.method == 'POST':
+        motivo = request.POST.get('motivo', '').strip()
+
+        if not motivo or len(motivo) < 10:
+            messages.error(
+                request,
+                'Debes proporcionar un motivo de cancelación con al menos 10 caracteres'
+            )
+            return redirect('coordinacion:sustentacion_detalle', sustentacion_id=sustentacion.id)
+
+        # Cancelar sustentación
+        sustentacion.estado = 'CANCELADA'
+
+        # Agregar motivo a observaciones
+        if sustentacion.observaciones:
+            sustentacion.observaciones += f"\n\n--- CANCELACIÓN ---\nFecha: {timezone.now().strftime('%d/%m/%Y %H:%M')}\nMotivo: {motivo}"
+        else:
+            sustentacion.observaciones = f"SUSTENTACIÓN CANCELADA\nFecha: {timezone.now().strftime('%d/%m/%Y %H:%M')}\nMotivo: {motivo}"
+
+        sustentacion.save()
+
+        messages.warning(
+            request,
+            f'⚠️ Sustentación cancelada: {sustentacion.practica.estudiante.nombre_completo}'
+        )
+
+        return redirect('coordinacion:sustentacion_detalle', sustentacion_id=sustentacion.id)
+
+    # Si es POST sin motivo o GET, redirigir al detalle
+    return redirect('coordinacion:sustentacion_detalle', sustentacion_id=sustentacion.id)
+
+
+@coordinator_required
+def sustentacion_aprobar(request, sustentacion_id):
+    """Aprobar una sustentación y registrar calificación"""
+    sustentacion = get_object_or_404(Sustentacion, id=sustentacion_id)
+
+    # Solo se pueden aprobar sustentaciones programadas
+    if sustentacion.estado != 'PROGRAMADA':
+        messages.warning(
+            request,
+            f'Solo se pueden aprobar sustentaciones programadas'
+        )
+        return redirect('coordinacion:sustentacion_detalle', sustentacion_id=sustentacion.id)
+
+    if request.method == 'POST':
+        try:
+            calificacion = float(request.POST.get('calificacion', 0))
+            observaciones = request.POST.get('observaciones', '').strip()
+
+            # Validar calificación
+            if calificacion < 0 or calificacion > 5:
+                messages.error(request, 'La calificación debe estar entre 0.0 y 5.0')
+                return redirect('coordinacion:sustentacion_detalle', sustentacion_id=sustentacion.id)
+
+            # Aprobar sustentación
+            sustentacion.estado = 'APROBADA'
+            sustentacion.calificacion = calificacion
+
+            if observaciones:
+                if sustentacion.observaciones:
+                    sustentacion.observaciones += f"\n\n--- APROBACIÓN ---\n{observaciones}"
+                else:
+                    sustentacion.observaciones = observaciones
+
+            sustentacion.save()
+
+            messages.success(
+                request,
+                f'✅ Sustentación aprobada con calificación {calificacion}'
+            )
+
+            return redirect('coordinacion:sustentacion_detalle', sustentacion_id=sustentacion.id)
+
+        except ValueError:
+            messages.error(request, 'Calificación inválida')
+            return redirect('coordinacion:sustentacion_detalle', sustentacion_id=sustentacion.id)
+
+    return redirect('coordinacion:sustentacion_detalle', sustentacion_id=sustentacion.id)
 
 # ============================================
 # REPORTES E INDICADORES (RF-12)

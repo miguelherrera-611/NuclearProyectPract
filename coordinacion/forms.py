@@ -1,8 +1,9 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
-from .models import Vacante, Empresa, Postulacion, Estudiante, TutorEmpresarial
-from datetime import date, timedelta
+from .models import Vacante, Empresa, Postulacion, Estudiante, TutorEmpresarial, PracticaEmpresarial, DocenteAsesor
+from datetime import date, timedelta, timezone
 from django.core.exceptions import ValidationError
+from .models import Sustentacion
 
 
 class CoordinadorLoginForm(AuthenticationForm):
@@ -456,3 +457,115 @@ class TutorEmpresarialForm(forms.ModelForm):
             if qs.exists():
                 raise ValidationError('Ya existe un tutor con este email')
         return email
+
+
+# ==============================
+# SustentacionForm (CRUD para Sustentaciones)
+# ==============================
+class SustentacionForm(forms.ModelForm):
+    class Meta:
+        model = Sustentacion
+        fields = [
+            'practica',
+            'fecha_programada',
+            'lugar',
+            'jurado_1',
+            'jurado_2',
+            'calificacion',
+            'observaciones',
+        ]
+
+        widgets = {
+            'practica': forms.Select(attrs={
+                'class': 'form-select',
+                'required': True
+            }),
+            'fecha_programada': forms.DateTimeInput(attrs={
+                'class': 'form-control',
+                'type': 'datetime-local',
+                'required': True
+            }),
+            'lugar': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej: Sala de Conferencias A',
+                'required': True
+            }),
+            'jurado_1': forms.Select(attrs={
+                'class': 'form-select',
+                'required': True
+            }),
+            'jurado_2': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'calificacion': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0.0',
+                'max': '5.0',
+                'step': '0.1',
+                'placeholder': 'Ej: 4.5'
+            }),
+            'observaciones': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'Observaciones adicionales sobre la sustentación...'
+            }),
+        }
+
+        labels = {
+            'practica': 'Práctica Empresarial',
+            'fecha_programada': 'Fecha y Hora Programada',
+            'lugar': 'Lugar de Sustentación',
+            'jurado_1': 'Jurado Principal',
+            'jurado_2': 'Jurado Secundario (Opcional)',
+            'calificacion': 'Calificación Final (0.0 - 5.0)',
+            'observaciones': 'Observaciones',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Filtrar solo prácticas finalizadas sin sustentación
+        if not self.instance.pk:  # Solo al crear
+            self.fields['practica'].queryset = PracticaEmpresarial.objects.filter(
+                estado='FINALIZADA',
+                sustentacion__isnull=True
+            ).select_related('estudiante', 'empresa')
+        else:  # Al editar, mostrar la práctica actual
+            self.fields['practica'].queryset = PracticaEmpresarial.objects.filter(
+                id=self.instance.practica.id
+            )
+            self.fields['practica'].disabled = True
+
+        # Filtrar solo docentes activos
+        self.fields['jurado_1'].queryset = DocenteAsesor.objects.filter(activo=True)
+        self.fields['jurado_2'].queryset = DocenteAsesor.objects.filter(activo=True)
+
+        # Mensajes si no hay opciones
+        if not self.fields['practica'].queryset.exists():
+            self.fields['practica'].empty_label = "No hay prácticas finalizadas sin sustentación"
+
+        if not self.fields['jurado_1'].queryset.exists():
+            self.fields['jurado_1'].empty_label = "No hay docentes activos disponibles"
+
+    def clean(self):
+        cleaned_data = super().clean()
+        jurado_1 = cleaned_data.get('jurado_1')
+        jurado_2 = cleaned_data.get('jurado_2')
+        calificacion = cleaned_data.get('calificacion')
+        fecha_programada = cleaned_data.get('fecha_programada')
+
+        # Validar que los jurados sean diferentes
+        if jurado_1 and jurado_2 and jurado_1.id == jurado_2.id:
+            raise ValidationError('Los jurados deben ser docentes diferentes')
+
+        # Validar que la fecha sea futura (solo al crear)
+        if not self.instance.pk and fecha_programada:
+            if fecha_programada < timezone.now():
+                raise ValidationError('La fecha de sustentación debe ser futura')
+
+        # Validar calificación si existe
+        if calificacion is not None:
+            if calificacion < 0 or calificacion > 5:
+                raise ValidationError('La calificación debe estar entre 0.0 y 5.0')
+
+        return cleaned_data
