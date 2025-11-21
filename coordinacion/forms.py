@@ -569,11 +569,4 @@ class SustentacionForm(forms.ModelForm):
             if calificacion < 0 or calificacion > 5:
                 raise ValidationError('La calificación debe estar entre 0.0 y 5.0')
 
-        # Validación defensiva: verificar que la práctica aún no tenga sustentación
-        practica = cleaned_data.get('practica')
-        if not self.instance.pk and practica:
-            # Si la práctica ya tiene una sustentación registrada, rechazar
-            if PracticaEmpresarial.objects.filter(id=practica.id, sustentacion__isnull=False).exists():
-                raise ValidationError('La práctica seleccionada ya tiene una sustentación registrada')
-
         return cleaned_data
