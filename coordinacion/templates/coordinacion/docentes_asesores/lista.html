@@ -1,0 +1,170 @@
+{% extends 'coordinacion/base.html' %}
+{% load static %}
+
+{% block title %}Gestión de Docentes Asesores{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'coordinacion:dashboard' %}">
+            <i class="fas fa-graduation-cap me-2"></i>Sistema de Prácticas
+        </a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ms-auto">
+                {% include 'coordinacion/_navbar_user_dropdown.html' %}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 sidebar">
+            <div class="list-group">
+                <a href="{% url 'coordinacion:dashboard' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-home me-2"></i>Dashboard
+                </a>
+                <a href="{% url 'coordinacion:empresas_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-building me-2"></i>Empresas
+                </a>
+                <a href="{% url 'coordinacion:vacantes_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-briefcase me-2"></i>Vacantes
+                </a>
+                <a href="{% url 'coordinacion:estudiantes_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-user-graduate me-2"></i>Estudiantes
+                </a>
+                <a href="{% url 'coordinacion:postulaciones_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-clipboard-list me-2"></i>Postulaciones
+                </a>
+                <a href="{% url 'coordinacion:practicas_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-tasks me-2"></i>Prácticas
+                </a>
+                <a href="{% url 'coordinacion:tutores_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chalkboard-teacher me-2"></i>Tutores
+                </a>
+                <a href="{% url 'coordinacion:docentes_asesores_lista' %}" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-user-tie me-2"></i>Docentes Asesores
+                </a>
+                <a href="{% url 'coordinacion:sustentaciones_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-graduation-cap me-2"></i>Sustentaciones
+                </a>
+                <a href="{% url 'coordinacion:reportes_dashboard' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chart-line me-2"></i>Reportes
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-user-tie me-2"></i>Gestión de Docentes Asesores</h2>
+                <a href="{% url 'coordinacion:docente_asesor_crear' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Nuevo Docente Asesor
+                </a>
+            </div>
+
+            <!-- Filtros -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Filtrar por Estado</label>
+                            <select name="estado" class="form-select" onchange="this.form.submit()">
+                                <option value="">Todos los estados</option>
+                                <option value="activos" {% if estado_filtro == 'activos' %}selected{% endif %}>Activos</option>
+                                <option value="inactivos" {% if estado_filtro == 'inactivos' %}selected{% endif %}>Inactivos</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Lista de Docentes -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-list me-2"></i>Listado de Docentes Asesores</span>
+                    <span class="badge bg-primary">Total: {{ docentes|length }}</span>
+                </div>
+                <div class="card-body">
+                    {% if docentes %}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Email</th>
+                                        <th>Teléfono</th>
+                                        <th>Especialidad</th>
+                                        <th>Prácticas Activas</th>
+                                        <th>Seguimientos Pendientes</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for docente in docentes %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ docente.nombre_completo }}</strong><br>
+                                            <small class="text-muted">Usuario: {{ docente.user.username }}</small>
+                                        </td>
+                                        <td>{{ docente.email }}</td>
+                                        <td>{{ docente.telefono }}</td>
+                                        <td>{{ docente.especialidad }}</td>
+                                        <td>
+                                            <span class="badge bg-info">{{ docente.practicas_activas }}</span>
+                                        </td>
+                                        <td>
+                                            {% if docente.seguimientos_pendientes > 0 %}
+                                                <span class="badge bg-warning">{{ docente.seguimientos_pendientes }}</span>
+                                            {% else %}
+                                                <span class="badge bg-success">0</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if docente.activo %}
+                                                <span class="badge bg-success">Activo</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Inactivo</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="{% url 'coordinacion:docente_asesor_detalle' docente.id %}"
+                                                   class="btn btn-sm btn-info" title="Ver Detalles">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{% url 'coordinacion:docente_asesor_editar' docente.id %}"
+                                                   class="btn btn-sm btn-primary" title="Editar">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <a href="{% url 'coordinacion:docente_asesor_toggle_activo' docente.id %}"
+                                                   class="btn btn-sm btn-warning" title="{% if docente.activo %}Desactivar{% else %}Activar{% endif %}">
+                                                    <i class="fas fa-{% if docente.activo %}ban{% else %}check{% endif %}"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info mb-0">
+                            <i class="fas fa-info-circle me-2"></i>
+                            No hay docentes asesores registrados
+                            {% if estado_filtro %}
+                                con el estado "{{ estado_filtro }}"
+                            {% endif %}.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

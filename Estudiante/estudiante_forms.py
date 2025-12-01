@@ -43,7 +43,7 @@ class EstudianteRegistroForm(UserCreationForm):
 
     # Campos específicos del Estudiante
     codigo = forms.CharField(
-        label='Código Estudiantil',
+        label='Número de documento',
         max_length=20,
         widget=forms.TextInput(attrs={
             'class': 'form-control',
@@ -100,7 +100,7 @@ class EstudianteRegistroForm(UserCreationForm):
             'placeholder': 'Ej: 6',
             'required': True
         }),
-        help_text='⚠️ Solo estudiantes de 4to semestre en adelante pueden hacer prácticas'
+        help_text='⚠️ Administración: desde 2° semestre | Software e Industrial: desde 4° semestre'
     )
 
     promedio_academico = forms.DecimalField(
@@ -161,6 +161,32 @@ class EstudianteRegistroForm(UserCreationForm):
             raise ValidationError('El promedio debe estar entre 0.0 y 5.0')
         return promedio
 
+    def clean(self):
+        """
+        Validación personalizada: verificar que el semestre sea válido según el programa
+        """
+        cleaned_data = super().clean()
+        programa = cleaned_data.get('programa_academico')
+        semestre = cleaned_data.get('semestre')
+
+        if programa and semestre:
+            # Definir semestres mínimos por programa
+            requisitos = {
+                'Administración de Empresas': 2,
+                'Ingeniería de Software': 4,
+                'Ingeniería Industrial': 4,
+            }
+
+            semestre_minimo = requisitos.get(programa)
+
+            if semestre_minimo and semestre < semestre_minimo:
+                raise ValidationError(
+                    f'Para {programa} debes estar en {semestre_minimo}° semestre o superior para realizar prácticas. '
+                    f'Actualmente estás en {semestre}° semestre.'
+                )
+
+        return cleaned_data
+
     def clean_hoja_vida(self):
         """Validar archivo de hoja de vida"""
         archivo = self.cleaned_data.get('hoja_vida')
@@ -176,7 +202,7 @@ class EstudianteRegistroForm(UserCreationForm):
     def save(self, commit=True):
         """
         Guardar usuario y estudiante
-        ✅ LÓGICA NUEVA: Determinar estado según semestre
+        ✅ LÓGICA: Determinar estado según programa académico y semestre
         """
         # Crear el User de Django
         user = super().save(commit=False)
@@ -185,12 +211,23 @@ class EstudianteRegistroForm(UserCreationForm):
         if commit:
             user.save()
 
-            # ✅ DETERMINAR ESTADO SEGÚN SEMESTRE
+            # ✅ DETERMINAR ESTADO SEGÚN PROGRAMA Y SEMESTRE
+            programa = self.cleaned_data['programa_academico']
             semestre = self.cleaned_data['semestre']
-            if semestre <= 3:
-                estado_inicial = 'NO_APTO'
-            else:
+
+            # Definir semestres mínimos por programa
+            requisitos = {
+                'Administración de Empresas': 2,
+                'Ingeniería de Software': 4,
+                'Ingeniería Industrial': 4,
+            }
+
+            semestre_minimo = requisitos.get(programa, 4)  # Por defecto 4
+
+            if semestre >= semestre_minimo:
                 estado_inicial = 'APTO'
+            else:
+                estado_inicial = 'NO_APTO'
 
             # Crear el registro de Estudiante
             estudiante = Estudiante.objects.create(
@@ -199,11 +236,11 @@ class EstudianteRegistroForm(UserCreationForm):
                 nombre_completo=self.cleaned_data['nombre_completo'],
                 email=self.cleaned_data['email'],
                 telefono=self.cleaned_data['telefono'],
-                programa_academico=self.cleaned_data['programa_academico'],
+                programa_academico=programa,
                 semestre=semestre,
                 promedio_academico=self.cleaned_data.get('promedio_academico'),
                 hoja_vida=self.cleaned_data.get('hoja_vida'),
-                estado=estado_inicial  # ✅ ASIGNACIÓN AUTOMÁTICA
+                estado=estado_inicial  # ✅ ASIGNACIÓN AUTOMÁTICA SEGÚN PROGRAMA
             )
 
             return user
@@ -249,6 +286,7 @@ class EstudiantePerfilForm(forms.ModelForm):
             'programa_academico',
             'semestre',
             'promedio_academico',
+            'foto_perfil',
             'hoja_vida',
         ]
 
@@ -290,6 +328,10 @@ class EstudiantePerfilForm(forms.ModelForm):
                 'class': 'form-control',
                 'accept': '.pdf'
             }),
+            'foto_perfil': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*'
+            }),
         }
 
         labels = {
@@ -300,6 +342,7 @@ class EstudiantePerfilForm(forms.ModelForm):
             'semestre': 'Semestre Actual',
             'promedio_academico': 'Promedio Académico',
             'hoja_vida': 'Hoja de Vida (PDF)',
+            'foto_perfil': 'Foto de Perfil',
         }
 
     def clean_email(self):

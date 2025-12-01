@@ -12,16 +12,7 @@
         </a>
         <div class="collapse navbar-collapse">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-user-circle me-1"></i>{{ request.user.username }}
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="{% url 'coordinacion:logout' %}">
-                            <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
-                        </a></li>
-                    </ul>
-                </li>
+                {% include 'coordinacion/_navbar_user_dropdown.html' %}
             </ul>
         </div>
     </div>
@@ -103,7 +94,7 @@
                 // Enviar formulario POST
                 const form = document.createElement('form');
                 form.method = 'POST';
-                form.action = `/practicas/${practicaId}/finalizar/`;
+                form.action = `/coordinacion/practicas/${practicaId}/finalizar/`;
 
                 const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
                 if (csrfToken) {
@@ -299,7 +290,7 @@
                 <td>
                     <div className="btn-group btn-group-sm">
                         <a
-                            href={`/practicas/${practica.id}/`}
+                            href={'/coordinacion/practicas/' + practica.id + '/'}
                             className="btn btn-outline-primary"
                             title="Ver detalles"
                         >

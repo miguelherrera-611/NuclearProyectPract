@@ -1,0 +1,117 @@
+{% extends 'docente/base.html' %}
+
+{% block title %}Mis Estudiantes - Docente Asesor{% endblock %}
+
+{% block content %}
+<!-- Top Bar -->
+<div class="top-bar">
+    <h2><i class="fas fa-users"></i> Mis Estudiantes</h2>
+    {% include 'docente/_topbar_user_dropdown.html' %}
+</div>
+
+<!-- Filtros -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Filtrar por Estado</label>
+                <select name="estado" class="form-select" onchange="this.form.submit()">
+                    <option value="">Todos los estados</option>
+                    <option value="EN_CURSO" {% if estado_filtro == 'EN_CURSO' %}selected{% endif %}>En Curso</option>
+                    <option value="FINALIZADA" {% if estado_filtro == 'FINALIZADA' %}selected{% endif %}>Finalizadas</option>
+                    <option value="CANCELADA" {% if estado_filtro == 'CANCELADA' %}selected{% endif %}>Canceladas</option>
+                </select>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Lista de Estudiantes -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-list"></i> Listado de Estudiantes</span>
+        <span class="badge bg-light text-dark">Total: {{ practicas|length }}</span>
+    </div>
+    <div class="card-body">
+        {% if practicas %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Estudiante</th>
+                            <th>Código</th>
+                            <th>Programa</th>
+                            <th>Empresa</th>
+                            <th>Tutor Empresarial</th>
+                            <th>Fecha Inicio</th>
+                            <th>Estado</th>
+                            <th>Seguimientos</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for practica in practicas %}
+                        <tr>
+                            <td>
+                                <strong>{{ practica.estudiante.nombre_completo }}</strong><br>
+                                <small class="text-muted">{{ practica.estudiante.email }}</small>
+                            </td>
+                            <td>{{ practica.estudiante.codigo }}</td>
+                            <td>{{ practica.estudiante.get_programa_academico_display }}</td>
+                            <td>
+                                <strong>{{ practica.empresa.razon_social }}</strong><br>
+                                <small class="text-muted">{{ practica.empresa.sector }}</small>
+                            </td>
+                            <td>
+                                {% if practica.tutor_empresarial %}
+                                    {{ practica.tutor_empresarial.nombre_completo }}<br>
+                                    <small class="text-muted">{{ practica.tutor_empresarial.cargo }}</small>
+                                {% else %}
+                                    <span class="text-muted">Sin asignar</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ practica.fecha_inicio|date:"d/m/Y" }}</td>
+                            <td>
+                                {% if practica.estado == 'EN_CURSO' %}
+                                    <span class="badge bg-success">En Curso</span>
+                                {% elif practica.estado == 'FINALIZADA' %}
+                                    <span class="badge bg-primary">Finalizada</span>
+                                {% elif practica.estado == 'CANCELADA' %}
+                                    <span class="badge bg-danger">Cancelada</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ practica.get_estado_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% with total_seguimientos=practica.seguimientos.count pendientes=practica.seguimientos.filter|length %}
+                                <span class="badge bg-info">{{ practica.seguimientos.count }} total</span><br>
+                                <small class="text-muted">
+                                    {% with pendientes_count=practica.seguimientos.filter|length %}
+                                    {{ practica.seguimientos.filter|length|default:0 }} pendientes
+                                    {% endwith %}
+                                </small>
+                                {% endwith %}
+                            </td>
+                            <td>
+                                <a href="{% url 'docente:detalle_estudiante' practica.id %}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-eye"></i> Ver Detalles
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-info mb-0">
+                <i class="fas fa-info-circle"></i> No hay estudiantes asignados
+                {% if estado_filtro %}
+                    con el estado "{{ estado_filtro }}"
+                {% endif %}
+                en este momento.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

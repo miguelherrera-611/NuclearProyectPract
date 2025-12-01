@@ -12,16 +12,7 @@
         </a>
         <div class="collapse navbar-collapse">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-user-circle me-1"></i>{{ request.user.username }}
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="{% url 'coordinacion:logout' %}">
-                            <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
-                        </a></li>
-                    </ul>
-                </li>
+                {% include 'coordinacion/_navbar_user_dropdown.html' %}
             </ul>
         </div>
     </div>
@@ -110,7 +101,7 @@
                         <i className="fas fa-briefcase me-2 text-primary"></i>
                         Gestión de Vacantes
                     </h2>
-                    <a href="/vacantes/crear/" className="btn btn-success">
+                    <a href="/coordinacion/vacantes/crear/" className="btn btn-primary">
                         <i className="fas fa-plus me-2"></i>Nueva Vacante
                     </a>
                 </div>
@@ -283,14 +274,14 @@
                 <td>
                     <div className="btn-group btn-group-sm" role="group">
                         <a
-                            href={'/vacantes/' + vacante.id + '/'}
+                            href={'/coordinacion/vacantes/' + vacante.id + '/'}
                             className="btn btn-outline-primary"
                             title="Ver detalles"
                         >
                             <i className="fas fa-eye"></i>
                         </a>
                         <a
-                            href={'/vacantes/' + vacante.id + '/editar/'}
+                            href={'/coordinacion/vacantes/' + vacante.id + '/editar/'}
                             className="btn btn-outline-warning"
                             title="Editar vacante"
                         >

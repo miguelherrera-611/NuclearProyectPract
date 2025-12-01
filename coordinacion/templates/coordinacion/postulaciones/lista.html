@@ -12,16 +12,7 @@
         </a>
         <div class="collapse navbar-collapse">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-user-circle me-1"></i>{{ request.user.username }}
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="{% url 'coordinacion:logout' %}">
-                            <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
-                        </a></li>
-                    </ul>
-                </li>
+                {% include 'coordinacion/_navbar_user_dropdown.html' %}
             </ul>
         </div>
     </div>
@@ -105,7 +96,7 @@
                         <i className="fas fa-clipboard-list me-2 text-primary"></i>
                         Gestión de Postulaciones
                     </h2>
-                    <a href="{% url 'coordinacion:postulacion_crear' %}" className="btn btn-success">
+                    <a href="{% url 'coordinacion:postulacion_crear' %}" className="btn btn-primary">
                         <i className="fas fa-plus me-2"></i>Nueva Postulación
                     </a>
                 </div>
@@ -281,7 +272,7 @@
                 <td>
                     <div className="btn-group btn-group-sm">
                         <a
-                            href={`/postulaciones/${postulacion.id}/`}
+                            href={'/coordinacion/postulaciones/' + postulacion.id + '/'}
                             className="btn btn-outline-primary"
                             title="Ver detalles"
                         >
@@ -290,20 +281,29 @@
                         {postulacion.estado === 'SELECCIONADO' && (
                             <>
                                 <a
-                                    href={`/postulaciones/${postulacion.id}/aprobar/`}
+                                    href={'/coordinacion/postulaciones/' + postulacion.id + '/aprobar/'}
                                     className="btn btn-outline-success"
                                     title="Aprobar y vincular"
                                 >
                                     <i className="fas fa-check"></i>
                                 </a>
                                 <a
-                                    href={`/postulaciones/${postulacion.id}/rechazar/`}
+                                    href={'/coordinacion/postulaciones/' + postulacion.id + '/rechazar/'}
                                     className="btn btn-outline-danger"
                                     title="Rechazar postulación"
                                 >
                                     <i className="fas fa-times"></i>
                                 </a>
                             </>
+                        )}
+                        {postulacion.estado === 'VINCULADO' && (
+                            <a
+                                href={'/coordinacion/postulaciones/' + postulacion.id + '/desvincular/'}
+                                className="btn btn-outline-warning"
+                                title="Desvincular postulación"
+                            >
+                                <i className="fas fa-unlink"></i>
+                            </a>
                         )}
                     </div>
                 </td>

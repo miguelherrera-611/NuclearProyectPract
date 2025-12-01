@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'coordinacion',  # Nuestra app de coordinación empresarial
     'Estudiante',    # App de estudiantes (registro, login, dashboard)
+    'docente',       # App de docente asesor
 ]
 
 MIDDLEWARE = [
@@ -65,6 +66,9 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'coordinacion.context_processors.coordinador_data',  # Foto de perfil coordinador
+                'Estudiante.context_processors.estudiante_data',  # Foto de perfil estudiante
+                'docente.context_processors.docente_data',  # Foto de perfil docente
             ],
         },
     },

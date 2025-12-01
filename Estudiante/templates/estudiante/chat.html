@@ -1,0 +1,515 @@
+{% extends 'estudiante/base.html' %}
+
+{% block title %}Chat con {{ docente.nombre_completo }}{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+    <!-- Header del Chat -->
+    <div class="chat-header">
+        <div class="d-flex align-items-center">
+            <a href="{% url 'estudiante:mi_docente_asesor' %}" class="btn btn-link text-white me-3">
+                <i class="fas fa-arrow-left fa-lg"></i>
+            </a>
+            <div class="chat-header-foto">
+                {% if docente.foto_perfil %}
+                    <img src="{{ docente.foto_perfil.url }}" alt="{{ docente.nombre_completo }}">
+                {% else %}
+                    <i class="fas fa-user-circle"></i>
+                {% endif %}
+            </div>
+            <div class="chat-header-info">
+                <h5 class="mb-0">{{ docente.nombre_completo }}</h5>
+                <small>Docente Asesor</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Área de Mensajes -->
+    <div class="chat-messages" id="chatMessages">
+        {% for mensaje in mensajes %}
+        <div class="mensaje {% if mensaje.remitente == request.user %}mensaje-propio{% else %}mensaje-otro{% endif %}" data-mensaje-id="{{ mensaje.id }}">
+            <div class="mensaje-contenido">
+                {% if mensaje.remitente != request.user %}
+                <div class="mensaje-avatar">
+                    {% if docente.foto_perfil %}
+                        <img src="{{ docente.foto_perfil.url }}" alt="{{ docente.nombre_completo }}">
+                    {% else %}
+                        <i class="fas fa-user-circle"></i>
+                    {% endif %}
+                </div>
+                {% endif %}
+                <div class="mensaje-bubble">
+                    {% if mensaje.contenido %}
+                        <p class="mensaje-texto">{{ mensaje.contenido|linebreaks }}</p>
+                    {% endif %}
+                    {% if mensaje.archivo_adjunto %}
+                        <div class="mensaje-archivo">
+                            <a href="{{ mensaje.archivo_adjunto.url }}" target="_blank" class="btn btn-sm btn-light">
+                                <i class="fas fa-paperclip me-1"></i>
+                                Ver archivo adjunto
+                            </a>
+                        </div>
+                    {% endif %}
+                    <div class="mensaje-info">
+                        <small>{{ mensaje.fecha_envio|date:"d/m/Y H:i" }}</small>
+                        {% if mensaje.remitente == request.user %}
+                            {% if mensaje.leido %}
+                                <i class="fas fa-check-double text-primary ms-2" title="Leído"></i>
+                            {% else %}
+                                <i class="fas fa-check ms-2" title="Enviado"></i>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="chat-empty">
+            <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+            <p class="text-muted">No hay mensajes aún. ¡Envía el primero!</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Input de Mensaje -->
+    <div class="chat-input-container">
+        <form id="chatForm" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="d-flex align-items-end gap-2">
+                <div class="flex-grow-1">
+                    <textarea
+                        id="mensajeInput"
+                        name="contenido"
+                        class="form-control chat-textarea"
+                        placeholder="Escribe un mensaje..."
+                        rows="1"></textarea>
+                    <input type="file" id="archivoInput" name="archivo" style="display: none;" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif">
+                </div>
+                <button type="button" id="adjuntarBtn" class="btn btn-outline-primary">
+                    <i class="fas fa-paperclip"></i>
+                </button>
+                <button type="submit" id="enviarBtn" class="btn btn-primary">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+            <div id="archivoPreview" class="mt-2" style="display: none;">
+                <small class="text-muted">
+                    <i class="fas fa-file me-1"></i>
+                    <span id="archivoNombre"></span>
+                    <button type="button" id="quitarArchivo" class="btn btn-sm btn-link text-danger">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </small>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .chat-container {
+        height: calc(100vh - 100px);
+        display: flex;
+        flex-direction: column;
+        background: #f0f2f5;
+    }
+
+    /* Header */
+    .chat-header {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+        padding: 15px 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        z-index: 10;
+    }
+
+    .chat-header-foto {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        overflow: hidden;
+        margin-right: 15px;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .chat-header-foto img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .chat-header-foto i {
+        font-size: 40px;
+        color: #1e3c72;
+    }
+
+    .chat-header-info h5 {
+        font-weight: 700;
+    }
+
+    .chat-header-info small {
+        opacity: 0.9;
+    }
+
+    /* Mensajes */
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        background: #e5ddd5;
+        background-image:
+            repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(255,255,255,.05) 35px, rgba(255,255,255,.05) 70px);
+    }
+
+    .chat-empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+    }
+
+    .mensaje {
+        margin-bottom: 15px;
+        display: flex;
+    }
+
+    .mensaje-propio {
+        justify-content: flex-end;
+    }
+
+    .mensaje-otro {
+        justify-content: flex-start;
+    }
+
+    .mensaje-contenido {
+        display: flex;
+        align-items: flex-end;
+        max-width: 70%;
+    }
+
+    .mensaje-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        overflow: hidden;
+        margin-right: 8px;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .mensaje-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .mensaje-avatar i {
+        font-size: 24px;
+        color: #1e3c72;
+    }
+
+    .mensaje-bubble {
+        padding: 10px 15px;
+        border-radius: 12px;
+        position: relative;
+    }
+
+    .mensaje-propio .mensaje-bubble {
+        background: #dcf8c6;
+        border-bottom-right-radius: 2px;
+    }
+
+    .mensaje-otro .mensaje-bubble {
+        background: white;
+        border-bottom-left-radius: 2px;
+    }
+
+    .mensaje-texto {
+        margin: 0;
+        word-wrap: break-word;
+        white-space: pre-wrap;
+    }
+
+    .mensaje-archivo {
+        margin-top: 8px;
+    }
+
+    .mensaje-info {
+        text-align: right;
+        margin-top: 5px;
+        opacity: 0.7;
+    }
+
+    /* Input */
+    .chat-input-container {
+        background: white;
+        padding: 15px 20px;
+        border-top: 1px solid #ddd;
+    }
+
+    .chat-textarea {
+        resize: none;
+        border-radius: 20px;
+        padding: 10px 15px;
+        max-height: 120px;
+        overflow-y: auto;
+    }
+
+    .chat-textarea:focus {
+        box-shadow: 0 0 0 0.2rem rgba(30, 60, 114, 0.25);
+        border-color: #1e3c72;
+    }
+
+    #enviarBtn {
+        border-radius: 50%;
+        width: 45px;
+        height: 45px;
+        padding: 0;
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        border: none;
+    }
+
+    #enviarBtn:hover {
+        transform: scale(1.1);
+    }
+
+    #adjuntarBtn {
+        border-radius: 50%;
+        width: 45px;
+        height: 45px;
+        padding: 0;
+    }
+
+    /* Scrollbar */
+    .chat-messages::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .chat-messages::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb {
+        background: rgba(0,0,0,0.2);
+        border-radius: 3px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .chat-container {
+            height: calc(100vh - 60px);
+        }
+
+        .mensaje-contenido {
+            max-width: 85%;
+        }
+    }
+</style>
+
+<script>
+    // Variables globales
+    let ultimoMensajeId = {{ ultimo_mensaje_id|default:0 }};
+    let actualizacionInterval;
+
+    // Al cargar la página
+    document.addEventListener('DOMContentLoaded', function() {
+        // Scroll al fondo
+        scrollToBottom();
+
+        // Auto-resize del textarea
+        const textarea = document.getElementById('mensajeInput');
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+
+        // Enviar con Enter (sin Shift)
+        textarea.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                document.getElementById('chatForm').dispatchEvent(new Event('submit'));
+            }
+        });
+
+        // Adjuntar archivo
+        document.getElementById('adjuntarBtn').addEventListener('click', function() {
+            document.getElementById('archivoInput').click();
+        });
+
+        // Preview de archivo
+        document.getElementById('archivoInput').addEventListener('change', function(e) {
+            const archivo = e.target.files[0];
+            if (archivo) {
+                document.getElementById('archivoNombre').textContent = archivo.name;
+                document.getElementById('archivoPreview').style.display = 'block';
+            }
+        });
+
+        // Quitar archivo
+        document.getElementById('quitarArchivo').addEventListener('click', function() {
+            document.getElementById('archivoInput').value = '';
+            document.getElementById('archivoPreview').style.display = 'none';
+        });
+
+        // Enviar mensaje
+        document.getElementById('chatForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            enviarMensaje();
+        });
+
+        // Iniciar actualización automática (cada 3 segundos)
+        actualizacionInterval = setInterval(obtenerNuevosMensajes, 3000);
+    });
+
+    // Enviar mensaje
+    function enviarMensaje() {
+        const form = document.getElementById('chatForm');
+        const formData = new FormData(form);
+        const contenido = document.getElementById('mensajeInput').value.trim();
+        const archivo = document.getElementById('archivoInput').files[0];
+
+        if (!contenido && !archivo) {
+            return;
+        }
+
+        // Deshabilitar botón
+        const btnEnviar = document.getElementById('enviarBtn');
+        btnEnviar.disabled = true;
+        btnEnviar.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+        fetch('{% url "estudiante:enviar_mensaje" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Limpiar formulario
+                document.getElementById('mensajeInput').value = '';
+                document.getElementById('mensajeInput').style.height = 'auto';
+                document.getElementById('archivoInput').value = '';
+                document.getElementById('archivoPreview').style.display = 'none';
+
+                // Agregar mensaje al chat
+                agregarMensaje(data.mensaje, true);
+                scrollToBottom();
+            } else {
+                alert('Error: ' + (data.error || 'No se pudo enviar el mensaje'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al enviar el mensaje');
+        })
+        .finally(() => {
+            // Habilitar botón
+            btnEnviar.disabled = false;
+            btnEnviar.innerHTML = '<i class="fas fa-paper-plane"></i>';
+        });
+    }
+
+    // Obtener nuevos mensajes
+    function obtenerNuevosMensajes() {
+        fetch(`{% url "estudiante:obtener_mensajes" %}?ultimo_id=${ultimoMensajeId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.mensajes && data.mensajes.length > 0) {
+                data.mensajes.forEach(mensaje => {
+                    agregarMensaje(mensaje, mensaje.es_mio);
+                    if (mensaje.id > ultimoMensajeId) {
+                        ultimoMensajeId = mensaje.id;
+                    }
+                });
+                scrollToBottom();
+            }
+        })
+        .catch(error => console.error('Error al obtener mensajes:', error));
+    }
+
+    // Agregar mensaje al DOM
+    function agregarMensaje(mensaje, esMio) {
+        const chatMessages = document.getElementById('chatMessages');
+
+        // Remover mensaje vacío si existe
+        const emptyMsg = chatMessages.querySelector('.chat-empty');
+        if (emptyMsg) {
+            emptyMsg.remove();
+        }
+
+        const mensajeDiv = document.createElement('div');
+        mensajeDiv.className = `mensaje ${esMio ? 'mensaje-propio' : 'mensaje-otro'}`;
+        mensajeDiv.setAttribute('data-mensaje-id', mensaje.id);
+
+        let avatarHTML = '';
+        if (!esMio) {
+            avatarHTML = `
+                <div class="mensaje-avatar">
+                    {% if docente.foto_perfil %}
+                        <img src="{{ docente.foto_perfil.url }}" alt="{{ docente.nombre_completo }}">
+                    {% else %}
+                        <i class="fas fa-user-circle"></i>
+                    {% endif %}
+                </div>
+            `;
+        }
+
+        let archivoHTML = '';
+        if (mensaje.archivo) {
+            archivoHTML = `
+                <div class="mensaje-archivo">
+                    <a href="${mensaje.archivo}" target="_blank" class="btn btn-sm btn-light">
+                        <i class="fas fa-paperclip me-1"></i>
+                        Ver archivo adjunto
+                    </a>
+                </div>
+            `;
+        }
+
+        let leidoHTML = '';
+        if (esMio) {
+            leidoHTML = mensaje.leido
+                ? '<i class="fas fa-check-double text-primary ms-2" title="Leído"></i>'
+                : '<i class="fas fa-check ms-2" title="Enviado"></i>';
+        }
+
+        mensajeDiv.innerHTML = `
+            <div class="mensaje-contenido">
+                ${avatarHTML}
+                <div class="mensaje-bubble">
+                    ${mensaje.contenido ? `<p class="mensaje-texto">${mensaje.contenido.replace(/\n/g, '<br>')}</p>` : ''}
+                    ${archivoHTML}
+                    <div class="mensaje-info">
+                        <small>${mensaje.fecha_envio}</small>
+                        ${leidoHTML}
+                    </div>
+                </div>
+            </div>
+        `;
+
+        chatMessages.appendChild(mensajeDiv);
+    }
+
+    // Scroll al fondo
+    function scrollToBottom() {
+        const chatMessages = document.getElementById('chatMessages');
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Limpiar intervalo al salir
+    window.addEventListener('beforeunload', function() {
+        if (actualizacionInterval) {
+            clearInterval(actualizacionInterval);
+        }
+    });
+</script>
+{% endblock %}
+

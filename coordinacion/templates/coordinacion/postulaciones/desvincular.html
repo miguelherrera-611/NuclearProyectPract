@@ -1,0 +1,230 @@
+{% extends 'coordinacion/base.html' %}
+
+{% block title %}Desvincular Postulación - Coordinación{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'coordinacion:dashboard' %}">
+            <i class="fas fa-graduation-cap me-2"></i>
+            Sistema de Prácticas - Coordinación
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-1"></i>
+                        Coordinación
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{% url 'coordinacion:logout' %}">
+                            <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                        </a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2>
+                        <i class="fas fa-unlink me-2 text-warning"></i>
+                        Desvincular Postulación
+                    </h2>
+                    <p class="text-muted mb-0">Revertir vinculación de estudiante</p>
+                </div>
+                <div>
+                    <a href="{% url 'coordinacion:postulaciones_lista' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Volver
+                    </a>
+                </div>
+            </div>
+
+            <!-- Alerta de Advertencia -->
+            <div class="alert alert-warning border-start border-5 border-warning" role="alert">
+                <div class="d-flex">
+                    <div class="me-3">
+                        <i class="fas fa-exclamation-triangle fa-2x"></i>
+                    </div>
+                    <div>
+                        <h5 class="alert-heading">⚠️ Advertencia Importante</h5>
+                        <p class="mb-0">
+                            Estás a punto de <strong>desvincular</strong> esta postulación. Esta acción:
+                        </p>
+                        <ul class="mt-2 mb-0">
+                            <li>Cambiará el estado de la postulación de "Vinculado" a "Seleccionado"</li>
+                            <li>El estudiante volverá al estado "Apto" (si no tiene otras prácticas)</li>
+                            <li>Se liberará un cupo en la vacante</li>
+                            {% if practica_asociada %}
+                            <li class="text-danger"><strong>Cancelará la práctica empresarial asociada</strong></li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información de la Postulación -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Información de la Postulación</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-muted">Estudiante</h6>
+                            <p class="mb-0">
+                                <strong>{{ postulacion.estudiante.nombre_completo }}</strong><br>
+                                <small class="text-muted">{{ postulacion.estudiante.codigo }}</small><br>
+                                <small>{{ postulacion.estudiante.programa_academico }} - {{ postulacion.estudiante.semestre }}° sem</small>
+                            </p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-muted">Vacante</h6>
+                            <p class="mb-0">
+                                <strong>{{ postulacion.vacante.titulo }}</strong><br>
+                                <small class="text-muted">{{ postulacion.vacante.empresa.razon_social }}</small>
+                            </p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-muted">Estado Actual</h6>
+                            <p class="mb-0">
+                                <span class="badge bg-success">{{ postulacion.get_estado_display }}</span>
+                            </p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-muted">Fecha de Postulación</h6>
+                            <p class="mb-0">{{ postulacion.fecha_postulacion|date:"d/m/Y H:i" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información de Práctica Asociada -->
+            {% if practica_asociada %}
+            <div class="card mb-4 border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        Práctica Empresarial Asociada
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger" role="alert">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Esta postulación tiene una práctica empresarial activa.</strong>
+                        Al desvincular, la práctica será <strong>cancelada automáticamente</strong>.
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Empresa:</strong> {{ practica_asociada.empresa.razon_social }}</p>
+                            <p><strong>Fecha Inicio:</strong> {{ practica_asociada.fecha_inicio|date:"d/m/Y" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Docente Asesor:</strong>
+                                {% if practica_asociada.docente_asesor %}
+                                    {{ practica_asociada.docente_asesor.nombre_completo }}
+                                {% else %}
+                                    No asignado
+                                {% endif %}
+                            </p>
+                            <p><strong>Estado:</strong> <span class="badge bg-primary">{{ practica_asociada.get_estado_display }}</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Formulario de Desvinculación -->
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-edit me-2"></i>Motivo de Desvinculación</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="desvincularForm">
+                        {% csrf_token %}
+
+                        {% if practica_asociada %}
+                        <input type="hidden" name="cancelar_practica" value="true">
+                        {% endif %}
+
+                        <div class="mb-4">
+                            <label for="motivo" class="form-label">
+                                <i class="fas fa-comment me-1"></i>
+                                Motivo de la Desvinculación *
+                            </label>
+                            <textarea
+                                class="form-control"
+                                id="motivo"
+                                name="motivo"
+                                rows="4"
+                                required
+                                placeholder="Explica detalladamente por qué se está desvinculando esta postulación..."></textarea>
+                            <small class="text-muted">Este motivo quedará registrado en el historial de la postulación.</small>
+                        </div>
+
+                        <!-- Confirmación -->
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" id="confirmacion" required>
+                            <label class="form-check-label" for="confirmacion">
+                                Confirmo que deseo desvincular esta postulación
+                                {% if practica_asociada %}
+                                    <strong class="text-danger">y cancelar la práctica asociada</strong>
+                                {% endif %}
+                            </label>
+                        </div>
+
+                        <!-- Botones -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-warning" id="btnDesvincular" disabled>
+                                <i class="fas fa-unlink me-1"></i>Desvincular Postulación
+                            </button>
+                            <a href="{% url 'coordinacion:postulaciones_lista' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i>Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Habilitar botón solo cuando se marque la confirmación
+    document.getElementById('confirmacion').addEventListener('change', function() {
+        document.getElementById('btnDesvincular').disabled = !this.checked;
+    });
+
+    // Confirmación adicional al enviar el formulario
+    document.getElementById('desvincularForm').addEventListener('submit', function(e) {
+        {% if practica_asociada %}
+        const confirmMsg = '⚠️ ÚLTIMA CONFIRMACIÓN\n\n' +
+                          'Estás a punto de:\n' +
+                          '• Desvincular la postulación\n' +
+                          '• CANCELAR la práctica empresarial activa\n' +
+                          '• El estudiante volverá a estado APTO\n\n' +
+                          '¿Estás completamente seguro de continuar?';
+        {% else %}
+        const confirmMsg = '¿Estás seguro de que deseas desvincular esta postulación?\n\n' +
+                          'El estudiante volverá a estado "Seleccionado".';
+        {% endif %}
+
+        if (!confirm(confirmMsg)) {
+            e.preventDefault();
+        }
+    });
+</script>
+
+{% endblock %}
+

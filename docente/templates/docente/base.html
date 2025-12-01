@@ -1,0 +1,1286 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Docente Asesor{% endblock %} - Sistema de Prácticas</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary-blue: #1e3c72;
+            --secondary-blue: #2a5298;
+            --light-blue: #7e97c4;
+            --accent-blue: #4a90e2;
+            --dark-bg: #1a1a2e;
+            --sidebar-bg: #16213e;
+            --hover-blue: #0f2557;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 260px;
+            background: var(--sidebar-bg);
+            padding: 20px 0;
+            overflow-y: auto;
+            transition: all 0.3s;
+            z-index: 1000;
+            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .sidebar .logo {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .sidebar .logo h4 {
+            color: white;
+            font-weight: 600;
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        .sidebar .logo p {
+            color: var(--light-blue);
+            font-size: 0.85rem;
+            margin: 5px 0 0 0;
+        }
+
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 12px 25px;
+            margin: 5px 15px;
+            border-radius: 8px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .sidebar .nav-link i {
+            margin-right: 12px;
+            width: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        .sidebar .nav-link:hover {
+            background: var(--hover-blue);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .sidebar .nav-link.active {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            padding: 30px;
+            min-height: 100vh;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .top-bar h2 {
+            color: var(--primary-blue);
+            margin: 0;
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .top-bar .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .top-bar .user-info .user-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-blue), var(--accent-blue));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .top-bar .user-info .user-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .top-bar .user-info .user-details strong {
+            color: var(--primary-blue);
+            font-size: 0.95rem;
+        }
+
+        .top-bar .user-info .user-details small {
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        /* Cards */
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            background: white;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+            color: white;
+            border-radius: 12px 12px 0 0 !important;
+            padding: 15px 20px;
+            font-weight: 600;
+        }
+
+        /* Stats Cards */
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-card .icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+        }
+
+        .stat-card.blue .icon {
+            background: linear-gradient(135deg, var(--primary-blue), var(--accent-blue));
+            color: white;
+        }
+
+        .stat-card.light-blue .icon {
+            background: linear-gradient(135deg, var(--accent-blue), var(--light-blue));
+            color: white;
+        }
+
+        .stat-card h3 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin: 10px 0;
+        }
+
+        .stat-card p {
+            color: #666;
+            margin: 0;
+            font-size: 0.95rem;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-blue), var(--accent-blue));
+            border: none;
+            border-radius: 8px;
+            padding: 10px 25px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--hover-blue), var(--primary-blue));
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(30, 60, 114, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            border: none;
+            border-radius: 8px;
+            padding: 10px 25px;
+            font-weight: 500;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            border: none;
+            border-radius: 8px;
+            padding: 10px 25px;
+            font-weight: 500;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107, #ff9800);
+            border: none;
+            border-radius: 8px;
+            padding: 10px 25px;
+            font-weight: 500;
+            color: white;
+        }
+
+        /* Table */
+        .table {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .table thead {
+            background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+            color: white;
+        }
+
+        .table tbody tr {
+            transition: background 0.3s;
+        }
+
+        .table tbody tr:hover {
+            background: rgba(30, 60, 114, 0.05);
+        }
+
+        /* Badges */
+        .badge {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+
+        .badge.bg-primary {
+            background: var(--primary-blue) !important;
+        }
+
+        .badge.bg-success {
+            background: #28a745 !important;
+        }
+
+        .badge.bg-warning {
+            background: #ffc107 !important;
+            color: #000;
+        }
+
+        .badge.bg-danger {
+            background: #dc3545 !important;
+        }
+
+        /* Alerts */
+        .alert {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                margin-left: -260px;
+            }
+
+            .sidebar.active {
+                margin-left: 0;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 15px;
+            }
+
+            .top-bar {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-blue);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-blue);
+        }
+    </style>
+
+    <!-- ESTILOS DEL CHAT GLOBAL -->
+    <style>
+        /* Chat Flotante Global */
+        .burbuja-minimizada {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 9998;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s;
+            animation: bounceIn 0.5s;
+        }
+
+        .burbuja-minimizada:hover {
+            transform: scale(1.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        @keyframes bounceIn {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .burbuja-avatar {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            overflow: hidden;
+            position: relative;
+            border: 3px solid white;
+        }
+
+        .burbuja-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .burbuja-avatar-placeholder {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .burbuja-avatar-placeholder i {
+            font-size: 40px;
+            color: white;
+        }
+
+        .burbuja-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #dc3545;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 12px;
+            min-width: 24px;
+            text-align: center;
+            border: 2px solid white;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        /* Ventana de Chat */
+        .chat-window-global {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 400px;
+            height: 650px;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05);
+            display: none;
+            flex-direction: column;
+            z-index: 9999;
+            overflow: hidden;
+            animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transition: all 0.3s ease;
+        }
+
+        .chat-window-global.minimized {
+            height: 70px;
+            transition: height 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%) scale(0.8);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .chat-window-header-global {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #4a6fa5 100%);
+            color: white;
+            padding: 18px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .chat-window-avatar-global {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            overflow: hidden;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .chat-window-avatar-global img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .chat-window-avatar-placeholder-global {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chat-window-avatar-placeholder-global i {
+            font-size: 36px;
+            color: #1e3c72;
+        }
+
+        .chat-window-info-global {
+            flex-grow: 1;
+        }
+
+        .chat-window-name-global {
+            font-weight: 700;
+            font-size: 1.05rem;
+            line-height: 1.3;
+        }
+
+        .chat-window-status-global {
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+
+        .chat-window-actions-global {
+            display: flex;
+            gap: 6px;
+        }
+
+        .btn-icon-global {
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.95rem;
+        }
+
+        .btn-icon-global:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(1.05);
+        }
+
+        .btn-icon-global.maximize-btn {
+            display: none;
+        }
+
+        .chat-window-global.minimized .btn-icon-global.minimize-btn {
+            display: none;
+        }
+
+        .chat-window-global.minimized .btn-icon-global.maximize-btn {
+            display: flex;
+        }
+
+        .btn-icon-global.close-btn {
+            background: rgba(220, 53, 69, 0.8);
+        }
+
+        .btn-icon-global.close-btn:hover {
+            background: rgba(220, 53, 69, 1);
+        }
+
+        .chat-window-body-global {
+            flex-grow: 1;
+            background: linear-gradient(to bottom, #e8eef7 0%, #dce4f0 100%);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .chat-window-body-global::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(30, 60, 114, 0.03) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .chat-window-global.minimized .chat-window-body-global,
+        .chat-window-global.minimized .chat-window-footer-global {
+            display: none;
+        }
+
+        .chat-messages-container-global {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .chat-messages-container-global::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-messages-container-global::-webkit-scrollbar-thumb {
+            background: rgba(30, 60, 114, 0.2);
+            border-radius: 10px;
+        }
+
+        .message-item-global {
+            margin-bottom: 16px;
+            display: flex;
+            animation: messageSlideIn 0.3s ease-out;
+        }
+
+        @keyframes messageSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(15px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .message-item-global.own {
+            justify-content: flex-end;
+        }
+
+        .message-bubble-global {
+            max-width: 75%;
+            padding: 12px 16px;
+            border-radius: 16px;
+            word-wrap: break-word;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: all 0.2s ease;
+        }
+
+        .message-bubble-global:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        }
+
+        .message-item-global.own .message-bubble-global {
+            background: linear-gradient(135deg, #0084ff 0%, #0066cc 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message-item-global.other .message-bubble-global {
+            background: #ffffff;
+            color: #2c3e50;
+            border-bottom-left-radius: 4px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .message-text-global {
+            margin: 0;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+
+        .message-item-global.own .message-text-global {
+            color: white;
+        }
+
+        .message-time-global {
+            font-size: 0.7rem;
+            color: rgba(0, 0, 0, 0.4);
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 4px;
+        }
+
+        .message-item-global.own .message-time-global {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .chat-window-footer-global {
+            background: #ffffff;
+            padding: 16px 20px;
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
+            flex-shrink: 0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .chat-input-container-global {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f8f9fa;
+            border-radius: 24px;
+            padding: 8px 14px;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .chat-input-container-global:focus-within {
+            background: white;
+            border-color: #1e3c72;
+            box-shadow: 0 2px 8px rgba(30, 60, 114, 0.1);
+        }
+
+        .btn-attach-global {
+            background: transparent;
+            border: none;
+            color: #6c757d;
+            font-size: 1.3rem;
+            cursor: pointer;
+            padding: 6px;
+            transition: all 0.2s;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-attach-global:hover {
+            color: #1e3c72;
+            background: rgba(30, 60, 114, 0.1);
+        }
+
+        .chat-input-global {
+            flex-grow: 1;
+            border: none;
+            outline: none;
+            resize: none;
+            font-size: 0.95rem;
+            max-height: 100px;
+            overflow-y: auto;
+            padding: 6px 8px;
+            background: transparent;
+            line-height: 1.5;
+        }
+
+        .chat-input-global::placeholder {
+            color: #adb5bd;
+        }
+
+        .btn-send-global {
+            background: linear-gradient(135deg, #0084ff 0%, #0066cc 100%);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(0, 132, 255, 0.3);
+        }
+
+        .btn-send-global:hover {
+            transform: scale(1.08);
+            box-shadow: 0 4px 12px rgba(0, 132, 255, 0.4);
+        }
+
+        .btn-send-global:active {
+            transform: scale(0.95);
+        }
+
+        .file-preview-global {
+            background: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+
+        .btn-remove-file-global {
+            background: transparent;
+            border: none;
+            color: #dc3545;
+            cursor: pointer;
+            margin-left: auto;
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">
+            <h4><i class="fas fa-chalkboard-teacher"></i> Docente Asesor</h4>
+            <p>Sistema de Prácticas</p>
+        </div>
+
+        <nav>
+            <a href="{% url 'docente:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                <i class="fas fa-home"></i> Dashboard
+            </a>
+            <a href="{% url 'docente:mis_estudiantes' %}" class="nav-link {% if request.resolver_match.url_name == 'mis_estudiantes' %}active{% endif %}">
+                <i class="fas fa-users"></i> Mis Estudiantes
+            </a>
+            <a href="{% url 'docente:seguimientos_pendientes' %}" class="nav-link {% if request.resolver_match.url_name == 'seguimientos_pendientes' %}active{% endif %}">
+                <i class="fas fa-tasks"></i> Seguimientos Pendientes
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    {% block extra_js %}{% endblock %}
+
+    <!-- CSRF Token para AJAX -->
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+    <!-- JAVASCRIPT DEL CHAT GLOBAL DOCENTE -->
+    <script>
+    (function() {
+        'use strict';
+
+        // El docente puede chatear con múltiples estudiantes
+        // Por ahora, cargamos el chat del estudiante activo desde detalle_estudiante.html
+        let estudianteData = null;
+        let chatWindow, burbujaMinimizada, chatMessagesContainer, messageInput, fileInput;
+        let ultimoMensajeId = 0;
+        let actualizacionInterval;
+        let chatAbierto = false;
+        let yaInicializado = false;
+
+        // URLs
+        const URLS = {
+            enviarMensaje: '/docente/chat/enviar/',
+            obtenerMensajes: '/docente/chat/mensajes/'
+        };
+
+        // Función para cargar datos desde localStorage
+        function cargarDatosEstudiante() {
+            const chatDataStr = localStorage.getItem('chatEstudianteData');
+            if (!chatDataStr) {
+                return false;
+            }
+
+            try {
+                estudianteData = JSON.parse(chatDataStr);
+                return true;
+            } catch (e) {
+                console.error('Error al parsear datos del chat:', e);
+                return false;
+            }
+        }
+
+        // Inicializar cuando el DOM esté listo
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+
+        // Escuchar evento de datos listos
+        window.addEventListener('chatDataReady', function() {
+            if (cargarDatosEstudiante() && !yaInicializado) {
+                init();
+            }
+        });
+
+        // Exponer función global para inicialización externa
+        window.inicializarChatGlobalDocente = function() {
+            if (cargarDatosEstudiante() && !yaInicializado) {
+                init();
+            }
+        };
+
+        function init() {
+            if (!cargarDatosEstudiante()) {
+                return; // No hay datos del estudiante
+            }
+
+            if (yaInicializado) {
+                return; // Ya está inicializado
+            }
+
+            crearElementosChat();
+            inicializarChat();
+            yaInicializado = true;
+        }
+
+        function crearElementosChat() {
+            // Evitar duplicados
+            if (document.getElementById('chatWindowGlobal')) return;
+
+            const chatHTML = `
+                <div id="burbujaMinimizada" class="burbuja-minimizada" style="display: none;">
+                    <div class="burbuja-avatar">
+                        ${estudianteData.foto ?
+                            `<img src="${estudianteData.foto}" alt="${estudianteData.nombre}">` :
+                            `<div class="burbuja-avatar-placeholder"><i class="fas fa-user-circle"></i></div>`
+                        }
+                    </div>
+                    <div class="burbuja-badge" id="burbujaBadge" style="display: none;">0</div>
+                </div>
+
+                <div id="chatWindowGlobal" class="chat-window-global" style="display: none;">
+                    <div class="chat-window-header-global">
+                        <div class="d-flex align-items-center flex-grow-1">
+                            <div class="chat-window-avatar-global">
+                                ${estudianteData.foto ?
+                                    `<img src="${estudianteData.foto}" alt="${estudianteData.nombre}">` :
+                                    `<div class="chat-window-avatar-placeholder-global"><i class="fas fa-user-circle"></i></div>`
+                                }
+                            </div>
+                            <div class="chat-window-info-global">
+                                <div class="chat-window-name-global">${estudianteData.nombre}</div>
+                                <div class="chat-window-status-global">Estudiante en Práctica</div>
+                            </div>
+                        </div>
+                        <div class="chat-window-actions-global">
+                            <button id="minimizeChatGlobal" class="btn-icon-global minimize-btn" title="Minimizar">
+                                <i class="fas fa-window-minimize"></i>
+                            </button>
+                            <button id="maximizeChatGlobal" class="btn-icon-global maximize-btn" title="Maximizar">
+                                <i class="fas fa-window-maximize"></i>
+                            </button>
+                            <button id="closeChatGlobal" class="btn-icon-global close-btn" title="Cerrar">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="chat-window-body-global">
+                        <div class="chat-messages-container-global" id="chatMessagesContainerGlobal">
+                            <div class="text-center text-muted py-5">
+                                <i class="fas fa-comments fa-3x mb-3 opacity-25"></i>
+                                <p>Cargando mensajes...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chat-window-footer-global">
+                        <form id="chatFormGlobal">
+                            <div class="chat-input-container-global">
+                                <button type="button" id="attachFileBtnGlobal" class="btn-attach-global">
+                                    <i class="fas fa-paperclip"></i>
+                                </button>
+                                <input type="file" id="fileInputGlobal" name="archivo" style="display: none;" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif">
+                                <textarea id="messageInputGlobal" name="contenido" class="chat-input-global" placeholder="Escribe un mensaje..." rows="1"></textarea>
+                                <button type="submit" id="sendMessageBtnGlobal" class="btn-send-global">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                            <div id="filePreviewGlobal" class="file-preview-global" style="display: none;">
+                                <i class="fas fa-file me-2"></i>
+                                <span id="fileNameGlobal"></span>
+                                <button type="button" id="removeFileGlobal" class="btn-remove-file-global">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+
+            document.body.insertAdjacentHTML('beforeend', chatHTML);
+        }
+
+        function inicializarChat() {
+            chatWindow = document.getElementById('chatWindowGlobal');
+            burbujaMinimizada = document.getElementById('burbujaMinimizada');
+            chatMessagesContainer = document.getElementById('chatMessagesContainerGlobal');
+            messageInput = document.getElementById('messageInputGlobal');
+            fileInput = document.getElementById('fileInputGlobal');
+
+            if (!chatWindow) return;
+
+            // Event Listeners
+            burbujaMinimizada.addEventListener('click', maximizarChat);
+            document.getElementById('minimizeChatGlobal').addEventListener('click', minimizarChat);
+            document.getElementById('maximizeChatGlobal').addEventListener('click', maximizarChat);
+            document.getElementById('closeChatGlobal').addEventListener('click', cerrarChat);
+            document.getElementById('chatFormGlobal').addEventListener('submit', enviarMensaje);
+            document.getElementById('attachFileBtnGlobal').addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', mostrarPreviewArchivo);
+            document.getElementById('removeFileGlobal').addEventListener('click', quitarArchivo);
+
+            messageInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = this.scrollHeight + 'px';
+            });
+
+            messageInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    document.getElementById('chatFormGlobal').dispatchEvent(new Event('submit'));
+                }
+            });
+
+            // Verificar estado guardado
+            const chatEstado = localStorage.getItem('chatWindowStateDocente');
+            if (chatEstado === 'open') {
+                abrirChat();
+            } else if (chatEstado === 'minimized') {
+                mostrarBurbuja();
+                chatWindow.style.display = 'flex';
+                chatWindow.classList.add('minimized');
+                if (actualizacionInterval) clearInterval(actualizacionInterval);
+                actualizacionInterval = setInterval(obtenerNuevosMensajes, 3000);
+            }
+        }
+
+        function abrirChat() {
+            chatWindow.style.display = 'flex';
+            chatWindow.classList.remove('minimized');
+            burbujaMinimizada.style.display = 'none';
+            chatAbierto = true;
+            localStorage.setItem('chatWindowStateDocente', 'open');
+
+            cargarMensajes();
+
+            if (actualizacionInterval) clearInterval(actualizacionInterval);
+            actualizacionInterval = setInterval(obtenerNuevosMensajes, 3000);
+        }
+
+        function minimizarChat() {
+            chatWindow.classList.add('minimized');
+            mostrarBurbuja();
+            localStorage.setItem('chatWindowStateDocente', 'minimized');
+            chatAbierto = false;
+        }
+
+        function maximizarChat() {
+            burbujaMinimizada.style.display = 'none';
+            chatWindow.style.display = 'flex';
+            chatWindow.classList.remove('minimized');
+            chatAbierto = true;
+            localStorage.setItem('chatWindowStateDocente', 'open');
+            scrollToBottom();
+
+            if (actualizacionInterval) clearInterval(actualizacionInterval);
+            actualizacionInterval = setInterval(obtenerNuevosMensajes, 3000);
+        }
+
+        function cerrarChat() {
+            chatWindow.style.display = 'none';
+            chatWindow.classList.remove('minimized');
+            burbujaMinimizada.style.display = 'none';
+            chatAbierto = false;
+            localStorage.removeItem('chatWindowStateDocente');
+            localStorage.removeItem('chatEstudianteData');
+
+            if (actualizacionInterval) {
+                clearInterval(actualizacionInterval);
+            }
+        }
+
+        function mostrarBurbuja() {
+            burbujaMinimizada.style.display = 'flex';
+        }
+
+        function cargarMensajes() {
+            chatMessagesContainer.innerHTML = '<div class="text-center text-muted py-3"><i class="fas fa-spinner fa-spin"></i> Cargando...</div>';
+
+            fetch(`${URLS.obtenerMensajes}?practica_id=${estudianteData.practicaId}`)
+                .then(response => response.json())
+                .then(data => {
+                    chatMessagesContainer.innerHTML = '';
+                    if (data.mensajes && data.mensajes.length > 0) {
+                        data.mensajes.forEach(mensaje => {
+                            agregarMensajeAlDOM(mensaje);
+                            if (mensaje.id > ultimoMensajeId) {
+                                ultimoMensajeId = mensaje.id;
+                            }
+                        });
+                    } else {
+                        chatMessagesContainer.innerHTML = `
+                            <div class="text-center text-muted py-5">
+                                <i class="fas fa-comments fa-3x mb-3 opacity-25"></i>
+                                <p>No hay mensajes aún.<br>¡Envía el primero!</p>
+                            </div>
+                        `;
+                    }
+                    scrollToBottom();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    chatMessagesContainer.innerHTML = '<div class="text-center text-danger py-3"><i class="fas fa-exclamation-circle"></i> Error</div>';
+                });
+        }
+
+        function obtenerNuevosMensajes() {
+            if (!chatAbierto && localStorage.getItem('chatWindowStateDocente') !== 'minimized') return;
+
+            fetch(`${URLS.obtenerMensajes}?practica_id=${estudianteData.practicaId}&ultimo_id=${ultimoMensajeId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.mensajes && data.mensajes.length > 0) {
+                        let nuevosNoLeidos = 0;
+                        data.mensajes.forEach(mensaje => {
+                            agregarMensajeAlDOM(mensaje);
+                            if (mensaje.id > ultimoMensajeId) {
+                                ultimoMensajeId = mensaje.id;
+                            }
+                            if (!mensaje.es_mio && !chatAbierto) {
+                                nuevosNoLeidos++;
+                            }
+                        });
+
+                        if (chatAbierto) scrollToBottom();
+                        if (nuevosNoLeidos > 0 && !chatAbierto) actualizarBadge(nuevosNoLeidos);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function enviarMensaje(e) {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const contenido = messageInput.value.trim();
+            const archivo = fileInput.files[0];
+
+            if (!contenido && !archivo) return;
+
+            formData.append('practica_id', estudianteData.practicaId);
+
+            const btnSend = document.getElementById('sendMessageBtnGlobal');
+            btnSend.disabled = true;
+            btnSend.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+            fetch(URLS.enviarMensaje, {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-CSRFToken': csrfToken }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    messageInput.value = '';
+                    messageInput.style.height = 'auto';
+                    fileInput.value = '';
+                    document.getElementById('filePreviewGlobal').style.display = 'none';
+
+                    agregarMensajeAlDOM({ ...data.mensaje, es_mio: true });
+
+                    if (data.mensaje.id > ultimoMensajeId) {
+                        ultimoMensajeId = data.mensaje.id;
+                    }
+
+                    scrollToBottom();
+                } else {
+                    alert('Error: ' + (data.error || 'No se pudo enviar'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al enviar el mensaje');
+            })
+            .finally(() => {
+                btnSend.disabled = false;
+                btnSend.innerHTML = '<i class="fas fa-paper-plane"></i>';
+            });
+        }
+
+        function agregarMensajeAlDOM(mensaje) {
+            if (document.querySelector(`[data-mensaje-id="${mensaje.id}"]`)) return;
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message-item-global ${mensaje.es_mio ? 'own' : 'other'}`;
+            messageDiv.setAttribute('data-mensaje-id', mensaje.id);
+
+            let archivoHTML = '';
+            if (mensaje.archivo) {
+                const fileName = mensaje.archivo.split('/').pop();
+                archivoHTML = `
+                    <div class="message-file-global mt-2">
+                        <a href="${mensaje.archivo}" target="_blank" class="btn btn-sm btn-light">
+                            <i class="fas fa-paperclip me-1"></i>${fileName}
+                        </a>
+                    </div>
+                `;
+            }
+
+            let checkIcon = '';
+            if (mensaje.es_mio) {
+                checkIcon = mensaje.leido
+                    ? '<i class="fas fa-check-double" style="color: #34b7f1;"></i>'
+                    : '<i class="fas fa-check"></i>';
+            }
+
+            messageDiv.innerHTML = `
+                <div class="message-bubble-global">
+                    ${mensaje.contenido ? `<p class="message-text-global">${mensaje.contenido.replace(/\n/g, '<br>')}</p>` : ''}
+                    ${archivoHTML}
+                    <div class="message-time-global">
+                        ${mensaje.fecha_envio} ${checkIcon}
+                    </div>
+                </div>
+            `;
+
+            chatMessagesContainer.appendChild(messageDiv);
+        }
+
+        function scrollToBottom() {
+            chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+        }
+
+        function mostrarPreviewArchivo(e) {
+            const archivo = e.target.files[0];
+            if (archivo) {
+                document.getElementById('fileNameGlobal').textContent = archivo.name;
+                document.getElementById('filePreviewGlobal').style.display = 'flex';
+            }
+        }
+
+        function quitarArchivo() {
+            fileInput.value = '';
+            document.getElementById('filePreviewGlobal').style.display = 'none';
+        }
+
+        function actualizarBadge(cantidad) {
+            const badge = document.getElementById('burbujaBadge');
+            if (!badge) return;
+
+            const currentCount = parseInt(badge.textContent) || 0;
+            const newCount = currentCount + cantidad;
+
+            if (newCount > 0) {
+                badge.textContent = newCount;
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        window.addEventListener('beforeunload', function() {
+            if (actualizacionInterval) {
+                clearInterval(actualizacionInterval);
+            }
+        });
+    })();
+    </script>
+</body>
+</html>
+

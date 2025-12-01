@@ -1,206 +1,709 @@
-{% extends 'estudiante/base.html' %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Estudiante - Sistema de Prácticas</title>
 
-{% block title %}Registro de Estudiante - Prácticas Empresariales{% endblock %}
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-{% block content %}
-<div class="min-vh-100" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); padding: 3rem 0;">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-8 col-lg-7">
-                <div class="card shadow-lg">
-                    <div class="card-body p-4">
-                        <!-- Encabezado -->
-                        <div class="text-center mb-4">
-                            <i class="fas fa-user-plus fa-3x text-success mb-3"></i>
-                            <h2 class="fw-bold">Registro de Estudiante</h2>
-                            <p class="text-muted">Completa el formulario para crear tu cuenta</p>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e97c4 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            position: relative;
+            overflow-x: hidden;
+            padding: 40px 0;
+        }
+
+        /* Elementos decorativos de fondo */
+        body::before {
+            content: '';
+            position: fixed;
+            width: 500px;
+            height: 500px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            top: -250px;
+            right: -250px;
+            animation: pulse 8s ease-in-out infinite;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            width: 400px;
+            height: 400px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 50%;
+            bottom: -200px;
+            left: -200px;
+            animation: pulse 10s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .registro-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .registro-card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .registro-header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            padding: 40px 30px;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .registro-header::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            top: -50%;
+            left: -50%;
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .registro-header i {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 2;
+            animation: float 3s ease-in-out infinite;
+            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.2));
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-12px); }
+        }
+
+        .registro-header h2 {
+            position: relative;
+            z-index: 2;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+
+        .registro-header p {
+            position: relative;
+            z-index: 2;
+            opacity: 0.95;
+            font-size: 1.05rem;
+        }
+
+        .registro-body {
+            padding: 40px 35px;
+        }
+
+        .section-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-left: 4px solid #2a5298;
+            transition: all 0.3s;
+        }
+
+        .section-card:hover {
+            box-shadow: 0 5px 20px rgba(42, 82, 152, 0.15);
+            transform: translateX(5px);
+        }
+
+        .section-title {
+            color: #1e3c72;
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title i {
+            color: #2a5298;
+            font-size: 1.4rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #2a5298;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .form-control, .form-select {
+            border: 2px solid #e0e7ff;
+            border-radius: 10px;
+            padding: 12px 15px;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #2a5298;
+            box-shadow: 0 0 0 0.25rem rgba(42, 82, 152, 0.15);
+            outline: none;
+        }
+
+        .text-danger {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 5px;
+        }
+
+        .text-muted {
+            color: #6c757d !important;
+            font-size: 0.875rem;
+        }
+
+        .required {
+            color: #dc3545;
+            font-weight: 700;
+        }
+
+        .alert {
+            border-radius: 12px;
+            border: none;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .alert-info {
+            background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .btn-registro {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            border: none;
+            padding: 14px 30px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 12px;
+            transition: all 0.3s;
+            color: white;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(30, 60, 114, 0.3);
+        }
+
+        .btn-registro:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(30, 60, 114, 0.4);
+            background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+            color: white;
+        }
+
+        .btn-back {
+            background: #6c757d;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+
+        .btn-back:hover {
+            background: #5a6268;
+            transform: translateX(-3px);
+            color: white;
+        }
+
+        .registro-footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            border-top: 2px solid #e0e7ff;
+        }
+
+        .registro-footer small {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        /* Estilos para selector de programas */
+        .programa-selector {
+            display: none; /* Ocultar el select original */
+        }
+
+        .programas-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .programa-card {
+            background: white;
+            border: 3px solid #e0e7ff;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .programa-card:hover {
+            border-color: #2a5298;
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(42, 82, 152, 0.2);
+        }
+
+        .programa-card.selected {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            border-color: #1e3c72;
+            color: white;
+            transform: scale(1.02);
+            box-shadow: 0 8px 20px rgba(30, 60, 114, 0.3);
+        }
+
+        .programa-card .programa-nombre {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .programa-card .programa-requisito {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .programa-card .check-icon {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 1.5rem;
+            color: #28a745;
+            display: none;
+        }
+
+        .programa-card.selected .check-icon {
+            display: block;
+            color: white;
+        }
+
+        .programa-card.selected .programa-requisito {
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .registro-body {
+                padding: 25px 20px;
+            }
+
+            .section-card {
+                padding: 20px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="registro-container">
+        <div class="registro-card">
+            <!-- Header -->
+            <div class="registro-header">
+                <i class="fas fa-user-graduate"></i>
+                <h2>Registro de Estudiante</h2>
+                <p>Completa el formulario para crear tu cuenta</p>
+            </div>
+
+            <!-- Body -->
+            <div class="registro-body">
+                <!-- Mensajes -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
+                    {% endfor %}
+                {% endif %}
 
-                        <!-- Mensajes -->
-                        {% if messages %}
-                            {% for message in messages %}
-                                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                                    {{ message }}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                </div>
-                            {% endfor %}
-                        {% endif %}
-
-                        <!-- Alerta Informativa -->
-                        <div class="alert alert-info" role="alert">
-                            <i class="fas fa-info-circle me-2"></i>
-                            <strong>Importante:</strong> Solo estudiantes de 4to semestre en adelante pueden realizar prácticas empresariales.
-                        </div>
-
-                        <!-- Formulario de Registro -->
-                        <form method="post" enctype="multipart/form-data">
-                            {% csrf_token %}
-
-                            <!-- Sección 1: Datos de Usuario -->
-                            <div class="card mb-3">
-                                <div class="card-header bg-success text-white">
-                                    <i class="fas fa-user-circle me-2"></i>Datos de Acceso
-                                </div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-12 mb-3">
-                                            <label for="{{ form.username.id_for_label }}" class="form-label">
-                                                {{ form.username.label }} <span class="text-danger">*</span>
-                                            </label>
-                                            {{ form.username }}
-                                            <small class="text-muted">{{ form.username.help_text }}</small>
-                                            {% if form.username.errors %}
-                                                <div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>
-                                            {% endif %}
-                                        </div>
-
-                                        <div class="col-md-6 mb-3">
-                                            <label for="{{ form.password1.id_for_label }}" class="form-label">
-                                                {{ form.password1.label }} <span class="text-danger">*</span>
-                                            </label>
-                                            {{ form.password1 }}
-                                            {% if form.password1.errors %}
-                                                <div class="text-danger small mt-1">{{ form.password1.errors.0 }}</div>
-                                            {% endif %}
-                                        </div>
-
-                                        <div class="col-md-6 mb-3">
-                                            <label for="{{ form.password2.id_for_label }}" class="form-label">
-                                                {{ form.password2.label }} <span class="text-danger">*</span>
-                                            </label>
-                                            {{ form.password2 }}
-                                            {% if form.password2.errors %}
-                                                <div class="text-danger small mt-1">{{ form.password2.errors.0 }}</div>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Sección 2: Datos Personales -->
-                            <div class="card mb-3">
-                                <div class="card-header bg-success text-white">
-                                    <i class="fas fa-id-card me-2"></i>Datos Personales
-                                </div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <label for="{{ form.codigo.id_for_label }}" class="form-label">
-                                                {{ form.codigo.label }} <span class="text-danger">*</span>
-                                            </label>
-                                            {{ form.codigo }}
-                                            {% if form.codigo.errors %}
-                                                <div class="text-danger small mt-1">{{ form.codigo.errors.0 }}</div>
-                                            {% endif %}
-                                        </div>
-
-                                        <div class="col-md-6 mb-3">
-                                            <label for="{{ form.nombre_completo.id_for_label }}" class="form-label">
-                                                {{ form.nombre_completo.label }} <span class="text-danger">*</span>
-                                            </label>
-                                            {{ form.nombre_completo }}
-                                            {% if form.nombre_completo.errors %}
-                                                <div class="text-danger small mt-1">{{ form.nombre_completo.errors.0 }}</div>
-                                            {% endif %}
-                                        </div>
-
-                                        <div class="col-md-6 mb-3">
-                                            <label for="{{ form.email.id_for_label }}" class="form-label">
-                                                {{ form.email.label }} <span class="text-danger">*</span>
-                                            </label>
-                                            {{ form.email }}
-                                            {% if form.email.errors %}
-                                                <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
-                                            {% endif %}
-                                        </div>
-
-                                        <div class="col-md-6 mb-3">
-                                            <label for="{{ form.telefono.id_for_label }}" class="form-label">
-                                                {{ form.telefono.label }} <span class="text-danger">*</span>
-                                            </label>
-                                            {{ form.telefono }}
-                                            {% if form.telefono.errors %}
-                                                <div class="text-danger small mt-1">{{ form.telefono.errors.0 }}</div>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Sección 3: Datos Académicos -->
-                            <div class="card mb-3">
-                                <div class="card-header bg-success text-white">
-                                    <i class="fas fa-graduation-cap me-2"></i>Datos Académicos
-                                </div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-8 mb-3">
-                                            <label for="{{ form.programa_academico.id_for_label }}" class="form-label">
-                                                {{ form.programa_academico.label }} <span class="text-danger">*</span>
-                                            </label>
-                                            {{ form.programa_academico }}
-                                            {% if form.programa_academico.errors %}
-                                                <div class="text-danger small mt-1">{{ form.programa_academico.errors.0 }}</div>
-                                            {% endif %}
-                                        </div>
-
-                                        <div class="col-md-4 mb-3">
-                                            <label for="{{ form.semestre.id_for_label }}" class="form-label">
-                                                {{ form.semestre.label }} <span class="text-danger">*</span>
-                                            </label>
-                                            {{ form.semestre }}
-                                            <small class="text-muted d-block">{{ form.semestre.help_text }}</small>
-                                            {% if form.semestre.errors %}
-                                                <div class="text-danger small mt-1">{{ form.semestre.errors.0 }}</div>
-                                            {% endif %}
-                                        </div>
-
-                                        <div class="col-md-6 mb-3">
-                                            <label for="{{ form.promedio_academico.id_for_label }}" class="form-label">
-                                                {{ form.promedio_academico.label }}
-                                            </label>
-                                            {{ form.promedio_academico }}
-                                            {% if form.promedio_academico.errors %}
-                                                <div class="text-danger small mt-1">{{ form.promedio_academico.errors.0 }}</div>
-                                            {% endif %}
-                                        </div>
-
-                                        <div class="col-md-6 mb-3">
-                                            <label for="{{ form.hoja_vida.id_for_label }}" class="form-label">
-                                                {{ form.hoja_vida.label }}
-                                            </label>
-                                            {{ form.hoja_vida }}
-                                            <small class="text-muted d-block">{{ form.hoja_vida.help_text }}</small>
-                                            {% if form.hoja_vida.errors %}
-                                                <div class="text-danger small mt-1">{{ form.hoja_vida.errors.0 }}</div>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Botones -->
-                            <div class="d-grid gap-2 d-md-flex justify-content-md-between">
-                                <a href="{% url 'estudiante:login' %}" class="btn btn-outline-secondary">
-                                    <i class="fas fa-arrow-left me-2"></i>Volver al Login
-                                </a>
-                                <button type="submit" class="btn btn-estudiante">
-                                    <i class="fas fa-user-check me-2"></i>Registrarme
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-
-                    <!-- Footer -->
-                    <div class="card-footer bg-light text-center">
-                        <small class="text-muted">
-                            <i class="fas fa-university me-2"></i>
-                            Universidad Alexander Von Humboldt
-                        </small>
-                    </div>
+                <!-- Alerta Informativa -->
+                <div class="alert alert-info" role="alert">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Requisitos por Programa:</strong>
+                    <ul class="mb-0 mt-2" style="font-size: 0.9rem;">
+                        <li><strong>Administración de Empresas:</strong> Desde 2° semestre</li>
+                        <li><strong>Ingeniería de Software:</strong> Desde 4° semestre</li>
+                        <li><strong>Ingeniería Industrial:</strong> Desde 4° semestre</li>
+                    </ul>
                 </div>
+
+                <!-- Formulario de Registro -->
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <!-- Sección 1: Datos de Usuario -->
+                    <div class="section-card">
+                        <h3 class="section-title">
+                            <i class="fas fa-user-circle"></i>
+                            <span>Datos de Acceso</span>
+                        </h3>
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                <label for="{{ form.username.id_for_label }}" class="form-label">
+                                    {{ form.username.label }} <span class="required">*</span>
+                                </label>
+                                {{ form.username }}
+                                {% if form.username.help_text %}
+                                    <small class="text-muted d-block mt-1">{{ form.username.help_text }}</small>
+                                {% endif %}
+                                {% if form.username.errors %}
+                                    <div class="text-danger mt-1">{{ form.username.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.password1.id_for_label }}" class="form-label">
+                                    {{ form.password1.label }} <span class="required">*</span>
+                                </label>
+                                {{ form.password1 }}
+                                {% if form.password1.errors %}
+                                    <div class="text-danger mt-1">{{ form.password1.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.password2.id_for_label }}" class="form-label">
+                                    {{ form.password2.label }} <span class="required">*</span>
+                                </label>
+                                {{ form.password2 }}
+                                {% if form.password2.errors %}
+                                    <div class="text-danger mt-1">{{ form.password2.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección 2: Datos Personales -->
+                    <div class="section-card">
+                        <h3 class="section-title">
+                            <i class="fas fa-id-card"></i>
+                            <span>Datos Personales</span>
+                        </h3>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.codigo.id_for_label }}" class="form-label">
+                                    {{ form.codigo.label }} <span class="required">*</span>
+                                </label>
+                                {{ form.codigo }}
+                                {% if form.codigo.errors %}
+                                    <div class="text-danger mt-1">{{ form.codigo.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.nombre_completo.id_for_label }}" class="form-label">
+                                    {{ form.nombre_completo.label }} <span class="required">*</span>
+                                </label>
+                                {{ form.nombre_completo }}
+                                {% if form.nombre_completo.errors %}
+                                    <div class="text-danger mt-1">{{ form.nombre_completo.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.email.id_for_label }}" class="form-label">
+                                    {{ form.email.label }} <span class="required">*</span>
+                                </label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                    <div class="text-danger mt-1">{{ form.email.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.telefono.id_for_label }}" class="form-label">
+                                    {{ form.telefono.label }} <span class="required">*</span>
+                                </label>
+                                {{ form.telefono }}
+                                {% if form.telefono.errors %}
+                                    <div class="text-danger mt-1">{{ form.telefono.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección 3: Datos Académicos -->
+                    <div class="section-card">
+                        <h3 class="section-title">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span>Datos Académicos</span>
+                        </h3>
+                        <div class="row">
+                            <!-- Selector de Programa Académico -->
+                            <div class="col-12 mb-4">
+                                <label class="form-label">
+                                    Programa Académico <span class="required">*</span>
+                                </label>
+
+                                <!-- Select oculto (para enviar el valor) -->
+                                <div class="programa-selector">
+                                    {{ form.programa_academico }}
+                                </div>
+
+                                <!-- Tarjetas visuales de programas -->
+                                <div class="programas-grid">
+                                    <div class="programa-card" data-programa="Ingeniería de Software">
+                                        <i class="fas fa-check-circle check-icon"></i>
+                                        <div class="programa-nombre">
+                                            <i class="fas fa-laptop-code"></i>
+                                            <span>Ingeniería de Software</span>
+                                        </div>
+                                        <div class="programa-requisito">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            <span>Puedes realizar prácticas desde <strong>4° semestre</strong></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="programa-card" data-programa="Ingeniería Industrial">
+                                        <i class="fas fa-check-circle check-icon"></i>
+                                        <div class="programa-nombre">
+                                            <i class="fas fa-industry"></i>
+                                            <span>Ingeniería Industrial</span>
+                                        </div>
+                                        <div class="programa-requisito">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            <span>Puedes realizar prácticas desde <strong>4° semestre</strong></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="programa-card" data-programa="Administración de Empresas">
+                                        <i class="fas fa-check-circle check-icon"></i>
+                                        <div class="programa-nombre">
+                                            <i class="fas fa-briefcase"></i>
+                                            <span>Administración de Empresas</span>
+                                        </div>
+                                        <div class="programa-requisito">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            <span>Puedes realizar prácticas desde <strong>2° semestre</strong></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {% if form.programa_academico.errors %}
+                                    <div class="text-danger mt-1">{{ form.programa_academico.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.semestre.id_for_label }}" class="form-label">
+                                    {{ form.semestre.label }} <span class="required">*</span>
+                                </label>
+                                {{ form.semestre }}
+                                {% if form.semestre.help_text %}
+                                    <small class="text-muted d-block mt-1">{{ form.semestre.help_text }}</small>
+                                {% endif %}
+                                {% if form.semestre.errors %}
+                                    <div class="text-danger mt-1">{{ form.semestre.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.promedio_academico.id_for_label }}" class="form-label">
+                                    {{ form.promedio_academico.label }}
+                                </label>
+                                {{ form.promedio_academico }}
+                                {% if form.promedio_academico.errors %}
+                                    <div class="text-danger mt-1">{{ form.promedio_academico.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.hoja_vida.id_for_label }}" class="form-label">
+                                    {{ form.hoja_vida.label }}
+                                </label>
+                                {{ form.hoja_vida }}
+                                {% if form.hoja_vida.help_text %}
+                                    <small class="text-muted d-block mt-1">{{ form.hoja_vida.help_text }}</small>
+                                {% endif %}
+                                {% if form.hoja_vida.errors %}
+                                    <div class="text-danger mt-1">{{ form.hoja_vida.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botones -->
+                    <div class="d-grid gap-3 d-md-flex justify-content-md-between mt-4">
+                        <a href="{% url 'login_unificado' %}" class="btn btn-back">
+                            <i class="fas fa-arrow-left me-2"></i>Volver al Login
+                        </a>
+                        <button type="submit" class="btn btn-registro">
+                            <i class="fas fa-user-check me-2"></i>Registrarme
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Footer -->
+            <div class="registro-footer">
+                <small>
+                    <i class="fas fa-university me-2"></i>
+                    Universidad Alexander Von Humboldt - Sistema de Prácticas Empresariales
+                </small>
             </div>
         </div>
     </div>
-</div>
-{% endblock %}
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Validación dinámica de semestre según programa
+        document.addEventListener('DOMContentLoaded', function() {
+            const programaSelect = document.querySelector('select[name="programa_academico"]');
+            const programaCards = document.querySelectorAll('.programa-card');
+            const semestreInput = document.querySelector('input[name="semestre"]');
+
+            // Requisitos por programa
+            const requisitos = {
+                'Administración de Empresas': 2,
+                'Ingeniería de Software': 4,
+                'Ingeniería Industrial': 4
+            };
+
+            // Manejar clic en las tarjetas de programa
+            programaCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    const programa = this.getAttribute('data-programa');
+
+                    // Remover selección de todas las tarjetas
+                    programaCards.forEach(c => c.classList.remove('selected'));
+
+                    // Agregar selección a la tarjeta clickeada
+                    this.classList.add('selected');
+
+                    // Actualizar el valor del select oculto
+                    if (programaSelect) {
+                        programaSelect.value = programa;
+
+                        // Disparar evento change para activar las validaciones
+                        const event = new Event('change');
+                        programaSelect.dispatchEvent(event);
+                    }
+
+                    // Actualizar validación de semestre
+                    actualizarValidacionSemestre(programa);
+                });
+            });
+
+            // Función para actualizar validación de semestre
+            function actualizarValidacionSemestre(programa) {
+                const semestreMinimo = requisitos[programa];
+
+                if (semestreMinimo && semestreInput) {
+                    // Actualizar el atributo min del input
+                    semestreInput.setAttribute('min', semestreMinimo);
+
+                    // Actualizar el placeholder
+                    semestreInput.setAttribute('placeholder', `Mínimo: ${semestreMinimo}° semestre`);
+
+                    // Agregar mensaje visual
+                    const parent = semestreInput.parentElement;
+                    let mensaje = parent.querySelector('.semestre-info');
+
+                    if (!mensaje) {
+                        mensaje = document.createElement('small');
+                        mensaje.className = 'semestre-info text-primary d-block mt-1';
+                        mensaje.style.fontWeight = '600';
+                        parent.appendChild(mensaje);
+                    }
+
+                    mensaje.innerHTML = `<i class="fas fa-check-circle me-1"></i>Semestre mínimo requerido: ${semestreMinimo}°`;
+                    mensaje.className = 'semestre-info text-primary d-block mt-1';
+
+                    // Validar si el valor actual es menor
+                    const valorActual = parseInt(semestreInput.value);
+                    if (valorActual && valorActual < semestreMinimo) {
+                        mensaje.className = 'semestre-info text-danger d-block mt-1';
+                        mensaje.innerHTML = `<i class="fas fa-exclamation-triangle me-1"></i>Debes estar en ${semestreMinimo}° semestre o superior`;
+                    } else if (valorActual && valorActual >= semestreMinimo) {
+                        mensaje.className = 'semestre-info text-success d-block mt-1';
+                        mensaje.innerHTML = `<i class="fas fa-check-circle me-1"></i>¡Cumples con el requisito!`;
+                    }
+                }
+            }
+
+            // Validar también cuando cambia el semestre
+            if (semestreInput) {
+                semestreInput.addEventListener('input', function() {
+                    const programaSeleccionado = programaSelect.value;
+
+                    if (programaSeleccionado) {
+                        actualizarValidacionSemestre(programaSeleccionado);
+                    }
+                });
+            }
+
+            // Si hay un valor pre-seleccionado (por error de formulario), marcar la tarjeta
+            if (programaSelect && programaSelect.value) {
+                const valorSeleccionado = programaSelect.value;
+                programaCards.forEach(card => {
+                    if (card.getAttribute('data-programa') === valorSeleccionado) {
+                        card.classList.add('selected');
+                        actualizarValidacionSemestre(valorSeleccionado);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
+

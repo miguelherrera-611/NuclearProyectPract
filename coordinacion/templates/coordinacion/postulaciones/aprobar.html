@@ -12,16 +12,7 @@
         </a>
         <div class="collapse navbar-collapse">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-user-circle me-1"></i>{{ request.user.username }}
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="{% url 'coordinacion:logout' %}">
-                            <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
-                        </a></li>
-                    </ul>
-                </li>
+                {% include 'coordinacion/_navbar_user_dropdown.html' %}
             </ul>
         </div>
     </div>
@@ -350,7 +341,7 @@
         radio.addEventListener('change', function() {
             const btnSubmit = document.getElementById('btnSubmit');
             if (this.value === 'aprobar') {
-                btnSubmit.className = 'btn btn-success btn-lg';
+                btnSubmit.className = 'btn btn-primary btn-lg';
                 btnSubmit.innerHTML = '<i class="fas fa-check me-2"></i>Aprobar y Vincular';
             } else {
                 btnSubmit.className = 'btn btn-danger btn-lg';

@@ -1,10 +1,12 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
-from .models import Vacante, Empresa, Postulacion, Estudiante, TutorEmpresarial, PracticaEmpresarial, DocenteAsesor
+from django.forms import inlineformset_factory
+from .models import Vacante, Empresa, Postulacion, Estudiante, TutorEmpresarial, PracticaEmpresarial, DocenteAsesor, Coordinador
 from datetime import date, timedelta
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from .models import Sustentacion
+from django.contrib.auth.models import User
 
 
 class CoordinadorLoginForm(AuthenticationForm):
@@ -386,6 +388,7 @@ class EmpresaForm(forms.ModelForm):
                 raise ValidationError('Ya existe una empresa con este NIT')
         return nit
 
+
 # ==============================
 # TutorEmpresarialForm (CRUD para Tutores)
 # ==============================
@@ -570,3 +573,214 @@ class SustentacionForm(forms.ModelForm):
                 raise ValidationError('La calificación debe estar entre 0.0 y 5.0')
 
         return cleaned_data
+
+
+# ============================================
+# FORMULARIO: TUTOR EMPRESARIAL
+# ============================================
+class TutorEmpresarialForm(forms.ModelForm):
+    """Formulario para crear/editar tutores empresariales"""
+
+    class Meta:
+        model = TutorEmpresarial
+        fields = ['nombre_completo', 'cargo', 'email', 'telefono', 'empresa']
+        widgets = {
+            'nombre_completo': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Nombre completo del tutor'
+            }),
+            'cargo': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Cargo en la empresa'
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'correo@empresa.com'
+            }),
+            'telefono': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '3001234567'
+            }),
+            'empresa': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+        }
+        labels = {
+            'nombre_completo': 'Nombre Completo',
+            'cargo': 'Cargo',
+            'email': 'Email',
+            'telefono': 'Teléfono',
+            'empresa': 'Empresa',
+        }
+
+
+# FormSet para tutores empresariales inline en empresa
+TutorEmpresarialFormSet = inlineformset_factory(
+    Empresa,
+    TutorEmpresarial,
+    fields=['nombre_completo', 'cargo', 'email', 'telefono'],
+    extra=1,
+    can_delete=True,
+    widgets={
+        'nombre_completo': forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Nombre completo del tutor'
+        }),
+        'cargo': forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Cargo en la empresa'
+        }),
+        'email': forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'correo@empresa.com'
+        }),
+        'telefono': forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': '3001234567'
+        }),
+    }
+)
+
+
+# ============================================
+# FORMULARIO: DOCENTE ASESOR
+# ============================================
+class DocenteAsesorForm(forms.ModelForm):
+    """Formulario para crear/editar docentes asesores"""
+
+    username = forms.CharField(
+        max_length=150,
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Usuario para login'
+        }),
+        label='Usuario'
+    )
+
+    password = forms.CharField(
+        required=False,
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Dejar vacío para no cambiar'
+        }),
+        label='Contraseña',
+        help_text='Dejar vacío si no desea cambiar la contraseña'
+    )
+
+    password_confirm = forms.CharField(
+        required=False,
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Confirmar contraseña'
+        }),
+        label='Confirmar Contraseña'
+    )
+
+    class Meta:
+        model = DocenteAsesor
+        fields = ['nombre_completo', 'email', 'telefono', 'especialidad', 'activo']
+        widgets = {
+            'nombre_completo': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Nombre completo del docente'
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'correo@universidad.edu'
+            }),
+            'telefono': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '3001234567'
+            }),
+            'especialidad': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej: Ingeniería de Software, Gestión Empresarial'
+            }),
+            'activo': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+        }
+        labels = {
+            'nombre_completo': 'Nombre Completo',
+            'email': 'Correo Electrónico',
+            'telefono': 'Teléfono',
+            'especialidad': 'Especialidad',
+            'activo': 'Activo',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk:
+            # Si estamos editando, establecer el username actual
+            self.fields['username'].initial = self.instance.user.username
+            self.fields['password'].required = False
+            self.fields['password_confirm'].required = False
+        else:
+            # Si estamos creando, la contraseña es obligatoria
+            self.fields['password'].required = True
+            self.fields['password_confirm'].required = True
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get('password')
+        password_confirm = cleaned_data.get('password_confirm')
+
+        if password or password_confirm:
+            if password != password_confirm:
+                raise ValidationError('Las contraseñas no coinciden')
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        docente = super().save(commit=False)
+
+        if not self.instance.pk:
+            # Crear usuario nuevo
+            user = User.objects.create_user(
+                username=self.cleaned_data['username'],
+                email=self.cleaned_data['email'],
+                password=self.cleaned_data['password']
+            )
+            docente.user = user
+        else:
+            # Actualizar usuario existente
+            user = docente.user
+            user.username = self.cleaned_data['username']
+            user.email = self.cleaned_data['email']
+
+            if self.cleaned_data.get('password'):
+                user.set_password(self.cleaned_data['password'])
+
+            user.save()
+
+        if commit:
+            docente.save()
+
+        return docente
+# ============================================
+# FORMULARIO: PERFIL DE COORDINADOR
+# ============================================
+class CoordinadorPerfilForm(forms.ModelForm):
+    '''Formulario para editar el perfil del coordinador'''
+    class Meta:
+        model = Coordinador
+        fields = ['nombre_completo', 'email', 'telefono', 'foto_perfil']
+        widgets = {
+            'nombre_completo': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Nombre completo'
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'correo@ejemplo.com'
+            }),
+            'telefono': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '3001234567'
+            }),
+            'foto_perfil': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*'
+            })
+        }

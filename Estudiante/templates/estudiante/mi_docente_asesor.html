@@ -1,0 +1,927 @@
+{% extends 'estudiante/base.html' %}
+
+{% block title %}Mi Docente Asesor{% endblock %}
+
+{% block extra_head %}
+<!-- Estilos del Chat Global -->
+<style>
+/* Chat Global Flotante */
+.chat-floating-btn-global {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 65px;
+    height: 65px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    color: white;
+    border: none;
+    box-shadow: 0 8px 25px rgba(30, 60, 114, 0.4);
+    font-size: 1.8rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    z-index: 9998;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chat-floating-btn-global:hover {
+    transform: scale(1.1);
+    box-shadow: 0 10px 30px rgba(30, 60, 114, 0.5);
+}
+
+/* Burbuja Minimizada */
+.burbuja-minimizada {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 65px;
+    height: 65px;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 9998;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s;
+    animation: bounceIn 0.5s;
+}
+
+.burbuja-minimizada:hover {
+    transform: scale(1.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+@keyframes bounceIn {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.burbuja-avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    overflow: hidden;
+    position: relative;
+    border: 3px solid white;
+}
+
+.burbuja-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.burbuja-avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.burbuja-avatar-placeholder i {
+    font-size: 40px;
+    color: white;
+}
+
+.burbuja-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #dc3545;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 12px;
+    min-width: 24px;
+    text-align: center;
+    border: 2px solid white;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+/* Ventana de Chat */
+.chat-window-global {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 400px;
+    height: 650px;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05);
+    display: none;
+    flex-direction: column;
+    z-index: 9999;
+    overflow: hidden;
+    animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: all 0.3s ease;
+}
+
+.chat-window-global.minimized {
+    height: 70px;
+    transition: height 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100%) scale(0.8);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+.chat-window-header-global {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #4a6fa5 100%);
+    color: white;
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.chat-window-avatar-global {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    position: relative;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.chat-window-avatar-global img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.chat-window-avatar-placeholder-global {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chat-window-avatar-placeholder-global i {
+    font-size: 36px;
+    color: #1e3c72;
+}
+
+.chat-window-info-global {
+    flex-grow: 1;
+}
+
+.chat-window-name-global {
+    font-weight: 700;
+    font-size: 1.05rem;
+    line-height: 1.3;
+    letter-spacing: 0.2px;
+}
+
+.chat-window-status-global {
+    font-size: 0.8rem;
+    opacity: 0.9;
+    font-weight: 500;
+}
+
+.chat-window-actions-global {
+    display: flex;
+    gap: 6px;
+}
+
+.btn-icon-global {
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.95rem;
+}
+
+.btn-icon-global:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.05);
+}
+
+.btn-icon-global:active {
+    transform: scale(0.95);
+}
+
+.btn-icon-global.maximize-btn {
+    display: none;
+}
+
+.chat-window-global.minimized .btn-icon-global.minimize-btn {
+    display: none;
+}
+
+.chat-window-global.minimized .btn-icon-global.maximize-btn {
+    display: flex;
+}
+
+.btn-icon-global.close-btn {
+    background: rgba(220, 53, 69, 0.8);
+}
+
+.btn-icon-global.close-btn:hover {
+    background: rgba(220, 53, 69, 1);
+}
+
+.chat-window-body-global {
+    flex-grow: 1;
+    background: linear-gradient(to bottom, #e8eef7 0%, #dce4f0 100%);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.chat-window-body-global::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image:
+        radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 75% 75%, rgba(30, 60, 114, 0.03) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.chat-window-global.minimized .chat-window-body-global,
+.chat-window-global.minimized .chat-window-footer-global {
+    display: none;
+}
+
+.chat-messages-container-global {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.chat-messages-container-global::-webkit-scrollbar {
+    width: 8px;
+}
+
+.chat-messages-container-global::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.chat-messages-container-global::-webkit-scrollbar-thumb {
+    background: rgba(30, 60, 114, 0.2);
+    border-radius: 10px;
+    transition: background 0.2s;
+}
+
+.chat-messages-container-global::-webkit-scrollbar-thumb:hover {
+    background: rgba(30, 60, 114, 0.3);
+}
+
+.message-item-global {
+    margin-bottom: 16px;
+    display: flex;
+    animation: messageSlideIn 0.3s ease-out;
+}
+
+@keyframes messageSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(15px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.message-item-global.own {
+    justify-content: flex-end;
+}
+
+.message-bubble-global {
+    max-width: 75%;
+    padding: 12px 16px;
+    border-radius: 16px;
+    position: relative;
+    word-wrap: break-word;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.2s ease;
+}
+
+.message-bubble-global:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.message-item-global.own .message-bubble-global {
+    background: linear-gradient(135deg, #0084ff 0%, #0066cc 100%);
+    color: white;
+    border-bottom-right-radius: 4px;
+}
+
+.message-item-global.other .message-bubble-global {
+    background: #ffffff;
+    color: #2c3e50;
+    border-bottom-left-radius: 4px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.message-text-global {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+}
+
+.message-item-global.own .message-text-global {
+    color: white;
+}
+
+.message-time-global {
+    font-size: 0.7rem;
+    color: rgba(0, 0, 0, 0.4);
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+}
+
+.message-item-global.own .message-time-global {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.message-time-global i {
+    font-size: 0.85rem;
+}
+
+.message-file-global {
+    margin-top: 8px;
+}
+
+.chat-window-footer-global {
+    background: #ffffff;
+    padding: 16px 20px;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    flex-shrink: 0;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.chat-input-container-global {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #f8f9fa;
+    border-radius: 24px;
+    padding: 8px 14px;
+    border: 2px solid transparent;
+    transition: all 0.2s;
+}
+
+.chat-input-container-global:focus-within {
+    background: white;
+    border-color: #1e3c72;
+    box-shadow: 0 2px 8px rgba(30, 60, 114, 0.1);
+}
+
+.btn-attach-global {
+    background: transparent;
+    border: none;
+    color: #6c757d;
+    font-size: 1.3rem;
+    cursor: pointer;
+    padding: 6px;
+    transition: all 0.2s;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-attach-global:hover {
+    color: #1e3c72;
+    background: rgba(30, 60, 114, 0.1);
+}
+
+.chat-input-global {
+    flex-grow: 1;
+    border: none;
+    outline: none;
+    resize: none;
+    font-size: 0.95rem;
+    max-height: 100px;
+    overflow-y: auto;
+    padding: 6px 8px;
+    background: transparent;
+    line-height: 1.5;
+}
+
+.chat-input-global::placeholder {
+    color: #adb5bd;
+}
+
+.btn-send-global {
+    background: linear-gradient(135deg, #0084ff 0%, #0066cc 100%);
+    border: none;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0, 132, 255, 0.3);
+}
+
+.btn-send-global:hover {
+    transform: scale(1.08);
+    box-shadow: 0 4px 12px rgba(0, 132, 255, 0.4);
+}
+
+.btn-send-global:active {
+    transform: scale(0.95);
+}
+
+.file-preview-global {
+    background: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+}
+
+.btn-remove-file-global {
+    background: transparent;
+    border: none;
+    color: #dc3545;
+    cursor: pointer;
+    margin-left: auto;
+}
+
+/* Botón de Abrir Chat en la página */
+.btn-chat-docente {
+    padding: 15px 40px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 50px;
+    box-shadow: 0 4px 15px rgba(30, 60, 114, 0.3);
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.btn-chat-docente:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(30, 60, 114, 0.4);
+}
+
+.btn-chat-docente:active {
+    transform: translateY(0);
+}
+
+.btn-chat-docente .badge {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@media (max-width: 480px) {
+    .chat-window-global {
+        width: calc(100vw - 20px);
+        right: 10px;
+        bottom: 10px;
+        height: calc(100vh - 100px);
+    }
+
+    .burbuja-minimizada,
+    .chat-floating-btn-global {
+        right: 15px;
+        bottom: 15px;
+        width: 55px;
+        height: 55px;
+    }
+
+    .burbuja-avatar-placeholder i {
+        font-size: 32px;
+    }
+
+    .btn-chat-docente {
+        font-size: 1rem;
+        padding: 12px 30px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark navbar-estudiante">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'estudiante:dashboard' %}">
+            <i class="fas fa-user-graduate me-2"></i>
+            Portal Estudiantes
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'estudiante:dashboard' %}">
+                        <i class="fas fa-home me-1"></i>Dashboard
+                    </a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                        {% if estudiante_actual.foto_perfil %}
+                            <img src="{{ estudiante_actual.foto_perfil.url }}" 
+                                 alt="{{ estudiante_actual.nombre_completo }}"
+                                 class="rounded-circle me-2"
+                                 style="width: 32px; height: 32px; object-fit: cover; border: 2px solid white;">
+                        {% else %}
+                            <i class="fas fa-user-circle me-2" style="font-size: 1.5rem;"></i>
+                        {% endif %}
+                        {{ estudiante_actual.nombre_completo|default:user.username }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item" href="{% url 'estudiante:perfil' %}">
+                                <i class="fas fa-user-edit me-2"></i>Mi Perfil
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item text-danger" href="{% url 'estudiante:logout' %}">
+                                <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 sidebar">
+            <div class="list-group">
+                <a href="{% url 'estudiante:dashboard' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-home me-2"></i>Dashboard
+                </a>
+                <a href="{% url 'estudiante:vacantes_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-briefcase me-2"></i>Vacantes Disponibles
+                </a>
+                <a href="{% url 'estudiante:postulaciones_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-clipboard-list me-2"></i>Mis Postulaciones
+                </a>
+                <a href="{% url 'estudiante:mi_practica' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-building me-2"></i>Mi Práctica
+                </a>
+                <a href="{% url 'estudiante:mis_seguimientos' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-calendar-check me-2"></i>Seguimientos Semanales
+                </a>
+                <a href="{% url 'estudiante:mi_docente_asesor' %}" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-chalkboard-teacher me-2"></i>Mi Docente Asesor
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Area -->
+        <div class="col-md-9 col-lg-10">
+            <h2 class="mb-4">
+                <i class="fas fa-chalkboard-teacher me-2 text-primary"></i>
+                Mi Docente Asesor
+            </h2>
+
+            {% if docente %}
+
+            <!-- Badge de Asesor Asignado -->
+            <div class="alert alert-success border-start border-5 border-success mb-4" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-check-circle fa-2x me-3"></i>
+                    <div>
+                        <h5 class="alert-heading mb-1">Docente Asesor Asignado</h5>
+                        <p class="mb-0">
+                            Tienes un docente asesor asignado para tu práctica empresarial.
+                            Puedes comunicarte con él usando el chat flotante.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Principal del Docente -->
+            <div class="row g-4">
+                <!-- Columna Izquierda: Foto y Datos Principales -->
+                <div class="col-lg-4">
+                    <div class="card docente-profile-card h-100">
+                        <div class="card-body text-center">
+                            <!-- Foto de Perfil -->
+                            <div class="docente-photo-container mb-3">
+                                {% if docente.foto_perfil %}
+                                    <img src="{{ docente.foto_perfil.url }}" alt="{{ docente.nombre_completo }}" class="docente-photo">
+                                {% else %}
+                                    <div class="docente-photo-placeholder">
+                                        <i class="fas fa-user-circle"></i>
+                                    </div>
+                                {% endif %}
+                                <div class="status-indicator online"></div>
+                            </div>
+
+                            <!-- Nombre y Título -->
+                            <h4 class="mb-2">{{ docente.nombre_completo }}</h4>
+                            <p class="text-muted mb-3">
+                                <i class="fas fa-graduation-cap me-1"></i>
+                                Docente Asesor
+                            </p>
+
+                            <!-- Especialidad -->
+                            <div class="specialty-badge">
+                                <i class="fas fa-star me-2"></i>
+                                {{ docente.especialidad }}
+                            </div>
+
+                            <!-- Estadísticas Rápidas -->
+                            <div class="quick-stats mt-4">
+                                <div class="stat-item">
+                                    <div class="stat-number">{{ mensajes_no_leidos|default:0 }}</div>
+                                    <div class="stat-label">Mensajes Sin Leer</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Columna Derecha: Información Detallada -->
+                <div class="col-lg-8">
+                    <!-- Información de Contacto -->
+                    <div class="card info-card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <i class="fas fa-address-card me-2"></i>
+                            Información de Contacto
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <div class="info-icon">
+                                            <i class="fas fa-envelope"></i>
+                                        </div>
+                                        <div class="info-details">
+                                            <label>Correo Electrónico</label>
+                                            <a href="mailto:{{ docente.email }}" class="info-value">{{ docente.email }}</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <div class="info-icon">
+                                            <i class="fas fa-phone"></i>
+                                        </div>
+                                        <div class="info-details">
+                                            <label>Teléfono</label>
+                                            <a href="tel:{{ docente.telefono }}" class="info-value">{{ docente.telefono }}</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% if docente.cedula %}
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <div class="info-icon">
+                                            <i class="fas fa-id-card"></i>
+                                        </div>
+                                        <div class="info-details">
+                                            <label>Cédula</label>
+                                            <div class="info-value">{{ docente.cedula }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <div class="info-icon">
+                                            <i class="fas fa-graduation-cap"></i>
+                                        </div>
+                                        <div class="info-details">
+                                            <label>Área de Especialidad</label>
+                                            <div class="info-value">{{ docente.especialidad }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Información de la Práctica -->
+                    <div class="card info-card">
+                        <div class="card-header bg-info text-white">
+                            <i class="fas fa-building me-2"></i>
+                            Información de tu Práctica
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <div class="info-icon">
+                                            <i class="fas fa-briefcase"></i>
+                                        </div>
+                                        <div class="info-details">
+                                            <label>Empresa</label>
+                                            <div class="info-value">{{ practica.empresa.razon_social }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <div class="info-icon">
+                                            <i class="fas fa-calendar-alt"></i>
+                                        </div>
+                                        <div class="info-details">
+                                            <label>Fecha de Inicio</label>
+                                            <div class="info-value">{{ practica.fecha_inicio|date:"d/m/Y" }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <div class="info-icon">
+                                            <i class="fas fa-hourglass-half"></i>
+                                        </div>
+                                        <div class="info-details">
+                                            <label>Fecha Estimada de Fin</label>
+                                            <div class="info-value">{{ practica.fecha_fin_estimada|date:"d/m/Y" }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <div class="info-icon">
+                                            <i class="fas fa-tasks"></i>
+                                        </div>
+                                        <div class="info-details">
+                                            <label>Estado</label>
+                                            <div class="info-value">
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-spinner me-1"></i>En Curso
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botón para Abrir Chat -->
+                    <div class="text-center my-4">
+                        <button id="abrirChatBtn" class="btn btn-lg btn-primary btn-chat-docente">
+                            <i class="fas fa-comments me-2"></i>
+                            Abrir Chat con mi Docente Asesor
+                            {% if mensajes_no_leidos > 0 %}
+                            <span class="badge bg-danger ms-2">{{ mensajes_no_leidos }}</span>
+                            {% endif %}
+                        </button>
+                    </div>
+
+                    <!-- Sección de Ayuda -->
+                    <div class="alert alert-light border mt-4" role="alert">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-info-circle me-2"></i>
+                            ¿Necesitas Ayuda?
+                        </h6>
+                        <p class="mb-0 small">
+                            Tu docente asesor está aquí para apoyarte durante tu práctica empresarial.
+                            Puedes contactarlo a través del chat flotante en la esquina inferior derecha de la pantalla,
+                            por correo electrónico o por teléfono.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            {% else %}
+            <!-- Sin Docente Asignado -->
+            <div class="alert alert-warning" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-exclamation-triangle fa-3x me-3"></i>
+                    <div>
+                        <h4 class="alert-heading">Aún no tienes docente asesor asignado</h4>
+                        <p class="mb-0">
+                            El docente asesor se asigna automáticamente cuando eres vinculado a una práctica empresarial.
+                            Si ya estás en proceso de vinculación, por favor espera a que el coordinador complete el proceso.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if docente %}
+<!-- Inicializar Chat Global -->
+<script>
+    // Guardar datos del docente para el chat global
+    const docenteData = {
+        practicaId: {{ practica.id }},
+        nombre: '{{ docente.nombre_completo|escapejs }}',
+        foto: '{% if docente.foto_perfil %}{{ docente.foto_perfil.url }}{% endif %}'
+    };
+
+    localStorage.setItem('chatDocenteData', JSON.stringify(docenteData));
+
+    // Esperar a que el DOM esté listo
+    document.addEventListener('DOMContentLoaded', function() {
+        // Conectar botón de abrir chat
+        const btnAbrirChat = document.getElementById('abrirChatBtn');
+        if (btnAbrirChat) {
+            btnAbrirChat.addEventListener('click', function() {
+                // Verificar si el chat global está disponible
+                const chatWindow = document.getElementById('chatWindowGlobal');
+                if (chatWindow) {
+                    // Abrir el chat
+                    chatWindow.style.display = 'flex';
+                    chatWindow.classList.remove('minimized');
+                    const burbuja = document.getElementById('burbujaMinimizada');
+                    if (burbuja) burbuja.style.display = 'none';
+                } else {
+                    // Si no existe, inicializar
+                    if (typeof window.inicializarChatGlobal === 'function') {
+                        window.inicializarChatGlobal();
+                        // Esperar un momento y abrir
+                        setTimeout(function() {
+                            const chatWindowNew = document.getElementById('chatWindowGlobal');
+                            if (chatWindowNew) {
+                                chatWindowNew.style.display = 'flex';
+                                chatWindowNew.classList.remove('minimized');
+                            }
+                        }, 100);
+                    }
+                }
+            });
+        }
+
+        // Forzar inicialización del chat si ya está cargado el base.html
+        if (typeof window.inicializarChatGlobal === 'function') {
+            window.inicializarChatGlobal();
+        }
+
+        // Trigger evento para que base.html lo detecte
+        window.dispatchEvent(new Event('chatDataReady'));
+    });
+</script>
+{% endif %}
+
+{% endblock %}

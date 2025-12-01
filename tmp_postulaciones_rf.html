@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Postulaciones - Portal Estudiantes</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Custom CSS para Estudiantes -->
+    <style>
+        :root {
+            --estudiante-primary: #28a745;
+            --estudiante-secondary: #20c997;
+            --estudiante-dark: #155724;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Navbar personalizada para estudiantes */
+        .navbar-estudiante {
+            background: linear-gradient(135deg, var(--estudiante-primary) 0%, var(--estudiante-secondary) 100%);
+        }
+
+        .sidebar {
+            min-height: calc(100vh - 56px);
+            background-color: #fff;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            padding: 0;
+        }
+
+        .sidebar .list-group-item {
+            border: none;
+            border-left: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .sidebar .list-group-item:hover {
+            background-color: #f8f9fa;
+            border-left-color: var(--estudiante-primary);
+            padding-left: 1.5rem;
+        }
+
+        .sidebar .list-group-item.active {
+            background-color: #e7f5ea;
+            color: var(--estudiante-dark);
+            border-left-color: var(--estudiante-primary);
+            font-weight: 600;
+        }
+
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .badge-estado {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .badge-apto {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .badge-no-apto {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge-en-practica {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .badge-finalizado {
+            background-color: #d6d8db;
+            color: #383d41;
+        }
+
+        .stat-card {
+            border-left: 4px solid var(--estudiante-primary);
+        }
+
+        .btn-estudiante {
+            background-color: var(--estudiante-primary);
+            border-color: var(--estudiante-primary);
+            color: white;
+        }
+
+        .btn-estudiante:hover {
+            background-color: var(--estudiante-dark);
+            border-color: var(--estudiante-dark);
+            color: white;
+        }
+    </style>
+
+    
+</head>
+<body>
+    
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark navbar-estudiante">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/estudiante/dashboard/">
+            <i class="fas fa-user-graduate me-2"></i>
+            Portal Estudiantes
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/estudiante/dashboard/">
+                        <i class="fas fa-home me-1"></i>Dashboard
+                    </a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-1"></i>
+                        Mi Cuenta
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item" href="/estudiante/perfil/">
+                                <i class="fas fa-user-edit me-2"></i>Mi Perfil
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item text-danger" href="/estudiante/logout/">
+                                <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 sidebar">
+            <div class="list-group">
+                <a href="/estudiante/dashboard/" class="list-group-item list-group-item-action">
+                    <i class="fas fa-home me-2"></i>Dashboard
+                </a>
+                <a href="/estudiante/perfil/" class="list-group-item list-group-item-action">
+                    <i class="fas fa-user-edit me-2"></i>Mi Perfil
+                </a>
+                <a href="/estudiante/vacantes/" class="list-group-item list-group-item-action">
+                    <i class="fas fa-briefcase me-2"></i>Vacantes Disponibles
+                </a>
+                <a href="/estudiante/postulaciones/" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-clipboard-list me-2"></i>Mis Postulaciones
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Area -->
+        <div class="col-md-9 col-lg-10">
+            <div id="postulaciones-react-root"></div>
+        </div>
+    </div>
+</div>
+
+<script type="text/babel">
+    const { useState, useEffect } = React;
+
+    function PostulacionesApp() {
+        const postulacionesData = [{"id": 30, "estado": "POSTULADO", "fecha_postulacion": "2025-11-21T19:21:39.438277+00:00", "fecha_respuesta": null, "observaciones": "", "estudiante": {"id": 35, "codigo": "RF001", "nombre_completo": "RF Estudiante", "programa_academico": "Ingenieria"}, "vacante": {"id": 10, "titulo": "RF Vacante", "empresa": "RF Empresa"}, "postulado_por": "RF Coord"}];
+        const [postulaciones, setPostulaciones] = useState(postulacionesData);
+        const [filtroEstado, setFiltroEstado] = useState("");
+
+        // Filtrar postulaciones localmente
+        useEffect(() => {
+            if (filtroEstado) {
+                const filtradas = postulacionesData.filter(p => p.estado === filtroEstado);
+                setPostulaciones(filtradas);
+            } else {
+                setPostulaciones(postulacionesData);
+            }
+        }, [filtroEstado]);
+
+        // Estadísticas
+        const stats = {
+            total: postulacionesData.length,
+            postuladas: postulacionesData.filter(p => p.estado === 'POSTULADO').length,
+            seleccionadas: postulacionesData.filter(p => p.estado === 'SELECCIONADO').length,
+            vinculadas: postulacionesData.filter(p => p.estado === 'VINCULADO').length,
+            rechazadas: postulacionesData.filter(p => p.estado === 'RECHAZADO').length,
+        };
+
+        return (
+            <div>
+                {/* Header */}
+                <div className="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2>
+                            <i className="fas fa-clipboard-list me-2 text-success"></i>
+                            Mis Postulaciones
+                        </h2>
+                        <p className="text-muted mb-0">
+                            Historial completo de tus postulaciones a prácticas
+                        </p>
+                    </div>
+                </div>
+
+                {/* Estadísticas */}
+                <div className="row g-3 mb-4">
+                    <div className="col-6 col-md-3">
+                        <div className="card text-center stat-card border-primary">
+                            <div className="card-body py-3">
+                                <h3 className="text-primary mb-1">{stats.total}</h3>
+                                <p className="text-muted mb-0 small">Total</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="col-6 col-md-3">
+                        <div className="card text-center stat-card border-info">
+                            <div className="card-body py-3">
+                                <h3 className="text-info mb-1">{stats.postuladas}</h3>
+                                <p className="text-muted mb-0 small">Postuladas</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="col-6 col-md-3">
+                        <div className="card text-center stat-card border-success">
+                            <div className="card-body py-3">
+                                <h3 className="text-success mb-1">{stats.seleccionadas + stats.vinculadas}</h3>
+                                <p className="text-muted mb-0 small">Aceptadas</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="col-6 col-md-3">
+                        <div className="card text-center stat-card border-danger">
+                            <div className="card-body py-3">
+                                <h3 className="text-danger mb-1">{stats.rechazadas}</h3>
+                                <p className="text-muted mb-0 small">Rechazadas</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Filtros */}
+                <FiltrosPostulaciones 
+                    filtroEstado={filtroEstado}
+                    setFiltroEstado={setFiltroEstado}
+                />
+
+                {/* Lista de Postulaciones */}
+                {postulaciones.length > 0 ? (
+                    <PostulacionesLista postulaciones={postulaciones} />
+                ) : (
+                    <div className="alert alert-info text-center py-5">
+                        <i className="fas fa-inbox fa-3x mb-3 text-muted"></i>
+                        <h4>No tienes postulaciones aún</h4>
+                        <p className="mb-3">
+                            La Coordinación Empresarial se encargará de postularte a vacantes compatibles con tu perfil.
+                        </p>
+                        <a href="/estudiante/vacantes/" class="btn btn-success">
+                            <i className="fas fa-briefcase me-2"></i>Ver Vacantes Disponibles
+                        </a>
+                    </div>
+                )}
+            </div>
+        );
+    }
+
+    // ==========================================
+    // COMPONENTE: Filtros
+    // ==========================================
+    function FiltrosPostulaciones({ filtroEstado, setFiltroEstado }) {
+        return (
+            <div className="card mb-4">
+                <div className="card-body">
+                    <div className="row align-items-center">
+                        <div className="col-md-6">
+                            <label className="form-label fw-bold mb-2">
+                                <i className="fas fa-filter me-2"></i>Filtrar por Estado
+                            </label>
+                            <select 
+                                className="form-select"
+                                value={filtroEstado}
+                                onChange={(e) => setFiltroEstado(e.target.value)}
+                            >
+                                <option value="">Todos los estados</option>
+                                <option value="POSTULADO">Postulado</option>
+                                <option value="SELECCIONADO">Seleccionado</option>
+                                <option value="VINCULADO">Vinculado</option>
+                                <option value="RECHAZADO">Rechazado</option>
+                            </select>
+                        </div>
+                        <div className="col-md-6 text-md-end mt-3 mt-md-0">
+                            <p className="mb-0 text-muted small">
+                                <i className="fas fa-info-circle me-2"></i>
+                                Las postulaciones son realizadas por la Coordinación Empresarial
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // ==========================================
+    // COMPONENTE: Lista de Postulaciones
+    // ==========================================
+    function PostulacionesLista({ postulaciones }) {
+        return (
+            <div className="card">
+                <div className="card-body p-0">
+                    <div className="table-responsive">
+                        <table className="table table-hover mb-0">
+                            <thead className="table-light">
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Vacante</th>
+                                    <th>Empresa</th>
+                                    <th>Estado</th>
+                                    <th>Postulado Por</th>
+                                    <th className="text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {postulaciones.map(postulacion => (
+                                    <PostulacionRow key={postulacion.id} postulacion={postulacion} />
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // ==========================================
+    // COMPONENTE: Fila de Postulación
+    // ==========================================
+    function PostulacionRow({ postulacion }) {
+        const getEstadoBadge = (estado) => {
+            const badges = {
+                'POSTULADO': { color: 'primary', icon: 'clock', text: 'Postulado' },
+                'SELECCIONADO': { color: 'success', icon: 'check-circle', text: 'Seleccionado' },
+                'VINCULADO': { color: 'info', icon: 'link', text: 'Vinculado' },
+                'RECHAZADO': { color: 'danger', icon: 'times-circle', text: 'Rechazado' }
+            };
+            return badges[estado] || badges['POSTULADO'];
+        };
+
+        const badge = getEstadoBadge(postulacion.estado);
+        const fecha = new Date(postulacion.fecha_postulacion);
+
+        return (
+            <tr>
+                <td>
+                    <small className="text-muted">
+                        {fecha.toLocaleDateString('es-CO')}
+                    </small>
+                </td>
+                <td>
+                    <strong>{postulacion.vacante.titulo}</strong>
+                </td>
+                <td>
+                    <span className="text-muted">
+                        <i className="fas fa-building me-1"></i>
+                        {postulacion.vacante.empresa}
+                    </span>
+                </td>
+                <td>
+                    <span className={`badge bg-${badge.color}`}>
+                        <i className={`fas fa-${badge.icon} me-1`}></i>
+                        {badge.text}
+                    </span>
+                </td>
+                <td>
+                    <small className="text-muted">
+                        {postulacion.postulado_por}
+                    </small>
+                </td>
+                <td className="text-center">
+                    <a 
+                        href={`/estudiante/postulaciones/0/`.replace('0', postulacion.id)}
+                        className="btn btn-sm btn-outline-primary"
+                        title="Ver Detalle"
+                    >
+                        <i className="fas fa-eye"></i>
+                    </a>
+                </td>
+            </tr>
+        );
+    }
+
+    // Renderizar
+    const root = ReactDOM.createRoot(document.getElementById('postulaciones-react-root'));
+    root.render(<PostulacionesApp />);
+</script>
+
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- React (CDN para desarrollo) -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    
+</body>
+</html>
+

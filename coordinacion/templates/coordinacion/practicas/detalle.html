@@ -12,16 +12,7 @@
         </a>
         <div class="collapse navbar-collapse">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-user-circle me-1"></i>{{ request.user.username }}
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="{% url 'coordinacion:logout' %}">
-                            <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
-                        </a></li>
-                    </ul>
-                </li>
+                {% include 'coordinacion/_navbar_user_dropdown.html' %}
             </ul>
         </div>
     </div>
@@ -118,7 +109,7 @@
                 {% if practica.estado == 'EN_CURSO' %}
                     <form method="POST" action="{% url 'coordinacion:practica_finalizar' practica.id %}" style="display: inline;">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-success" onclick="return confirm('¿Estás seguro de finalizar esta práctica?')">
+                        <button type="submit" class="btn btn-primary" onclick="return confirm('¿Estás seguro de finalizar esta práctica?')">
                             <i class="fas fa-check me-2"></i>Finalizar Práctica
                         </button>
                     </form>

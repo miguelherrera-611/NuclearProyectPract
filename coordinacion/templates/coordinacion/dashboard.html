@@ -16,17 +16,7 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-user-circle me-1"></i>
-                        {{ nombre_usuario }}
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="{% url 'coordinacion:logout' %}">
-                            <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
-                        </a></li>
-                    </ul>
-                </li>
+                {% include 'coordinacion/_navbar_user_dropdown.html' %}
             </ul>
         </div>
     </div>
@@ -58,6 +48,9 @@
                 </a>
                 <a href="{% url 'coordinacion:tutores_lista' %}" class="list-group-item list-group-item-action">
                     <i class="fas fa-chalkboard-teacher me-2"></i>Tutores
+                </a>
+                <a href="{% url 'coordinacion:docentes_asesores_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-user-tie me-2"></i>Docentes Asesores
                 </a>
                 <a href="{% url 'coordinacion:sustentaciones_lista' %}" class="list-group-item list-group-item-action">
                     <i class="fas fa-graduation-cap me-2"></i>Sustentaciones

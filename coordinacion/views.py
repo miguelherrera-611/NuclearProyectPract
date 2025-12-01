@@ -74,7 +74,7 @@ def coordinador_logout(request):
     request.session.pop('active_role', None)
     request.session.pop('available_roles', None)
     messages.info(request, 'Has cerrado sesión correctamente')
-    return redirect('coordinacion:login')
+    return redirect('login_unificado')
 
 
 # ============================================
@@ -113,10 +113,12 @@ def coordinator_required(view_func):
 def coordinador_dashboard(request):
     """Dashboard principal del Coordinador Empresarial"""
 
-    # Obtener el nombre del usuario
+    # Obtener el coordinador
+    coordinador = None
     nombre_usuario = request.user.username
     if hasattr(request.user, 'coordinador'):
-        nombre_usuario = request.user.coordinador.nombre_completo
+        coordinador = request.user.coordinador
+        nombre_usuario = coordinador.nombre_completo
 
     # Estadísticas para el dashboard
     stats = {
@@ -132,6 +134,7 @@ def coordinador_dashboard(request):
     stats_json = json.dumps(stats, cls=DjangoJSONEncoder)
 
     context = {
+        'coordinador': coordinador,
         'nombre_usuario': nombre_usuario,
         'stats': stats_json,
     }
@@ -795,6 +798,83 @@ def postulacion_rechazar(request, postulacion_id):
     return render(request, 'coordinacion/postulaciones/rechazar.html', context)
 
 
+@coordinator_required
+def postulacion_desvincular(request, postulacion_id):
+    """
+    Desvincular una postulación que está en estado VINCULADO
+    Esto revierte el proceso de vinculación
+    """
+    postulacion = get_object_or_404(Postulacion, id=postulacion_id)
+
+    # Verificar que la postulación esté vinculada
+    if postulacion.estado != 'VINCULADO':
+        messages.warning(
+            request,
+            f'Esta postulación está en estado "{postulacion.get_estado_display()}". '
+            f'Solo se pueden desvincular postulaciones vinculadas.'
+        )
+        return redirect('coordinacion:postulaciones_lista')
+
+    # Verificar si existe una práctica asociada
+    practica_asociada = PracticaEmpresarial.objects.filter(
+        estudiante=postulacion.estudiante,
+        vacante=postulacion.vacante,
+        estado='EN_CURSO'
+    ).first()
+
+    if request.method == 'POST':
+        motivo = request.POST.get('motivo', '').strip()
+        cancelar_practica = request.POST.get('cancelar_practica') == 'true'
+
+        if not motivo:
+            messages.error(request, 'Debes proporcionar un motivo para desvincular')
+            return render(request, 'coordinacion/postulaciones/desvincular.html', {
+                'postulacion': postulacion,
+                'practica_asociada': practica_asociada
+            })
+
+        # Si existe una práctica asociada y se confirma cancelarla
+        if practica_asociada and cancelar_practica:
+            practica_asociada.estado = 'CANCELADA'
+            practica_asociada.fecha_fin_real = timezone.now().date()
+            practica_asociada.observaciones = f"{practica_asociada.observaciones or ''}\n\nCANCELADA: {motivo}"
+            practica_asociada.save()
+
+        # Desvincular la postulación (volver a SELECCIONADO)
+        postulacion.estado = 'SELECCIONADO'
+        postulacion.observaciones = f"{postulacion.observaciones or ''}\n\nDESVINCULADO: {motivo}"
+        postulacion.save()
+
+        # Actualizar estado del estudiante
+        # Si no tiene otras prácticas activas, volver a APTO
+        practicas_activas = PracticaEmpresarial.objects.filter(
+            estudiante=postulacion.estudiante,
+            estado='EN_CURSO'
+        ).exists()
+
+        if not practicas_activas:
+            postulacion.estudiante.estado = 'APTO'
+            postulacion.estudiante.save()
+
+        # Liberar cupo de la vacante
+        if postulacion.vacante.cupos_ocupados > 0:
+            postulacion.vacante.cupos_ocupados -= 1
+            postulacion.vacante.save()
+
+        messages.success(
+            request,
+            f'✅ Postulación desvinculada exitosamente: {postulacion.estudiante.nombre_completo}'
+        )
+
+        return redirect('coordinacion:postulaciones_lista')
+
+    # GET request - mostrar formulario de confirmación
+    context = {
+        'postulacion': postulacion,
+        'practica_asociada': practica_asociada,
+    }
+
+    return render(request, 'coordinacion/postulaciones/desvincular.html', context)
 
 
 # ============================================
@@ -1533,3 +1613,28 @@ def reportes_dashboard(request):
     }
 
     return render(request, 'coordinacion/reportes/dashboard.html', context)
+# ============================================
+# PERFIL DE COORDINADOR
+# ============================================
+def perfil_coordinador(request):
+    """Vista para ver y editar el perfil del coordinador"""
+    try:
+        coordinador = request.user.coordinador
+    except Coordinador.DoesNotExist:
+        messages.error(request, 'No tienes un perfil de coordinador.')
+        return redirect('login_unificado')
+    if request.method == 'POST':
+        from .forms import CoordinadorPerfilForm
+        form = CoordinadorPerfilForm(request.POST, request.FILES, instance=coordinador)
+        if form.is_valid():
+            form.save()
+            messages.success(request, '? Perfil actualizado exitosamente.')
+            return redirect('coordinacion:perfil')
+    else:
+        from .forms import CoordinadorPerfilForm
+        form = CoordinadorPerfilForm(instance=coordinador)
+    context = {
+        'coordinador': coordinador,
+        'form': form
+    }
+    return render(request, 'coordinacion/perfil.html', context)

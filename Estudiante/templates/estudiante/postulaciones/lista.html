@@ -1,4 +1,4 @@
-{% extends 'estudiantes/base.html' %}
+{% extends 'estudiante/base.html' %}
 
 {% block title %}Mis Postulaciones - Portal Estudiantes{% endblock %}
 
@@ -21,9 +21,16 @@
                     </a>
                 </li>
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-user-circle me-1"></i>
-                        Mi Cuenta
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                        {% if estudiante_actual.foto_perfil %}
+                            <img src="{{ estudiante_actual.foto_perfil.url }}" 
+                                 alt="{{ estudiante_actual.nombre_completo }}"
+                                 class="rounded-circle me-2"
+                                 style="width: 32px; height: 32px; object-fit: cover; border: 2px solid white;">
+                        {% else %}
+                            <i class="fas fa-user-circle me-2" style="font-size: 1.5rem;"></i>
+                        {% endif %}
+                        {{ estudiante_actual.nombre_completo|default:user.username }}
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li>
@@ -53,14 +60,20 @@
                 <a href="{% url 'estudiante:dashboard' %}" class="list-group-item list-group-item-action">
                     <i class="fas fa-home me-2"></i>Dashboard
                 </a>
-                <a href="{% url 'estudiante:perfil' %}" class="list-group-item list-group-item-action">
-                    <i class="fas fa-user-edit me-2"></i>Mi Perfil
-                </a>
                 <a href="{% url 'estudiante:vacantes_lista' %}" class="list-group-item list-group-item-action">
                     <i class="fas fa-briefcase me-2"></i>Vacantes Disponibles
                 </a>
                 <a href="{% url 'estudiante:postulaciones_lista' %}" class="list-group-item list-group-item-action active">
                     <i class="fas fa-clipboard-list me-2"></i>Mis Postulaciones
+                </a>
+                <a href="{% url 'estudiante:mi_practica' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-building me-2"></i>Mi Práctica
+                </a>
+                <a href="{% url 'estudiante:mis_seguimientos' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-calendar-check me-2"></i>Seguimientos Semanales
+                </a>
+                <a href="{% url 'estudiante:mi_docente_asesor' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chalkboard-teacher me-2"></i>Mi Docente Asesor
                 </a>
             </div>
         </div>
@@ -105,7 +118,7 @@
                 <div className="d-flex justify-content-between align-items-center mb-4">
                     <div>
                         <h2>
-                            <i className="fas fa-clipboard-list me-2 text-success"></i>
+                            <i className="fas fa-clipboard-list me-2 text-primary"></i>
                             Mis Postulaciones
                         </h2>
                         <p className="text-muted mb-0">
@@ -134,9 +147,9 @@
                     </div>
                     <div className="col-6 col-md-3">
                         <div className="card text-center stat-card border-success">
-                            <div className="card-body py-3">
-                                <h3 className="text-success mb-1">{stats.seleccionadas + stats.vinculadas}</h3>
-                                <p className="text-muted mb-0 small">Aceptadas</p>
+                            <div className="card-body text-center">
+                                <h3 className="text-primary mb-1">{stats.seleccionadas + stats.vinculadas}</h3>
+                                <p className="text-muted mb-0">Selecciones</p>
                             </div>
                         </div>
                     </div>
@@ -166,7 +179,7 @@
                         <p className="mb-3">
                             La Coordinación Empresarial se encargará de postularte a vacantes compatibles con tu perfil.
                         </p>
-                        <a href="{% url 'estudiante:vacantes_lista' %}" class="btn btn-success">
+                        <a href="{% url 'estudiante:vacantes_lista' %}" class="btn btn-primary">
                             <i className="fas fa-briefcase me-2"></i>Ver Vacantes Disponibles
                         </a>
                     </div>

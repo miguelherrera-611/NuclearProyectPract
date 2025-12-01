@@ -1,12 +1,13 @@
 from django.urls import path
 from . import views
 from . import company_views
+from . import docente_coordinacion_views
 
 app_name = 'coordinacion'
 
 urlpatterns = [
     # ============================================
-    # AUTENTICACIÓN
+    # AUTENTICACIÓN (Redirige al login unificado)
     # ============================================
     path('', views.coordinador_login, name='login'),
     path('login/', views.coordinador_login, name='login'),
@@ -49,6 +50,7 @@ urlpatterns = [
     path('postulaciones/<int:postulacion_id>/editar/', views.postulacion_editar, name='postulacion_editar'),
     path('postulaciones/<int:postulacion_id>/eliminar/', views.postulacion_eliminar, name='postulacion_eliminar'),
     path('postulaciones/<int:postulacion_id>/rechazar/', views.postulacion_rechazar, name='postulacion_rechazar'),
+    path('postulaciones/<int:postulacion_id>/desvincular/', views.postulacion_desvincular, name='postulacion_desvincular'),
 
     # ============================================
     # GESTIÓN DE TUTORES Y DOCENTES (RF-05)
@@ -58,6 +60,15 @@ urlpatterns = [
     path('tutores/<int:tutor_id>/', views.tutor_detalle, name='tutor_detalle'),
     path('tutores/<int:tutor_id>/editar/', views.tutor_editar, name='tutor_editar'),
     path('tutores/<int:tutor_id>/toggle/', views.tutor_toggle_activo, name='tutor_toggle_activo'),
+
+    # Gestión de Docentes Asesores
+    path('docentes-asesores/', docente_coordinacion_views.docentes_asesores_lista, name='docentes_asesores_lista'),
+    path('docentes-asesores/crear/', docente_coordinacion_views.docente_asesor_crear, name='docente_asesor_crear'),
+    path('docentes-asesores/<int:docente_id>/', docente_coordinacion_views.docente_asesor_detalle, name='docente_asesor_detalle'),
+    path('docentes-asesores/<int:docente_id>/editar/', docente_coordinacion_views.docente_asesor_editar, name='docente_asesor_editar'),
+    path('docentes-asesores/<int:docente_id>/toggle/', docente_coordinacion_views.docente_asesor_toggle_activo, name='docente_asesor_toggle_activo'),
+    path('docentes-asesores/<int:docente_id>/practica/<int:practica_id>/', docente_coordinacion_views.docente_asesor_practica_detalle, name='docente_asesor_practica_detalle'),
+    path('docentes-asesores/<int:docente_id>/seguimiento/<int:seguimiento_id>/', docente_coordinacion_views.docente_asesor_seguimiento_detalle, name='docente_asesor_seguimiento_detalle'),
 
     path('docentes/', views.docentes_lista, name='docentes_lista'),
     path('postulaciones/<int:postulacion_id>/asignar/', views.practica_asignar, name='practica_asignar'),
@@ -87,4 +98,9 @@ urlpatterns = [
     # REPORTES E INDICADORES (RF-12)
     # ============================================
     path('reportes/', views.reportes_dashboard, name='reportes_dashboard'),
+
+    # ============================================
+    # PERFIL DE COORDINADOR
+    # ============================================
+    path('perfil/', views.perfil_coordinador, name='perfil'),
 ]

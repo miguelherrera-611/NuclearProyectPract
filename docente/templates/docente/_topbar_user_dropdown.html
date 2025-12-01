@@ -1,0 +1,44 @@
+<!-- Top-bar con foto de perfil del docente (reutilizable) -->
+<div class="user-info">
+    <div class="dropdown">
+        <div class="d-flex align-items-center" style="cursor: pointer;" data-bs-toggle="dropdown" aria-expanded="false">
+            <!-- Foto de perfil circular -->
+            <div class="user-avatar me-2" style="width: 45px; height: 45px; border-radius: 50%; overflow: hidden; background: linear-gradient(135deg, var(--primary-blue), var(--accent-blue)); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem;">
+                {% if docente_actual.foto_perfil %}
+                    <img src="{{ docente_actual.foto_perfil.url }}"
+                         alt="{{ docente_actual.nombre_completo }}"
+                         style="width: 100%; height: 100%; object-fit: cover;">
+                {% else %}
+                    <i class="fas fa-chalkboard-teacher"></i>
+                {% endif %}
+            </div>
+
+            <!-- Nombre y cargo con flecha -->
+            <div class="user-details">
+                <strong>{{ docente_actual.nombre_completo|default:user.username }}</strong>
+                <small class="d-flex align-items-center">
+                    Docente Asesor
+                    <i class="fas fa-chevron-down ms-1" style="font-size: 0.7rem;"></i>
+                </small>
+            </div>
+        </div>
+
+        <!-- Dropdown menu -->
+        <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="min-width: 200px;">
+            <li>
+                <a class="dropdown-item d-flex align-items-center" href="{% url 'docente:perfil' %}">
+                    <i class="fas fa-user-edit me-2 text-primary"></i>
+                    Mi Perfil
+                </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <a class="dropdown-item d-flex align-items-center text-danger" href="{% url 'logout' %}">
+                    <i class="fas fa-sign-out-alt me-2"></i>
+                    Cerrar Sesión
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+

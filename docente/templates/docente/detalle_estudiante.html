@@ -1,0 +1,953 @@
+{% extends 'docente/base.html' %}
+
+{% block title %}Detalle Estudiante - {{ practica.estudiante.nombre_completo }}{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'docente:dashboard' %}">
+            <i class="fas fa-chalkboard-teacher me-2"></i>
+            Portal Docente Asesor
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'docente:dashboard' %}">
+                        <i class="fas fa-home me-1"></i>Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'docente:mis_estudiantes' %}">
+                        <i class="fas fa-users me-1"></i>Mis Estudiantes
+                    </a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-1"></i>
+                        {{ docente.nombre_completo }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item" href="{% url 'docente:perfil' %}">
+                                <i class="fas fa-user-edit me-2"></i>Mi Perfil
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item text-danger" href="{% url 'coordinacion:logout' %}">
+                                <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="container-fluid mt-4 mb-5">
+    <div class="container-lg">
+        <!-- Header con botón de volver -->
+        <div class="header-banner">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-1 text-white">
+                        <i class="fas fa-user-graduate me-2"></i>
+                        {{ practica.estudiante.nombre_completo }}
+                    </h2>
+                    <p class="text-white mb-0 opacity-90">
+                        <i class="fas fa-code me-1"></i>{{ practica.estudiante.codigo }} |
+                        <i class="fas fa-graduation-cap ms-2 me-1"></i>{{ practica.estudiante.programa_academico }}
+                    </p>
+                </div>
+                <div>
+                    <button id="abrirChatBtn" class="btn btn-success me-2">
+                        <i class="fas fa-comments me-1"></i>Chat con Estudiante
+                    </button>
+                    <a href="{% url 'docente:mis_estudiantes' %}" class="btn btn-light">
+                        <i class="fas fa-arrow-left me-1"></i>Volver a Mis Estudiantes
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resumen en Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-icon bg-primary">
+                        <i class="fas fa-calendar-week"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ total_seguimientos }}</h3>
+                        <p>Total Seguimientos</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-icon bg-success">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ seguimientos_aprobados }}</h3>
+                        <p>Aprobados</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-icon bg-danger">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ seguimientos_reprobados }}</h3>
+                        <p>Reprobados</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs de Navegación con estilo de botones -->
+        <div class="tabs-container mb-4">
+            <ul class="nav nav-pills nav-pills-custom justify-content-center" id="myTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="info-tab" data-bs-toggle="tab" data-bs-target="#info" type="button" role="tab">
+                        <i class="fas fa-info-circle me-2"></i>Información General
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="seguimientos-tab" data-bs-toggle="tab" data-bs-target="#seguimientos" type="button" role="tab">
+                        <i class="fas fa-list-check me-2"></i>Seguimientos Semanales
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="evidencias-tab" data-bs-toggle="tab" data-bs-target="#evidencias" type="button" role="tab">
+                        <i class="fas fa-file-archive me-2"></i>Evidencias
+                    </button>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="myTabContent">
+            <!-- Tab: Información General -->
+            <div class="tab-pane fade show active" id="info" role="tabpanel">
+                <div class="row g-4">
+                    <!-- Información del Estudiante -->
+                    <div class="col-lg-6">
+                        <div class="info-card">
+                            <div class="info-card-header">
+                                <i class="fas fa-user-graduate me-2"></i>Datos del Estudiante
+                            </div>
+                            <div class="info-card-body">
+                                <div class="info-row">
+                                    <span class="info-label">Código:</span>
+                                    <span class="info-value">{{ practica.estudiante.codigo }}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Programa Académico:</span>
+                                    <span class="info-value">{{ practica.estudiante.programa_academico }}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Semestre Actual:</span>
+                                    <span class="info-value">{{ practica.estudiante.semestre }}°</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Email:</span>
+                                    <span class="info-value">
+                                        <a href="mailto:{{ practica.estudiante.email }}">{{ practica.estudiante.email }}</a>
+                                    </span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Teléfono:</span>
+                                    <span class="info-value">{{ practica.estudiante.telefono }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Información de la Empresa -->
+                    <div class="col-lg-6">
+                        <div class="info-card">
+                            <div class="info-card-header">
+                                <i class="fas fa-building me-2"></i>Empresa y Práctica
+                            </div>
+                            <div class="info-card-body">
+                                <div class="info-row">
+                                    <span class="info-label">Empresa:</span>
+                                    <span class="info-value">{{ practica.empresa.razon_social }}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">NIT:</span>
+                                    <span class="info-value">{{ practica.empresa.nit }}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Fecha Inicio:</span>
+                                    <span class="info-value">{{ practica.fecha_inicio|date:"d/m/Y" }}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Fecha Fin Estimada:</span>
+                                    <span class="info-value">{{ practica.fecha_fin_estimada|date:"d/m/Y" }}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Estado de la Práctica:</span>
+                                    <span class="info-value">
+                                        {% if practica.estado == 'EN_CURSO' %}
+                                            <span class="badge bg-primary">
+                                                <i class="fas fa-spinner me-1"></i>En Curso
+                                            </span>
+                                        {% elif practica.estado == 'FINALIZADA' %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check-circle me-1"></i>Finalizada
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-ban me-1"></i>Cancelada
+                                            </span>
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tutor Empresarial -->
+                    {% if practica.tutor_empresarial %}
+                    <div class="col-lg-6">
+                        <div class="info-card">
+                            <div class="info-card-header">
+                                <i class="fas fa-user-tie me-2"></i>Tutor Empresarial
+                            </div>
+                            <div class="info-card-body">
+                                <div class="info-row">
+                                    <span class="info-label">Nombre:</span>
+                                    <span class="info-value">{{ practica.tutor_empresarial.nombre_completo }}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Cargo:</span>
+                                    <span class="info-value">{{ practica.tutor_empresarial.cargo }}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Email:</span>
+                                    <span class="info-value">
+                                        <a href="mailto:{{ practica.tutor_empresarial.email }}">{{ practica.tutor_empresarial.email }}</a>
+                                    </span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Teléfono:</span>
+                                    <span class="info-value">{{ practica.tutor_empresarial.telefono }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Observaciones de la Práctica -->
+                    {% if practica.observaciones %}
+                    <div class="col-lg-6">
+                        <div class="info-card">
+                            <div class="info-card-header">
+                                <i class="fas fa-comment-dots me-2"></i>Observaciones
+                            </div>
+                            <div class="info-card-body">
+                                <p class="mb-0">{{ practica.observaciones }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Tab: Seguimientos Semanales -->
+            <div class="tab-pane fade" id="seguimientos" role="tabpanel">
+                {% if seguimientos %}
+                    <div class="seguimientos-timeline">
+                        {% for seguimiento in seguimientos %}
+                        <div class="seguimiento-item">
+                            <div class="seguimiento-marker
+                                {% if seguimiento.estado == 'APROBADO' %}bg-success
+                                {% elif seguimiento.estado == 'RECHAZADO' %}bg-danger
+                                {% else %}bg-warning{% endif %}">
+                                <i class="fas fa-calendar-week"></i>
+                            </div>
+                            <div class="seguimiento-content">
+                                <div class="seguimiento-header">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="flex-grow-1">
+                                            <h5 class="mb-1">
+                                                <i class="fas fa-calendar-alt me-2"></i>Semana {{ seguimiento.semana_numero }}
+                                                {% if seguimiento.estado == 'PENDIENTE' %}
+                                                    <span class="badge bg-warning text-dark ms-2">
+                                                        <i class="fas fa-clock me-1"></i>Pendiente de Revisión
+                                                    </span>
+                                                {% elif seguimiento.estado == 'APROBADO' %}
+                                                    <span class="badge bg-success ms-2">
+                                                        <i class="fas fa-check-circle me-1"></i>Aprobado
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-danger ms-2">
+                                                        <i class="fas fa-times-circle me-1"></i>Requiere Correcciones
+                                                    </span>
+                                                {% endif %}
+                                                {% if seguimiento.calificacion %}
+                                                    <span class="badge bg-primary ms-2">
+                                                        <i class="fas fa-star me-1"></i>Nota: {{ seguimiento.calificacion }}
+                                                    </span>
+                                                {% endif %}
+                                            </h5>
+                                            <p class="text-muted small mb-0">
+                                                <i class="fas fa-calendar me-1"></i>
+                                                Período: {{ seguimiento.fecha_inicio|date:"d/m/Y" }} - {{ seguimiento.fecha_fin|date:"d/m/Y" }}
+                                                <span class="ms-3">
+                                                    <i class="fas fa-clock me-1"></i>
+                                                    Registrado: {{ seguimiento.fecha_registro|date:"d/m/Y H:i" }}
+                                                </span>
+                                                {% if seguimiento.validado_docente %}
+                                                <span class="ms-3">
+                                                    <i class="fas fa-check-circle text-success me-1"></i>
+                                                    Revisado
+                                                </span>
+                                                {% endif %}
+                                            </p>
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <a href="{% url 'docente:revisar_seguimiento' seguimiento.id %}"
+                                               class="btn btn-sm btn-primary">
+                                                <i class="fas fa-eye me-1"></i>Ver Detalle
+                                            </a>
+                                            {% if seguimiento.id == seguimiento_mas_reciente_id %}
+                                                <a href="{% url 'docente:revisar_seguimiento' seguimiento.id %}"
+                                                   class="btn btn-sm btn-warning">
+                                                    <i class="fas fa-edit me-1"></i>Editar Nota
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="seguimiento-body">
+                                    <div class="mb-3">
+                                        <h6 class="text-primary">
+                                            <i class="fas fa-tasks me-2"></i>Actividades Realizadas
+                                        </h6>
+                                        <div class="content-box">
+                                            {{ seguimiento.actividades_realizadas|linebreaks|truncatewords:50 }}
+                                        </div>
+                                    </div>
+
+                                    {% if seguimiento.evidencia %}
+                                    <div class="mb-3">
+                                        <h6 class="text-info">
+                                            <i class="fas fa-paperclip me-2"></i>Evidencia Adjunta
+                                        </h6>
+                                        <a href="{{ seguimiento.evidencia.url }}" target="_blank" class="btn btn-sm btn-outline-info">
+                                            <i class="fas fa-download me-1"></i>Descargar Evidencia
+                                        </a>
+                                    </div>
+                                    {% endif %}
+
+                                    {% if seguimiento.retroalimentacion_docente %}
+                                    <div class="retroalimentacion-box
+                                        {% if seguimiento.estado == 'APROBADO' %}success
+                                        {% else %}warning{% endif %}">
+                                        <h6 class="mb-2">
+                                            <i class="fas fa-comment-dots me-2"></i>Mi Retroalimentación
+                                        </h6>
+                                        {{ seguimiento.retroalimentacion_docente|linebreaks }}
+                                        <small class="text-muted d-block mt-2">
+                                            <i class="fas fa-clock me-1"></i>
+                                            {{ seguimiento.fecha_validacion|date:"d/m/Y H:i" }}
+                                        </small>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+                        <h5>No hay seguimientos registrados</h5>
+                        <p class="text-muted">Este estudiante aún no ha enviado seguimientos semanales.</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Tab: Evidencias -->
+            <div class="tab-pane fade" id="evidencias" role="tabpanel">
+                {% if seguimientos %}
+                    <div class="row g-3">
+                        {% for seguimiento in seguimientos %}
+                            {% if seguimiento.evidencia %}
+                            <div class="col-md-6 col-lg-4">
+                                <div class="evidencia-card">
+                                    <div class="evidencia-header">
+                                        <i class="fas fa-file-alt fa-2x text-primary"></i>
+                                        <span class="badge
+                                            {% if seguimiento.estado == 'APROBADO' %}bg-success
+                                            {% elif seguimiento.estado == 'RECHAZADO' %}bg-danger
+                                            {% else %}bg-warning text-dark{% endif %}">
+                                            {{ seguimiento.get_estado_display }}
+                                        </span>
+                                    </div>
+                                    <div class="evidencia-body">
+                                        <h6>Semana {{ seguimiento.semana_numero }}</h6>
+                                        <p class="small text-muted mb-2">
+                                            {{ seguimiento.fecha_inicio|date:"d/m/Y" }} - {{ seguimiento.fecha_fin|date:"d/m/Y" }}
+                                        </p>
+                                        <a href="{{ seguimiento.evidencia.url }}" target="_blank" class="btn btn-sm btn-outline-primary w-100">
+                                            <i class="fas fa-download me-1"></i>Descargar
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-folder-open fa-4x text-muted mb-3"></i>
+                        <h5>No hay evidencias</h5>
+                        <p class="text-muted">No se han cargado evidencias aún.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Variables de color consistentes */
+    :root {
+        --primary-blue: #1e3c72;
+        --secondary-blue: #2a5298;
+        --light-blue: #7e97c4;
+        --dark-blue: #152a54;
+        --accent-blue: #4a6fa5;
+    }
+
+    /* Navbar personalizada */
+    .navbar-dark {
+        background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%) !important;
+        box-shadow: 0 4px 15px rgba(30, 60, 114, 0.3);
+    }
+
+    .navbar-dark .navbar-brand {
+        font-weight: 700;
+        font-size: 1.3rem;
+        color: white !important;
+    }
+
+    .navbar-dark .nav-link {
+        color: rgba(255, 255, 255, 0.9) !important;
+        transition: all 0.3s;
+        font-weight: 500;
+    }
+
+    .navbar-dark .nav-link:hover {
+        color: white !important;
+    }
+
+    .navbar-dark .dropdown-menu {
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        border: none;
+    }
+
+    /* Header Banner con fondo azul */
+    .header-banner {
+        background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+        padding: 30px 40px;
+        border-radius: 16px;
+        margin-bottom: 30px;
+        box-shadow: 0 8px 25px rgba(30, 60, 114, 0.25);
+    }
+
+    .header-banner h2 {
+        color: white !important;
+        font-weight: 700;
+        font-size: 2rem;
+    }
+
+    .header-banner p {
+        color: white !important;
+        font-size: 1.1rem;
+    }
+
+    .header-banner .btn-light {
+        background: white;
+        color: var(--primary-blue);
+        font-weight: 600;
+        padding: 10px 24px;
+        border-radius: 10px;
+        border: none;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        transition: all 0.3s;
+    }
+
+    .header-banner .btn-light:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
+        background: #f8f9fa;
+    }
+
+    /* Tabs Container */
+    .tabs-container {
+        background: white;
+        padding: 20px;
+        border-radius: 16px;
+        box-shadow: 0 2px 15px rgba(30, 60, 114, 0.1);
+    }
+
+    /* Nav Pills personalizadas (tipo botones) */
+    .nav-pills-custom {
+        gap: 15px;
+    }
+
+    .nav-pills-custom .nav-link {
+        border: 2px solid var(--primary-blue);
+        color: var(--primary-blue);
+        padding: 14px 30px;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s;
+        border-radius: 12px;
+        background: white;
+        box-shadow: 0 2px 8px rgba(30, 60, 114, 0.1);
+    }
+
+    .nav-pills-custom .nav-link:hover {
+        background: rgba(30, 60, 114, 0.05);
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(30, 60, 114, 0.2);
+    }
+
+    .nav-pills-custom .nav-link.active {
+        background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+        color: white;
+        border-color: transparent;
+        box-shadow: 0 6px 20px rgba(30, 60, 114, 0.35);
+        transform: translateY(-3px);
+    }
+
+    .nav-pills-custom .nav-link i {
+        font-size: 1.1rem;
+    }
+
+    /* Stat Cards */
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(30, 60, 114, 0.1);
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        transition: all 0.3s;
+        border: 1px solid rgba(30, 60, 114, 0.1);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 20px rgba(30, 60, 114, 0.2);
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 24px;
+    }
+
+    .stat-info h3 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--primary-blue);
+    }
+
+    .stat-info p {
+        margin: 0;
+        font-size: 13px;
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    /* Info Cards */
+    .info-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(30, 60, 114, 0.1);
+        overflow: hidden;
+        border: 1px solid rgba(30, 60, 114, 0.1);
+        transition: all 0.3s;
+    }
+
+    .info-card:hover {
+        box-shadow: 0 4px 15px rgba(30, 60, 114, 0.15);
+    }
+
+    .info-card-header {
+        background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+        color: white;
+        padding: 15px 20px;
+        font-weight: 600;
+        font-size: 16px;
+    }
+
+    .info-card-body {
+        padding: 20px;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .info-row:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: var(--primary-blue);
+        flex: 0 0 40%;
+    }
+
+    .info-value {
+        color: #495057;
+        flex: 1;
+        text-align: right;
+    }
+
+    /* Timeline de Seguimientos */
+    .seguimientos-timeline {
+        position: relative;
+        padding-left: 40px;
+    }
+
+    .seguimiento-item {
+        position: relative;
+        margin-bottom: 30px;
+    }
+
+    .seguimiento-marker {
+        position: absolute;
+        left: -40px;
+        top: 0;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        z-index: 2;
+    }
+
+    .seguimiento-item::before {
+        content: '';
+        position: absolute;
+        left: -20px;
+        top: 50px;
+        width: 2px;
+        height: calc(100% + 10px);
+        background: linear-gradient(to bottom, var(--light-blue), #e9ecef);
+        z-index: 1;
+    }
+
+    .seguimiento-item:last-child::before {
+        display: none;
+    }
+
+    .seguimiento-content {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(30, 60, 114, 0.1);
+        overflow: hidden;
+        border: 1px solid rgba(30, 60, 114, 0.1);
+        transition: all 0.3s;
+    }
+
+    .seguimiento-content:hover {
+        box-shadow: 0 4px 15px rgba(30, 60, 114, 0.15);
+    }
+
+    .seguimiento-header {
+        padding: 20px;
+        background: #f8f9fa;
+        border-bottom: 2px solid var(--primary-blue);
+    }
+
+    .seguimiento-body {
+        padding: 20px;
+    }
+
+    .content-box {
+        background: #f0f4ff;
+        border-left: 4px solid var(--primary-blue);
+        padding: 15px;
+        border-radius: 8px;
+        color: #495057;
+        line-height: 1.6;
+    }
+
+    .retroalimentacion-box {
+        background: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 15px;
+    }
+
+    .retroalimentacion-box.success {
+        background: #d4edda;
+        border-left-color: #28a745;
+    }
+
+    .retroalimentacion-box h6 {
+        margin-bottom: 10px;
+        color: #495057;
+        font-weight: 600;
+    }
+
+    /* Evidencia Cards */
+    .evidencia-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(30, 60, 114, 0.1);
+        overflow: hidden;
+        transition: all 0.3s;
+        border: 1px solid rgba(30, 60, 114, 0.1);
+    }
+
+    .evidencia-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 20px rgba(30, 60, 114, 0.2);
+    }
+
+    .evidencia-header {
+        padding: 20px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 2px solid var(--primary-blue);
+    }
+
+    .evidencia-body {
+        padding: 20px;
+    }
+
+    .evidencia-body h6 {
+        color: var(--primary-blue);
+        font-weight: 600;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(30, 60, 114, 0.1);
+        border: 1px solid rgba(30, 60, 114, 0.1);
+    }
+
+    .empty-state i {
+        opacity: 0.2;
+        color: var(--primary-blue);
+    }
+
+    .empty-state h5 {
+        color: var(--primary-blue);
+        margin-bottom: 10px;
+        font-weight: 600;
+    }
+
+    .empty-state p {
+        color: #6c757d;
+    }
+
+    /* Botones */
+    .btn {
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s;
+        padding: 8px 20px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+        border: none;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, var(--dark-blue) 0%, var(--primary-blue) 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(30, 60, 114, 0.3);
+    }
+
+    .btn-outline-secondary {
+        border-color: var(--primary-blue);
+        color: var(--primary-blue);
+    }
+
+    .btn-outline-secondary:hover {
+        background: var(--primary-blue);
+        border-color: var(--primary-blue);
+        color: white;
+    }
+
+    .btn-outline-info {
+        border-color: var(--accent-blue);
+        color: var(--accent-blue);
+    }
+
+    .btn-outline-info:hover {
+        background: var(--accent-blue);
+        border-color: var(--accent-blue);
+        color: white;
+    }
+
+    .btn-outline-primary {
+        border-color: var(--primary-blue);
+        color: var(--primary-blue);
+    }
+
+    .btn-outline-primary:hover {
+        background: var(--primary-blue);
+        border-color: var(--primary-blue);
+        color: white;
+    }
+
+    /* Badges */
+    .badge {
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-weight: 500;
+    }
+
+    /* Headers */
+    h5, h6 {
+        color: var(--primary-blue);
+    }
+
+    .text-primary {
+        color: var(--primary-blue) !important;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .header-banner {
+            padding: 20px;
+        }
+
+        .header-banner h2 {
+            font-size: 1.5rem;
+        }
+
+        .nav-pills-custom {
+            flex-direction: column;
+        }
+
+        .nav-pills-custom .nav-link {
+            width: 100%;
+        }
+
+        .stat-card {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .info-row {
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .info-value {
+            text-align: left;
+        }
+
+        .seguimientos-timeline {
+            padding-left: 30px;
+        }
+
+        .seguimiento-marker {
+            left: -30px;
+            width: 30px;
+            height: 30px;
+            font-size: 14px;
+        }
+    }
+</style>
+
+<!-- Inicializar Chat Global del Docente -->
+<script>
+    // Guardar datos del estudiante para el chat global
+    const estudianteData = {
+        practicaId: {{ practica.id }},
+        nombre: '{{ practica.estudiante.nombre_completo|escapejs }}',
+        foto: '{% if practica.estudiante.foto_perfil %}{{ practica.estudiante.foto_perfil.url }}{% endif %}'
+    };
+
+    localStorage.setItem('chatEstudianteData', JSON.stringify(estudianteData));
+
+    // Esperar a que el DOM esté listo
+    document.addEventListener('DOMContentLoaded', function() {
+        // Conectar botón de abrir chat
+        const btnAbrirChat = document.getElementById('abrirChatBtn');
+        if (btnAbrirChat) {
+            btnAbrirChat.addEventListener('click', function() {
+                // Verificar si el chat global está disponible
+                const chatWindow = document.getElementById('chatWindowGlobal');
+                if (chatWindow) {
+                    // Abrir el chat
+                    chatWindow.style.display = 'flex';
+                    chatWindow.classList.remove('minimized');
+                    const burbuja = document.getElementById('burbujaMinimizada');
+                    if (burbuja) burbuja.style.display = 'none';
+                } else {
+                    // Si no existe, inicializar
+                    if (typeof window.inicializarChatGlobalDocente === 'function') {
+                        window.inicializarChatGlobalDocente();
+                        // Esperar un momento y abrir
+                        setTimeout(function() {
+                            const chatWindowNew = document.getElementById('chatWindowGlobal');
+                            if (chatWindowNew) {
+                                chatWindowNew.style.display = 'flex';
+                                chatWindowNew.classList.remove('minimized');
+                            }
+                        }, 100);
+                    }
+                }
+            });
+        }
+
+        // Forzar inicialización del chat si ya está cargado el base.html
+        if (typeof window.inicializarChatGlobalDocente === 'function') {
+            window.inicializarChatGlobalDocente();
+        }
+
+        // Trigger evento para que base.html lo detecte
+        window.dispatchEvent(new Event('chatDataReady'));
+    });
+</script>
+
+{% endblock %}
+

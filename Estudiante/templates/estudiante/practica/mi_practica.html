@@ -1,0 +1,301 @@
+{% extends 'estudiante/base.html' %}
+
+{% block title %}Mi Práctica - Portal Estudiantes{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark navbar-estudiante">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'estudiante:dashboard' %}">
+            <i class="fas fa-user-graduate me-2"></i>
+            Portal Estudiantes
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'estudiante:dashboard' %}">
+                        <i class="fas fa-home me-1"></i>Dashboard
+                    </a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                        {% if estudiante_actual.foto_perfil %}
+                            <img src="{{ estudiante_actual.foto_perfil.url }}" 
+                                 alt="{{ estudiante_actual.nombre_completo }}"
+                                 class="rounded-circle me-2"
+                                 style="width: 32px; height: 32px; object-fit: cover; border: 2px solid white;">
+                        {% else %}
+                            <i class="fas fa-user-circle me-2" style="font-size: 1.5rem;"></i>
+                        {% endif %}
+                        {{ estudiante_actual.nombre_completo|default:user.username }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item" href="{% url 'estudiante:perfil' %}">
+                                <i class="fas fa-user-edit me-2"></i>Mi Perfil
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item text-danger" href="{% url 'estudiante:logout' %}">
+                                <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 sidebar">
+            <div class="list-group">
+                <a href="{% url 'estudiante:dashboard' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-home me-2"></i>Dashboard
+                </a>
+                <a href="{% url 'estudiante:vacantes_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-briefcase me-2"></i>Vacantes Disponibles
+                </a>
+                <a href="{% url 'estudiante:postulaciones_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-clipboard-list me-2"></i>Mis Postulaciones
+                </a>
+                <a href="{% url 'estudiante:mi_practica' %}" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-building me-2"></i>Mi Práctica
+                </a>
+                <a href="{% url 'estudiante:mis_seguimientos' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-calendar-check me-2"></i>Seguimientos Semanales
+                </a>
+                <a href="{% url 'estudiante:mi_docente_asesor' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chalkboard-teacher me-2"></i>Mi Docente Asesor
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Area -->
+        <div class="col-md-9 col-lg-10">
+            <div class="content-wrapper">
+                <div class="page-header mb-4">
+                    <h2>
+                        <i class="fas fa-building me-2"></i>
+                        Mi Práctica Actual
+                    </h2>
+                </div>
+
+                <!-- Información General de la Práctica -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-info-circle me-2"></i>Información General
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <h5 class="text-muted mb-2">
+                                    <i class="fas fa-building me-2"></i>Empresa
+                                </h5>
+                                <h4>{{ practica.empresa.razon_social }}</h4>
+                                <p class="text-muted mb-0">
+                                    <i class="fas fa-map-marker-alt me-1"></i>
+                                    {{ practica.empresa.direccion }}
+                                </p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <h5 class="text-muted mb-2">
+                                    <i class="fas fa-calendar me-2"></i>Período
+                                </h5>
+                                <p class="mb-0">
+                                    <strong>Inicio:</strong> {{ practica.fecha_inicio|date:"d/m/Y" }}<br>
+                                    <strong>Fin:</strong> {{ practica.fecha_fin|date:"d/m/Y" }}<br>
+                                    <strong>Duración:</strong> {{ practica.duracion_semanas }} semanas
+                                </p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <h5 class="text-muted mb-2">
+                                    <i class="fas fa-chalkboard-teacher me-2"></i>Docente Asesor
+                                </h5>
+                                <p class="mb-0">
+                                    {% if practica.docente_asesor %}
+                                        <strong>{{ practica.docente_asesor.nombre_completo }}</strong><br>
+                                        <i class="fas fa-envelope me-1"></i>{{ practica.docente_asesor.email }}<br>
+                                        {% if practica.docente_asesor.telefono %}
+                                            <i class="fas fa-phone me-1"></i>{{ practica.docente_asesor.telefono }}
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="text-muted">No asignado</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <h5 class="text-muted mb-2">
+                                    <i class="fas fa-user-tie me-2"></i>Tutor Empresarial
+                                </h5>
+                                <p class="mb-0">
+                                    {% if practica.tutor_empresarial %}
+                                        <strong>{{ practica.tutor_empresarial.nombre_completo }}</strong><br>
+                                        <i class="fas fa-envelope me-1"></i>{{ practica.tutor_empresarial.email }}<br>
+                                        {% if practica.tutor_empresarial.telefono %}
+                                            <i class="fas fa-phone me-1"></i>{{ practica.tutor_empresarial.telefono }}
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="text-muted">No asignado</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h5 class="text-muted mb-2">
+                                    <i class="fas fa-tasks me-2"></i>Actividades Asignadas
+                                </h5>
+                                <p>{{ practica.actividades_asignadas|default:"No especificadas" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resumen de Seguimientos -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-calendar-check me-2"></i>Seguimientos Semanales</span>
+                            <a href="{% url 'estudiante:mis_seguimientos' %}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-eye me-1"></i>Ver Todos
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {% if seguimientos %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Semana</th>
+                                            <th>Período</th>
+                                            <th>Estado</th>
+                                            <th>Revisión</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for seguimiento in seguimientos|slice:":5" %}
+                                        <tr>
+                                            <td>
+                                                <span class="badge bg-primary">Semana {{ seguimiento.semana_numero }}</span>
+                                            </td>
+                                            <td>
+                                                <small>{{ seguimiento.fecha_inicio|date:"d/m" }} - {{ seguimiento.fecha_fin|date:"d/m/Y" }}</small>
+                                            </td>
+                                            <td>
+                                                {% if seguimiento.estado == 'PENDIENTE' %}
+                                                    <span class="badge bg-warning text-dark">Pendiente</span>
+                                                {% elif seguimiento.estado == 'APROBADO' %}
+                                                    <span class="badge bg-success">Aprobado</span>
+                                                {% else %}
+                                                    <span class="badge bg-danger">Correcciones</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if seguimiento.validado_docente %}
+                                                    <i class="fas fa-check-circle text-success"></i> Revisado
+                                                {% else %}
+                                                    <i class="fas fa-clock text-warning"></i> Pendiente
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <a href="{% url 'estudiante:detalle_seguimiento' seguimiento.id %}"
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">Aún no has registrado seguimientos semanales</p>
+                                <a href="{% url 'estudiante:crear_seguimiento' %}" class="btn btn-primary">
+                                    <i class="fas fa-plus me-1"></i>Crear Primer Seguimiento
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Evaluaciones -->
+                {% if evaluaciones %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-star me-2"></i>Evaluaciones
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Evaluado Por</th>
+                                        <th>Nota</th>
+                                        <th>Observaciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for evaluacion in evaluaciones %}
+                                    <tr>
+                                        <td>{{ evaluacion.fecha_evaluacion|date:"d/m/Y" }}</td>
+                                        <td>{{ evaluacion.evaluado_por.nombre_completo }}</td>
+                                        <td>
+                                            <span class="badge bg-info">{{ evaluacion.nota }}/100</span>
+                                        </td>
+                                        <td>{{ evaluacion.observaciones|truncatewords:15 }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Sustentación -->
+                {% if sustentacion %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-presentation me-2"></i>Sustentación
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <p><strong>Fecha:</strong> {{ sustentacion.fecha|date:"d/m/Y H:i" }}</p>
+                            </div>
+                            <div class="col-md-4">
+                                <p><strong>Lugar:</strong> {{ sustentacion.lugar }}</p>
+                            </div>
+                            <div class="col-md-4">
+                                <p><strong>Nota:</strong>
+                                    {% if sustentacion.nota %}
+                                        <span class="badge bg-success">{{ sustentacion.nota }}/100</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">Pendiente</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+

@@ -16,9 +16,16 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-user-circle me-1"></i>
-                        {{ estudiante.nombre_completo }}
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                        {% if estudiante_actual.foto_perfil %}
+                            <img src="{{ estudiante_actual.foto_perfil.url }}" 
+                                 alt="{{ estudiante_actual.nombre_completo }}"
+                                 class="rounded-circle me-2"
+                                 style="width: 32px; height: 32px; object-fit: cover; border: 2px solid white;">
+                        {% else %}
+                            <i class="fas fa-user-circle me-2" style="font-size: 1.5rem;"></i>
+                        {% endif %}
+                        {{ estudiante_actual.nombre_completo|default:user.username }}
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li>
@@ -48,27 +55,19 @@
                 <a href="{% url 'estudiante:dashboard' %}" class="list-group-item list-group-item-action active">
                     <i class="fas fa-home me-2"></i>Dashboard
                 </a>
-                <a href="{% url 'estudiante:perfil' %}" class="list-group-item list-group-item-action">
-                    <i class="fas fa-user-edit me-2"></i>Mi Perfil
-                </a>
-                <a href="{% url 'estudiante:vacantes_lista' %}" class="list-group-item list-group-item-action">
-                    <i class="fas fa-briefcase me-2"></i>Vacantes Disponibles
                 </a>
                 <a href="{% url 'estudiante:postulaciones_lista' %}" class="list-group-item list-group-item-action">
                     <i class="fas fa-clipboard-list me-2"></i>Mis Postulaciones
                 </a>
-                
-                {% if estudiante.estado == 'EN_PRACTICA' %}
                 <a href="{% url 'estudiante:mi_practica' %}" class="list-group-item list-group-item-action">
-                    <i class="fas fa-tasks me-2"></i>Mi Práctica
+                    <i class="fas fa-building me-2"></i>Mi Práctica
                 </a>
-                {% endif %}
-                
-                {% if estudiante.estado == 'NO_APTO' %}
-                <a href="{% url 'estudiante:no_apto' %}" class="list-group-item list-group-item-action">
-                    <i class="fas fa-info-circle me-2"></i>Información
+                <a href="{% url 'estudiante:mis_seguimientos' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-calendar-check me-2"></i>Seguimientos Semanales
                 </a>
-                {% endif %}
+                <a href="{% url 'estudiante:mi_docente_asesor' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chalkboard-teacher me-2"></i>Mi Docente Asesor
+                </a>
             </div>
         </div>
 
@@ -82,13 +81,28 @@
 <script type="text/babel">
     const { useState, useEffect } = React;
 
+    // URLs de Django pasadas a JavaScript
+    const URLS = {
+        noApto: "{% url 'estudiante:no_apto' %}",
+        perfil: "{% url 'estudiante:perfil' %}",
+        miPractica: "{% url 'estudiante:mi_practica' %}",
+        postulacionesLista: "{% url 'estudiante:postulaciones_lista' %}",
+        vacantesLista: "{% url 'estudiante:vacantes_lista' %}",
+        postulacionDetalle: "{% url 'estudiante:postulacion_detalle' 0 %}",
+        vacanteDetalle: "{% url 'estudiante:vacante_detalle' 0 %}"
+    };
+
     function DashboardApp() {
         // Variables inyectadas desde Django (JSON seguros)
         const estudiante = JSON.parse('{{ estudiante_json|escapejs }}');
         const stats = JSON.parse('{{ stats|escapejs }}');
         const postulaciones = JSON.parse('{{ postulaciones|escapejs }}');
         const vacantes = JSON.parse('{{ vacantes|escapejs }}');
-        const practicaActual = {{ practica_actual|default:"null" }} ? JSON.parse('{{ practica_actual|escapejs }}') : null;
+        {% if practica_actual %}
+        const practicaActual = JSON.parse('{{ practica_actual|escapejs }}');
+        {% else %}
+        const practicaActual = null;
+        {% endif %}
 
         return (
             <div>
@@ -147,17 +161,17 @@
                             {getEstadoBadge()}
                         </p>
                     </div>
-                    <div class="text-end">
-                        <p class="mb-1 text-muted">
-                            <i class="fas fa-id-card me-2"></i>
-                            Código: <strong>{{ estudiante.codigo }}</strong>
+                    <div className="text-end">
+                        <p className="mb-1 text-muted">
+                            <i className="fas fa-id-card me-2"></i>
+                            Código: <strong>{estudiante.codigo}</strong>
                         </p>
-                        {% if estudiante.promedio_academico %}
-                        <p class="mb-0 text-muted">
-                            <i class="fas fa-chart-line me-2"></i>
-                            Promedio: <strong>{{ estudiante.promedio_academico }}</strong>
-                        </p>
-                        {% endif %}
+                        {estudiante.promedio_academico && (
+                            <p className="mb-0 text-muted">
+                                <i className="fas fa-chart-line me-2"></i>
+                                Promedio: <strong>{estudiante.promedio_academico}</strong>
+                            </p>
+                        )}
                     </div>
                 </div>
             </div>
@@ -186,7 +200,7 @@
                 </p>
                 <hr />
                 <p className="mb-0">
-                    <a href="{% url 'estudiante:no_apto' %}" className="alert-link">
+                    <a href={URLS.noApto} className="alert-link">
                         Ver más información sobre requisitos <i className="fas fa-arrow-right ms-1"></i>
                     </a>
                 </p>
@@ -236,8 +250,8 @@
                         <p className="mb-2">
                             Para mejorar tus oportunidades de ser postulado, te recomendamos subir tu hoja de vida.
                         </p>
-                        <a href="{% url 'estudiante:perfil' %}" class="btn btn-info btn-sm">
-                            <i class="fas fa-upload me-2"></i>Subir Hoja de Vida
+                        <a href={URLS.perfil} className="btn btn-info btn-sm">
+                            <i className="fas fa-upload me-2"></i>Subir Hoja de Vida
                         </a>
                     </div>
                 )}
@@ -261,8 +275,8 @@
                     <p className="mb-2">
                         Estás realizando tu práctica en <strong>{practicaActual.empresa}</strong>
                     </p>
-                    <a href="{% url 'estudiante:mi_practica' %}" class="btn btn-success btn-sm">
-                        <i class="fas fa-tasks me-2"></i>Ver Mi Práctica
+                    <a href={URLS.miPractica} className="btn btn-primary btn-sm">
+                        <i className="fas fa-tasks me-2"></i>Ver Mi Práctica
                     </a>
                 </div>
 
@@ -393,8 +407,8 @@
                         <i className="fas fa-clipboard-list me-2"></i>
                         Postulaciones Recientes
                     </span>
-                    <a href="{% url 'estudiante:postulaciones_lista' %}" className="btn btn-sm btn-light">
-                        Ver todas <i className="fas fa-arrow-right ms-1"></i>
+                    <a href={URLS.postulacionesLista} className="btn btn-sm btn-light">
+                        Ver Todas <i className="fas fa-arrow-right ms-1"></i>
                     </a>
                 </div>
                 <div className="card-body p-0">
@@ -426,7 +440,7 @@
                                             </td>
                                             <td>
                                                 <a 
-                                                    href={`{% url 'estudiante:postulacion_detalle' 0 %}`.replace('0', postulacion.id)}
+                                                    href={URLS.postulacionDetalle.replace('0', postulacion.id)}
                                                     className="btn btn-sm btn-outline-primary"
                                                 >
                                                     <i className="fas fa-eye"></i>
@@ -449,12 +463,12 @@
     function VacantesDisponibles({ vacantes, estudiante }) {
         return (
             <div className="card">
-                <div className="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <span>
                         <i className="fas fa-briefcase me-2"></i>
                         Vacantes Disponibles para {estudiante.programa_academico}
                     </span>
-                    <a href="{% url 'estudiante:vacantes_lista' %}" className="btn btn-sm btn-light">
+                    <a href={URLS.vacantesLista} className="btn btn-sm btn-light">
                         Ver todas <i className="fas fa-arrow-right ms-1"></i>
                     </a>
                 </div>
@@ -476,12 +490,12 @@
                                             {vacante.area_practica}
                                         </p>
                                         <div className="d-flex justify-content-between align-items-center mt-3">
-                                            <span className="badge bg-success">
+                                            <span className="badge bg-primary">
                                                 {vacante.cupos_disponibles} cupo{vacante.cupos_disponibles !== 1 ? 's' : ''}
                                             </span>
                                             <a 
-                                                href={`{% url 'estudiante:vacante_detalle' 0 %}`.replace('0', vacante.id)}
-                                                className="btn btn-sm btn-outline-success"
+                                                href={URLS.vacanteDetalle.replace('0', vacante.id)}
+                                                className="btn btn-sm btn-outline-primary"
                                             >
                                                 Ver más <i className="fas fa-arrow-right ms-1"></i>
                                             </a>

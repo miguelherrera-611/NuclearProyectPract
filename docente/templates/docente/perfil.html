@@ -1,0 +1,312 @@
+{% extends 'docente/base.html' %}
+
+{% block title %}Mi Perfil - Docente Asesor{% endblock %}
+
+{% block content %}
+<!-- Top Bar -->
+<div class="top-bar">
+    <h2><i class="fas fa-user"></i> Mi Perfil</h2>
+    {% include 'docente/_topbar_user_dropdown.html' %}
+</div>
+
+<!-- Información del Perfil -->
+<div class="row">
+    <!-- Datos Personales -->
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-id-card"></i> Información Personal</span>
+                <button class="btn btn-sm btn-light" onclick="toggleEditMode()" id="btnToggleEdit">
+                    <i class="fas fa-edit"></i> Editar
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="user-avatar-large mx-auto mb-3" style="width: 100px; height: 100px; border-radius: 50%; overflow: hidden; background: linear-gradient(135deg, var(--primary-blue), var(--accent-blue)); display: flex; align-items: center; justify-content: center; color: white; font-size: 2.5rem;">
+                        {% if docente.foto_perfil %}
+                            <img src="{{ docente.foto_perfil.url }}" alt="{{ docente.nombre_completo }}" style="width: 100%; height: 100%; object-fit: cover;">
+                        {% else %}
+                            <i class="fas fa-chalkboard-teacher"></i>
+                        {% endif %}
+                    </div>
+                    <h4 id="displayNombre">{{ docente.nombre_completo }}</h4>
+                    <p class="text-muted mb-0">Docente Asesor</p>
+                </div>
+
+                <hr>
+
+                <!-- Vista de Solo Lectura -->
+                <div id="viewMode">
+                    <div class="info-row mb-3">
+                        <strong><i class="fas fa-envelope text-primary"></i> Email:</strong>
+                        <p class="mb-0">{{ docente.email }}</p>
+                    </div>
+
+                    <div class="info-row mb-3">
+                        <strong><i class="fas fa-phone text-primary"></i> Teléfono:</strong>
+                        <p class="mb-0">{{ docente.telefono|default:"No especificado" }}</p>
+                    </div>
+
+                    <div class="info-row mb-3">
+                        <strong><i class="fas fa-graduation-cap text-primary"></i> Especialidad:</strong>
+                        <p class="mb-0">{{ docente.especialidad|default:"No especificado" }}</p>
+                    </div>
+
+                    <div class="info-row">
+                        <strong><i class="fas fa-user text-primary"></i> Usuario:</strong>
+                        <p class="mb-0">{{ user.username }}</p>
+                    </div>
+                </div>
+
+                <!-- Formulario de Edición -->
+                <div id="editMode" style="display: none;">
+                    <form method="post" enctype="multipart/form-data" id="formEditarPerfil">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="{{ form.nombre_completo.id_for_label }}" class="form-label">
+                                <i class="fas fa-user text-primary"></i> Nombre Completo
+                            </label>
+                            {{ form.nombre_completo }}
+                            {% if form.nombre_completo.errors %}
+                                <div class="text-danger small mt-1">{{ form.nombre_completo.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.email.id_for_label }}" class="form-label">
+                                <i class="fas fa-envelope text-primary"></i> Correo Electrónico
+                            </label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="text-danger small mt-1">{{ form.email.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.telefono.id_for_label }}" class="form-label">
+                                <i class="fas fa-phone text-primary"></i> Teléfono
+                            </label>
+                            {{ form.telefono }}
+                            {% if form.telefono.errors %}
+                                <div class="text-danger small mt-1">{{ form.telefono.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.especialidad.id_for_label }}" class="form-label">
+                                <i class="fas fa-graduation-cap text-primary"></i> Especialidad
+                            </label>
+                            {{ form.especialidad }}
+                            {% if form.especialidad.errors %}
+                                <div class="text-danger small mt-1">{{ form.especialidad.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.foto_perfil.id_for_label }}" class="form-label">
+                                <i class="fas fa-camera text-primary"></i> Foto de Perfil
+                            </label>
+
+                            {% if docente.foto_perfil %}
+                                <div class="text-center mb-3">
+                                    <img src="{{ docente.foto_perfil.url }}"
+                                         alt="{{ docente.nombre_completo }}"
+                                         class="rounded-circle shadow"
+                                         style="width: 100px; height: 100px; object-fit: cover; border: 3px solid var(--primary-blue);">
+                                    <p class="text-muted small mt-2">Foto actual</p>
+                                </div>
+                            {% endif %}
+
+                            {{ form.foto_perfil }}
+                            <small class="text-muted d-block mt-1">
+                                Formatos: JPG, PNG, GIF | Tamaño máximo: 5MB
+                            </small>
+                            {% if form.foto_perfil.errors %}
+                                <div class="text-danger small mt-1">{{ form.foto_perfil.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Guardar Cambios
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="toggleEditMode()">
+                                <i class="fas fa-times"></i> Cancelar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="col-lg-8 mb-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-chart-bar"></i> Estadísticas de Actividad
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="stat-card blue">
+                            <div class="icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <h3>{{ total_practicas_activas }}</h3>
+                            <p>Prácticas Activas</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="stat-card light-blue">
+                            <div class="icon">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <h3>{{ total_practicas_finalizadas }}</h3>
+                            <p>Prácticas Finalizadas</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="stat-card blue">
+                            <div class="icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <h3>{{ total_seguimientos_pendientes }}</h3>
+                            <p>Seguimientos Pendientes</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información Adicional -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-info-circle"></i> Responsabilidades
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <h5><i class="fas fa-chalkboard-teacher"></i> Como Docente Asesor tienes las siguientes responsabilidades:</h5>
+                    <ul class="mb-0">
+                        <li>Supervisar y acompañar a los estudiantes durante su práctica empresarial</li>
+                        <li>Revisar y aprobar los seguimientos semanales enviados por los estudiantes</li>
+                        <li>Proporcionar retroalimentación constructiva sobre el desarrollo de las prácticas</li>
+                        <li>Estar disponible para resolver dudas y orientar a los estudiantes</li>
+                        <li>Evaluar el cumplimiento de los objetivos de la práctica</li>
+                        <li>Mantener comunicación con los tutores empresariales</li>
+                    </ul>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <div class="info-box p-3 mb-3" style="background: #f8f9fa; border-radius: 8px; border-left: 4px solid var(--primary-blue);">
+                            <strong><i class="fas fa-clipboard-check text-primary"></i> Capacidad de Supervisión</strong>
+                            <p class="mb-0 mt-2">Puedes supervisar hasta <strong>5 prácticas</strong> simultáneamente</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-box p-3 mb-3" style="background: #f8f9fa; border-radius: 8px; border-left: 4px solid var(--accent-blue);">
+                            <strong><i class="fas fa-calendar-alt text-primary"></i> Frecuencia de Revisión</strong>
+                            <p class="mb-0 mt-2">Los estudiantes envían <strong>seguimientos semanales</strong></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center mt-4">
+                    <a href="{% url 'docente:mis_estudiantes' %}" class="btn btn-primary">
+                        <i class="fas fa-users"></i> Ver Mis Estudiantes
+                    </a>
+                    <a href="{% url 'docente:seguimientos_pendientes' %}" class="btn btn-warning text-white">
+                        <i class="fas fa-tasks"></i> Seguimientos Pendientes
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .info-row {
+        padding: 10px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        margin-bottom: 10px;
+    }
+
+    .info-row strong {
+        display: block;
+        margin-bottom: 5px;
+        color: var(--primary-blue);
+    }
+
+    .info-row p {
+        margin-left: 25px;
+        color: #333;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: var(--primary-blue);
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+    }
+
+    .form-control:focus {
+        border-color: var(--accent-blue);
+        box-shadow: 0 0 0 0.25rem rgba(74, 144, 226, 0.25);
+    }
+
+    #btnToggleEdit {
+        transition: all 0.3s;
+    }
+
+    #btnToggleEdit:hover {
+        background: var(--accent-blue) !important;
+        color: white !important;
+    }
+
+    #editMode {
+        animation: fadeIn 0.3s ease-in;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<script>
+    function toggleEditMode() {
+        const viewMode = document.getElementById('viewMode');
+        const editMode = document.getElementById('editMode');
+        const btnToggle = document.getElementById('btnToggleEdit');
+
+        if (viewMode.style.display === 'none') {
+            // Volver al modo de visualización
+            viewMode.style.display = 'block';
+            editMode.style.display = 'none';
+            btnToggle.innerHTML = '<i class="fas fa-edit"></i> Editar';
+        } else {
+            // Cambiar al modo de edición
+            viewMode.style.display = 'none';
+            editMode.style.display = 'block';
+            btnToggle.innerHTML = '<i class="fas fa-eye"></i> Ver';
+        }
+    }
+
+    // Si hay errores en el formulario, mostrar el modo de edición automáticamente
+    {% if form.errors %}
+    document.addEventListener('DOMContentLoaded', function() {
+        toggleEditMode();
+    });
+    {% endif %}
+</script>
+{% endblock %}
+

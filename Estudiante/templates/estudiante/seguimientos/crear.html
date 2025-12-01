@@ -1,0 +1,223 @@
+{% extends 'estudiante/base.html' %}
+
+{% block title %}Crear Seguimiento - Portal Estudiantes{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark navbar-estudiante">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'estudiante:dashboard' %}">
+            <i class="fas fa-user-graduate me-2"></i>
+            Portal Estudiantes
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'estudiante:dashboard' %}">
+                        <i class="fas fa-home me-1"></i>Dashboard
+                    </a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                        {% if estudiante_actual.foto_perfil %}
+                            <img src="{{ estudiante_actual.foto_perfil.url }}" 
+                                 alt="{{ estudiante_actual.nombre_completo }}"
+                                 class="rounded-circle me-2"
+                                 style="width: 32px; height: 32px; object-fit: cover; border: 2px solid white;">
+                        {% else %}
+                            <i class="fas fa-user-circle me-2" style="font-size: 1.5rem;"></i>
+                        {% endif %}
+                        {{ estudiante_actual.nombre_completo|default:user.username }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item" href="{% url 'estudiante:perfil' %}">
+                                <i class="fas fa-user-edit me-2"></i>Mi Perfil
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item text-danger" href="{% url 'estudiante:logout' %}">
+                                <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 sidebar">
+            <div class="list-group">
+                <a href="{% url 'estudiante:dashboard' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-home me-2"></i>Dashboard
+                </a>
+                <a href="{% url 'estudiante:vacantes_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-briefcase me-2"></i>Vacantes Disponibles
+                </a>
+                <a href="{% url 'estudiante:postulaciones_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-clipboard-list me-2"></i>Mis Postulaciones
+                </a>
+                <a href="{% url 'estudiante:mi_practica' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-building me-2"></i>Mi Práctica
+                </a>
+                <a href="{% url 'estudiante:mis_seguimientos' %}" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-calendar-check me-2"></i>Seguimientos Semanales
+                </a>
+                <a href="{% url 'estudiante:mi_docente_asesor' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chalkboard-teacher me-2"></i>Mi Docente Asesor
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Area -->
+        <div class="col-md-9 col-lg-10">
+            <div class="content-wrapper">
+                <div class="page-header mb-4">
+                    <h2>
+                        <i class="fas fa-plus me-2"></i>
+                        Crear Seguimiento Semanal
+                    </h2>
+                    <p class="text-muted">Semana {{ siguiente_semana }}</p>
+                </div>
+
+                <!-- Formulario de Creación -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-edit me-2"></i>Formulario de Seguimiento
+                    </div>
+                    <div class="card-body">
+                        <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="semana_numero" class="form-label">
+                                <i class="fas fa-hashtag"></i> Número de Semana *
+                            </label>
+                            <input
+                                type="number"
+                                class="form-control"
+                                id="semana_numero"
+                                name="semana_numero"
+                                value="{{ siguiente_semana }}"
+                                min="1"
+                                required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="fecha_inicio" class="form-label">
+                                <i class="fas fa-calendar"></i> Fecha Inicio *
+                            </label>
+                            <input
+                                type="date"
+                                class="form-control"
+                                id="fecha_inicio"
+                                name="fecha_inicio"
+                                required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="fecha_fin" class="form-label">
+                                <i class="fas fa-calendar-check"></i> Fecha Fin *
+                            </label>
+                            <input
+                                type="date"
+                                class="form-control"
+                                id="fecha_fin"
+                                name="fecha_fin"
+                                required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="actividades_realizadas" class="form-label">
+                            <i class="fas fa-tasks"></i> Actividades Realizadas *
+                        </label>
+                        <textarea
+                            class="form-control"
+                            id="actividades_realizadas"
+                            name="actividades_realizadas"
+                            rows="5"
+                            placeholder="Describe detalladamente las actividades que realizaste durante esta semana..."
+                            required></textarea>
+                        <small class="text-muted">Sé específico sobre las tareas, proyectos y responsabilidades que asumiste.</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="logros" class="form-label">
+                            <i class="fas fa-trophy"></i> Logros Obtenidos
+                        </label>
+                        <textarea
+                            class="form-control"
+                            id="logros"
+                            name="logros"
+                            rows="3"
+                            placeholder="¿Qué metas cumpliste? ¿Qué resultados positivos obtuviste?"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="dificultades" class="form-label">
+                            <i class="fas fa-exclamation-triangle"></i> Dificultades Encontradas
+                        </label>
+                        <textarea
+                            class="form-control"
+                            id="dificultades"
+                            name="dificultades"
+                            rows="3"
+                            placeholder="¿Tuviste algún problema o desafío? ¿Cómo lo resolviste o qué apoyo necesitas?"></textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="evidencia" class="form-label">
+                            <i class="fas fa-paperclip"></i> Evidencia (Archivo)
+                        </label>
+                        <input
+                            type="file"
+                            class="form-control"
+                            id="evidencia"
+                            name="evidencia"
+                            accept=".pdf,.jpg,.jpeg,.png,.docx,.zip">
+                        <small class="text-muted">Formatos permitidos: PDF, JPG, PNG, DOCX, ZIP. Máximo 10 MB.</small>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Guardar Seguimiento
+                        </button>
+                        <a href="{% url 'estudiante:mis_seguimientos' %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+                    </div>
+                </div>
+
+                <!-- Información de Ayuda -->
+                <div class="card mt-4">
+                    <div class="card-header bg-info text-white">
+                        <i class="fas fa-info-circle me-2"></i>Recomendaciones
+                    </div>
+                    <div class="card-body">
+                        <ul class="mb-0">
+                            <li>Los seguimientos semanales son obligatorios durante toda tu práctica</li>
+                            <li>Tu docente asesor revisará y aprobará cada seguimiento</li>
+                            <li>Sé honesto sobre las dificultades, esto ayuda a que recibas mejor apoyo</li>
+                            <li>Adjunta evidencias siempre que sea posible (capturas, informes, documentos)</li>
+                            <li>Puedes editar un seguimiento hasta que sea aprobado por tu docente</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+

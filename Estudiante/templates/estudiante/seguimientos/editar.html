@@ -1,0 +1,147 @@
+{% extends 'estudiante/base.html' %}
+
+{% block title %}Editar Seguimiento - Estudiante{% endblock %}
+
+{% block content %}
+<!-- Top Bar -->
+<div class="top-bar">
+    <h2><i class="fas fa-edit"></i> Editar Seguimiento - Semana {{ seguimiento.semana_numero }}</h2>
+    <div class="user-info">
+        <div class="user-avatar">
+            <i class="fas fa-user-graduate"></i>
+        </div>
+        <div class="user-details">
+            <strong>{{ estudiante.nombre_completo }}</strong>
+            <small>Estudiante</small>
+        </div>
+    </div>
+</div>
+
+<!-- Alerta si fue rechazado -->
+{% if seguimiento.estado == 'RECHAZADO' %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="alert alert-warning">
+            <h5><i class="fas fa-exclamation-triangle"></i> Este seguimiento requiere correcciones</h5>
+            <p><strong>Observaciones del Docente:</strong></p>
+            <p>{{ seguimiento.observaciones_docente|linebreaks }}</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Formulario de Edición -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-edit"></i> Editar Seguimiento
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">
+                                <i class="fas fa-hashtag"></i> Número de Semana
+                            </label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                value="{{ seguimiento.semana_numero }}"
+                                disabled>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">
+                                <i class="fas fa-calendar"></i> Fecha Inicio
+                            </label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                value="{{ seguimiento.fecha_inicio|date:'Y-m-d' }}"
+                                disabled>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">
+                                <i class="fas fa-calendar-check"></i> Fecha Fin
+                            </label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                value="{{ seguimiento.fecha_fin|date:'Y-m-d' }}"
+                                disabled>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="actividades_realizadas" class="form-label">
+                            <i class="fas fa-tasks"></i> Actividades Realizadas *
+                        </label>
+                        <textarea
+                            class="form-control"
+                            id="actividades_realizadas"
+                            name="actividades_realizadas"
+                            rows="5"
+                            required>{{ seguimiento.actividades_realizadas }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="logros" class="form-label">
+                            <i class="fas fa-trophy"></i> Logros Obtenidos
+                        </label>
+                        <textarea
+                            class="form-control"
+                            id="logros"
+                            name="logros"
+                            rows="3">{{ seguimiento.logros }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="dificultades" class="form-label">
+                            <i class="fas fa-exclamation-triangle"></i> Dificultades Encontradas
+                        </label>
+                        <textarea
+                            class="form-control"
+                            id="dificultades"
+                            name="dificultades"
+                            rows="3">{{ seguimiento.dificultades }}</textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="evidencia" class="form-label">
+                            <i class="fas fa-paperclip"></i> Evidencia (Archivo)
+                        </label>
+                        {% if seguimiento.evidencia %}
+                            <div class="mb-2">
+                                <small class="text-muted">Archivo actual:
+                                    <a href="{{ seguimiento.evidencia.url }}" target="_blank">
+                                        {{ seguimiento.evidencia.name|slice:"-30:" }}
+                                    </a>
+                                </small>
+                            </div>
+                        {% endif %}
+                        <input
+                            type="file"
+                            class="form-control"
+                            id="evidencia"
+                            name="evidencia"
+                            accept=".pdf,.jpg,.jpeg,.png,.docx,.zip">
+                        <small class="text-muted">Subir un nuevo archivo reemplazará el actual. Formatos: PDF, JPG, PNG, DOCX, ZIP.</small>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Guardar Cambios
+                        </button>
+                        <a href="{% url 'estudiante:mis_seguimientos' %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

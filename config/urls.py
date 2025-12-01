@@ -11,12 +11,16 @@ urlpatterns = [
     path('', views.login_unificado, name='login_unificado'),
     path('login/', views.login_unificado, name='login_unificado'),
     path('seleccionar-rol/', views.seleccionar_rol, name='seleccionar_rol'),
+    path('logout/', views.logout_view, name='logout'),
 
     # Rutas de Coordinación
     path('coordinacion/', include('coordinacion.urls')),
 
     # Rutas de Estudiantes
     path('estudiante/', include('Estudiante.urls')),
+
+    # Rutas de Docente Asesor
+    path('docente/', include('docente.urls')),
 ]
 
 if settings.DEBUG:

@@ -12,16 +12,7 @@
         </a>
         <div class="collapse navbar-collapse">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-user-circle me-1"></i>{{ request.user.username }}
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="{% url 'coordinacion:logout' %}">
-                            <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
-                        </a></li>
-                    </ul>
-                </li>
+                {% include 'coordinacion/_navbar_user_dropdown.html' %}
             </ul>
         </div>
     </div>
@@ -65,7 +56,7 @@
         <!-- Main Content -->
         <div class="col-md-9 col-lg-10">
             <div class="mb-3 d-flex justify-content-end">
-                <a href="{% url 'coordinacion:empresa_crear' %}" class="btn btn-success">
+                <a href="{% url 'coordinacion:empresa_crear' %}" class="btn btn-primary">
                     <i class="fas fa-plus me-2"></i>Crear Empresa
                 </a>
             </div>
@@ -277,7 +268,7 @@
                 <td>
                     <div className="btn-group btn-group-sm">
                         <a
-                            href={`/empresas/${empresa.id}/`}
+                            href={'/coordinacion/empresas/' + empresa.id + '/'}
                             className="btn btn-outline-primary"
                             title="Ver detalles"
                         >
@@ -285,7 +276,7 @@
                         </a>
                         {/* Editar */}
                         <a
-                            href={`/empresas/${empresa.id}/editar/`}
+                            href={'/coordinacion/empresas/' + empresa.id + '/editar/'}
                             className="btn btn-outline-secondary"
                             title="Editar empresa"
                         >
@@ -293,7 +284,7 @@
                         </a>
                         {/* Eliminar */}
                         <a
-                            href={`/empresas/${empresa.id}/eliminar/`}
+                            href={'/coordinacion/empresas/' + empresa.id + '/eliminar/'}
                             className="btn btn-outline-danger"
                             title="Eliminar empresa"
                         >
@@ -301,7 +292,7 @@
                         </a>
                         {empresa.estado === 'PENDIENTE' && (
                             <a
-                                href={`/empresas/${empresa.id}/validar/`}
+                                href={'/coordinacion/empresas/' + empresa.id + '/validar/'}
                                 className="btn btn-outline-success"
                                 title="Validar"
                             >

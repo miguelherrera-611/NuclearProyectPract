@@ -12,6 +12,15 @@ class Coordinador(models.Model):
     nombre_completo = models.CharField(max_length=200)
     email = models.EmailField(unique=True)
     telefono = models.CharField(max_length=20, blank=True, null=True)
+
+    # Foto de perfil
+    foto_perfil = models.ImageField(
+        upload_to='coordinadores/fotos_perfil/',
+        blank=True,
+        null=True,
+        help_text="Foto de perfil del coordinador"
+    )
+
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     activo = models.BooleanField(default=True)
 
@@ -156,6 +165,14 @@ class Estudiante(models.Model):
     programa_academico = models.CharField(max_length=200)
     semestre = models.IntegerField()
 
+    # Foto de perfil
+    foto_perfil = models.ImageField(
+        upload_to='estudiantes/fotos_perfil/',
+        blank=True,
+        null=True,
+        help_text="Foto de perfil del estudiante"
+    )
+
     # Documentos
     hoja_vida = models.FileField(
         upload_to='estudiantes/hojas_vida/',
@@ -240,9 +257,19 @@ class DocenteAsesor(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='docente_asesor')
     nombre_completo = models.CharField(max_length=200)
+    cedula = models.CharField(max_length=20, unique=True, null=True, blank=True)
     email = models.EmailField()
     telefono = models.CharField(max_length=20)
     especialidad = models.CharField(max_length=200)
+
+    # Foto de perfil
+    foto_perfil = models.ImageField(
+        upload_to='docentes/fotos_perfil/',
+        blank=True,
+        null=True,
+        help_text="Foto de perfil del docente asesor"
+    )
+
     activo = models.BooleanField(default=True)
     fecha_registro = models.DateTimeField(auto_now_add=True)
 
@@ -290,7 +317,7 @@ class PracticaEmpresarial(models.Model):
     plan_aprobado = models.BooleanField(default=False)
 
     # Control
-    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='INICIADA')
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='EN_CURSO')
     asignada_por = models.ForeignKey(Coordinador, on_delete=models.CASCADE, related_name='practicas_asignadas')
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     observaciones = models.TextField(blank=True, null=True)
@@ -399,6 +426,12 @@ class Evaluacion(models.Model):
 class SeguimientoSemanal(models.Model):
     """Registro de seguimiento semanal (RF-07)"""
 
+    ESTADO_CHOICES = [
+        ('PENDIENTE', 'Pendiente de Revisión'),
+        ('APROBADO', 'Aprobado'),
+        ('RECHAZADO', 'Requiere Correcciones'),
+    ]
+
     practica = models.ForeignKey(PracticaEmpresarial, on_delete=models.CASCADE, related_name='seguimientos')
     semana_numero = models.IntegerField()
     fecha_inicio = models.DateField()
@@ -412,18 +445,28 @@ class SeguimientoSemanal(models.Model):
     # Evidencias
     evidencia = models.FileField(
         upload_to='practicas/seguimientos/',
-        validators=[FileExtensionValidator(['pdf', 'jpg', 'png'])],
+        validators=[FileExtensionValidator(['pdf', 'jpg', 'png', 'docx', 'zip'])],
         blank=True,
         null=True
     )
 
     # Validación
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='PENDIENTE')
     validado_tutor = models.BooleanField(default=False)
     validado_docente = models.BooleanField(default=False)
+    calificacion = models.DecimalField(
+        max_digits=3,
+        decimal_places=1,
+        blank=True,
+        null=True,
+        help_text="Calificación del docente asesor (0.0 - 5.0)"
+    )
     observaciones_tutor = models.TextField(blank=True, null=True)
     observaciones_docente = models.TextField(blank=True, null=True)
+    fecha_revision_docente = models.DateTimeField(blank=True, null=True)
 
     fecha_registro = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name = 'Seguimiento Semanal'
@@ -433,3 +476,47 @@ class SeguimientoSemanal(models.Model):
 
     def __str__(self):
         return f"Semana {self.semana_numero} - {self.practica.estudiante.nombre_completo}"
+
+
+# ============================================
+# MODELO: MENSAJE (CHAT)
+# ============================================
+class Mensaje(models.Model):
+    """Mensajes entre estudiante y docente asesor"""
+
+    # Relaciones
+    practica = models.ForeignKey(
+        PracticaEmpresarial,
+        on_delete=models.CASCADE,
+        related_name='mensajes',
+        help_text="Práctica a la que pertenece el mensaje"
+    )
+    remitente = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='mensajes_enviados',
+        help_text="Usuario que envía el mensaje"
+    )
+
+    # Contenido
+    contenido = models.TextField(help_text="Contenido del mensaje")
+    archivo_adjunto = models.FileField(
+        upload_to='mensajes/adjuntos/',
+        blank=True,
+        null=True,
+        help_text="Archivo adjunto opcional"
+    )
+
+    # Control
+    leido = models.BooleanField(default=False, help_text="Indica si el mensaje fue leído")
+    fecha_envio = models.DateTimeField(auto_now_add=True)
+    fecha_lectura = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        verbose_name = 'Mensaje'
+        verbose_name_plural = 'Mensajes'
+        ordering = ['fecha_envio']
+
+    def __str__(self):
+        return f"Mensaje de {self.remitente.username} - {self.fecha_envio.strftime('%d/%m/%Y %H:%M')}"
+

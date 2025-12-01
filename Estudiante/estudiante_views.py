@@ -66,60 +66,18 @@ def estudiante_required(view_func):
 
 def estudiante_login(request):
     """
-    Vista de login para estudiantes
-    Redirige al login unificado si el usuario no es estudiante
+    Redirección al login unificado
+    Esta vista se mantiene solo para compatibilidad con URLs antiguas
     """
-    # Si ya está autenticado, verificar su rol
-    if request.user.is_authenticated:
-        if hasattr(request.user, 'estudiante'):
-            # Es estudiante, redirigir a su dashboard
-            return redirect('estudiante:dashboard')
-        else:
-            # No es estudiante, redirigir al login unificado
-            messages.warning(
-                request,
-                'Esta cuenta no pertenece a un estudiante. Por favor, usa el login principal.'
-            )
-            return redirect('login_unificado')
+    messages.info(request, 'Por favor, inicia sesión seleccionando tu rol')
+    return redirect('login_unificado')
 
-    if request.method == 'POST':
-        form = EstudianteLoginForm(request, data=request.POST)
-        if form.is_valid():
-            user = form.get_user()
-
-            # Verificar que el usuario sea un estudiante
-            if not hasattr(user, 'estudiante'):
-                messages.error(
-                    request,
-                    '❌ Esta cuenta no está registrada como estudiante. '
-                    'Si eres coordinador, usa el login de coordinación.'
-                )
-                return render(request, 'estudiante/login.html', {'form': form})
-
-            # Login exitoso
-            login(request, user)
-            # Establecer rol activo en sesión
-            request.session['active_role'] = 'estudiante'
-            # Limpiar available_roles por si venía de login unificado
-            request.session.pop('available_roles', None)
-            messages.success(request, f'¡Bienvenido/a {user.estudiante.nombre_completo}! 👋')
-            return redirect('estudiante:dashboard')
-        else:
-            messages.error(request, '❌ Usuario o contraseña incorrectos')
-    else:
-        form = EstudianteLoginForm()
-
-    context = {
-        'form': form,
-    }
-
-    return render(request, 'estudiante/login.html', context)
 
 
 def estudiante_registro(request):
     """
     Vista de registro para nuevos estudiantes
-    ✅ Asigna automáticamente estado según semestre
+    ✅ Asigna automáticamente estado según programa y semestre
     """
     # Si ya está autenticado, redirigir al dashboard
     if request.user.is_authenticated and hasattr(request.user, 'estudiante'):
@@ -131,19 +89,29 @@ def estudiante_registro(request):
             user = form.save()
             estudiante = user.estudiante
 
-            # Mensaje personalizado según estado
+            # Requisitos por programa
+            requisitos = {
+                'Administración de Empresas': 2,
+                'Ingeniería de Software': 4,
+                'Ingeniería Industrial': 4,
+            }
+
+            semestre_minimo = requisitos.get(estudiante.programa_academico, 4)
+
+            # Mensaje personalizado según estado y programa
             if estudiante.estado == 'NO_APTO':
                 messages.warning(
                     request,
-                    f'✅ Registro exitoso. Sin embargo, como estás en {estudiante.semestre}° semestre, '
-                    f'aún no puedes realizar prácticas empresariales. '
-                    f'Podrás hacerlo a partir de 4to semestre.'
+                    f'✅ Registro exitoso. Sin embargo, como estudiante de {estudiante.programa_academico} '
+                    f'en {estudiante.semestre}° semestre, aún no puedes realizar prácticas empresariales. '
+                    f'Podrás hacerlo a partir del {semestre_minimo}° semestre.'
                 )
             else:
                 messages.success(
                     request,
                     f'✅ ¡Registro exitoso! Bienvenido/a {estudiante.nombre_completo}. '
-                    f'Tu cuenta está lista y estás APTO para ser postulado a prácticas.'
+                    f'Como estudiante de {estudiante.programa_academico} en {estudiante.semestre}° semestre, '
+                    f'estás APTO para ser postulado a prácticas empresariales.'
                 )
 
             # Login automático después del registro
@@ -163,18 +131,19 @@ def estudiante_registro(request):
     return render(request, 'estudiante/registro.html', context)
 
 
-@estudiante_required
 def estudiante_logout(request):
     """
     Cerrar sesión del estudiante
     """
-    nombre = request.user.estudiante.nombre_completo
+    if request.user.is_authenticated and hasattr(request.user, 'estudiante'):
+        nombre = request.user.estudiante.nombre_completo
+        messages.info(request, f'Hasta pronto, {nombre}. Has cerrado sesión correctamente 👋')
+
     logout(request)
     # Limpiar sesión relacionada a roles
     request.session.pop('active_role', None)
     request.session.pop('available_roles', None)
-    messages.info(request, f'Hasta pronto, {nombre}. Has cerrado sesión correctamente 👋')
-    return redirect('estudiante:login')
+    return redirect('login_unificado')
 
 
 # ============================================
@@ -580,4 +549,360 @@ def estudiante_no_apto(request):
         'semestres_faltantes': semestres_faltantes,
     }
 
+
     return render(request, 'estudiante/no_apto.html', context)
+
+
+# ============================================
+# SEGUIMIENTOS SEMANALES
+# ============================================
+
+@estudiante_required
+def mis_seguimientos(request):
+    """
+    Vista para que el estudiante vea todos sus seguimientos semanales
+    """
+    estudiante = request.user.estudiante
+
+    # Verificar que esté en práctica
+    practica = PracticaEmpresarial.objects.filter(
+        estudiante=estudiante,
+        estado='EN_CURSO'
+    ).select_related('empresa', 'docente_asesor', 'tutor_empresarial').first()
+
+    if not practica:
+        messages.warning(request, 'No tienes una práctica activa en este momento.')
+        return redirect('estudiante:dashboard')
+
+    # Obtener todos los seguimientos
+    seguimientos = SeguimientoSemanal.objects.filter(
+        practica=practica
+    ).order_by('-semana_numero')
+
+    context = {
+        'estudiante': estudiante,
+        'practica': practica,
+        'seguimientos': seguimientos,
+    }
+
+    return render(request, 'estudiante/seguimientos/lista.html', context)
+
+
+@estudiante_required
+def crear_seguimiento(request):
+    """
+    Vista para que el estudiante cree un nuevo seguimiento semanal
+    """
+    estudiante = request.user.estudiante
+
+    # Obtener práctica activa
+    practica = PracticaEmpresarial.objects.filter(
+        estudiante=estudiante,
+        estado='EN_CURSO'
+    ).select_related('empresa', 'docente_asesor', 'tutor_empresarial').first()
+
+    if not practica:
+        messages.warning(request, 'No tienes una práctica activa.')
+        return redirect('estudiante:dashboard')
+
+    if request.method == 'POST':
+        semana_numero = request.POST.get('semana_numero')
+        fecha_inicio = request.POST.get('fecha_inicio')
+        fecha_fin = request.POST.get('fecha_fin')
+        actividades_realizadas = request.POST.get('actividades_realizadas')
+        logros = request.POST.get('logros', '')
+        dificultades = request.POST.get('dificultades', '')
+        evidencia = request.FILES.get('evidencia')
+
+        # Validar que la semana no exista
+        if SeguimientoSemanal.objects.filter(practica=practica, semana_numero=semana_numero).exists():
+            messages.error(request, f'Ya existe un seguimiento para la semana {semana_numero}.')
+            return redirect('estudiante:crear_seguimiento')
+
+        # Crear seguimiento
+        seguimiento = SeguimientoSemanal.objects.create(
+            practica=practica,
+            semana_numero=semana_numero,
+            fecha_inicio=fecha_inicio,
+            fecha_fin=fecha_fin,
+            actividades_realizadas=actividades_realizadas,
+            logros=logros,
+            dificultades=dificultades,
+            evidencia=evidencia,
+            estado='PENDIENTE'
+        )
+
+        messages.success(request, f'Seguimiento de la semana {semana_numero} creado correctamente.')
+        return redirect('estudiante:mis_seguimientos')
+
+    # Calcular siguiente número de semana
+    ultimo_seguimiento = SeguimientoSemanal.objects.filter(practica=practica).order_by('-semana_numero').first()
+    siguiente_semana = (ultimo_seguimiento.semana_numero + 1) if ultimo_seguimiento else 1
+
+    context = {
+        'estudiante': estudiante,
+        'practica': practica,
+        'siguiente_semana': siguiente_semana,
+    }
+
+    return render(request, 'estudiante/seguimientos/crear.html', context)
+
+
+@estudiante_required
+def detalle_seguimiento(request, seguimiento_id):
+    """
+    Vista para ver el detalle de un seguimiento específico
+    """
+    estudiante = request.user.estudiante
+
+    seguimiento = get_object_or_404(
+        SeguimientoSemanal,
+        id=seguimiento_id,
+        practica__estudiante=estudiante
+    )
+
+    context = {
+        'estudiante': estudiante,
+        'seguimiento': seguimiento,
+    }
+
+    return render(request, 'estudiante/seguimientos/detalle.html', context)
+
+
+@estudiante_required
+def editar_seguimiento(request, seguimiento_id):
+    """
+    Vista para editar un seguimiento (solo si está en estado RECHAZADO o PENDIENTE)
+    """
+    estudiante = request.user.estudiante
+
+    seguimiento = get_object_or_404(
+        SeguimientoSemanal,
+        id=seguimiento_id,
+        practica__estudiante=estudiante
+    )
+
+    # Solo se puede editar si está pendiente o rechazado
+    if seguimiento.estado == 'APROBADO':
+        messages.warning(request, 'No puedes editar un seguimiento que ya fue aprobado.')
+        return redirect('estudiante:detalle_seguimiento', seguimiento_id=seguimiento.id)
+
+    if request.method == 'POST':
+        seguimiento.actividades_realizadas = request.POST.get('actividades_realizadas')
+        seguimiento.logros = request.POST.get('logros', '')
+        seguimiento.dificultades = request.POST.get('dificultades', '')
+
+        # Si se sube nueva evidencia, reemplazar
+        if request.FILES.get('evidencia'):
+            seguimiento.evidencia = request.FILES.get('evidencia')
+
+        # Si estaba rechazado, volver a pendiente
+        if seguimiento.estado == 'RECHAZADO':
+            seguimiento.estado = 'PENDIENTE'
+            seguimiento.observaciones_docente = ''
+
+        seguimiento.save()
+
+        messages.success(request, f'Seguimiento de la semana {seguimiento.semana_numero} actualizado correctamente.')
+        return redirect('estudiante:mis_seguimientos')
+
+    context = {
+        'estudiante': estudiante,
+        'seguimiento': seguimiento,
+    }
+
+    return render(request, 'estudiante/seguimientos/editar.html', context)
+
+
+# ============================================
+# VISTAS: MI DOCENTE ASESOR Y CHAT
+# ============================================
+
+@estudiante_required
+def mi_docente_asesor(request):
+    """Vista de información del docente asesor asignado"""
+    estudiante = request.user.estudiante
+
+    # Obtener la práctica activa del estudiante
+    practica = PracticaEmpresarial.objects.filter(
+        estudiante=estudiante,
+        estado='EN_CURSO'
+    ).select_related('docente_asesor').first()
+
+    if not practica or not practica.docente_asesor:
+        messages.info(request, 'Aún no tienes un docente asesor asignado. Esto ocurre cuando te vinculan a una práctica.')
+        return render(request, 'estudiante/mi_docente_asesor.html', {
+            'estudiante': estudiante,
+            'practica': None,
+            'docente': None,
+        })
+
+    docente = practica.docente_asesor
+
+    # Contar mensajes no leídos del docente
+    from coordinacion.models import Mensaje
+    mensajes_no_leidos = Mensaje.objects.filter(
+        practica=practica,
+        remitente=docente.user,
+        leido=False
+    ).count()
+
+    context = {
+        'estudiante': estudiante,
+        'practica': practica,
+        'docente': docente,
+        'mensajes_no_leidos': mensajes_no_leidos,
+    }
+
+    return render(request, 'estudiante/mi_docente_asesor.html', context)
+
+
+@estudiante_required
+def chat_con_docente(request):
+    """Vista del chat con el docente asesor"""
+    from django.http import JsonResponse
+    from coordinacion.models import Mensaje
+
+    estudiante = request.user.estudiante
+
+    # Obtener la práctica activa
+    practica = PracticaEmpresarial.objects.filter(
+        estudiante=estudiante,
+        estado='EN_CURSO'
+    ).select_related('docente_asesor').first()
+
+    if not practica or not practica.docente_asesor:
+        messages.error(request, 'No tienes un docente asesor asignado.')
+        return redirect('estudiante:dashboard')
+
+    docente = practica.docente_asesor
+
+    # Obtener mensajes de esta práctica (últimos 100)
+    mensajes_list = list(Mensaje.objects.filter(
+        practica=practica
+    ).select_related('remitente').order_by('fecha_envio')[:100])
+
+    # Marcar como leídos los mensajes del docente
+    Mensaje.objects.filter(
+        practica=practica,
+        remitente=docente.user,
+        leido=False
+    ).update(leido=True, fecha_lectura=timezone.now())
+
+    # Obtener ID del último mensaje
+    ultimo_mensaje_id = mensajes_list[-1].id if mensajes_list else 0
+
+    context = {
+        'estudiante': estudiante,
+        'practica': practica,
+        'docente': docente,
+        'mensajes': mensajes_list,
+        'ultimo_mensaje_id': ultimo_mensaje_id,
+    }
+
+    return render(request, 'estudiante/chat.html', context)
+
+
+@estudiante_required
+def enviar_mensaje(request):
+    """AJAX: Enviar mensaje al docente"""
+    from django.http import JsonResponse
+    from coordinacion.models import Mensaje
+
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+    estudiante = request.user.estudiante
+
+    # Obtener la práctica activa
+    practica = PracticaEmpresarial.objects.filter(
+        estudiante=estudiante,
+        estado='EN_CURSO'
+    ).first()
+
+    if not practica:
+        return JsonResponse({'error': 'No tienes práctica activa'}, status=400)
+
+    contenido = request.POST.get('contenido', '').strip()
+    archivo = request.FILES.get('archivo')
+
+    if not contenido and not archivo:
+        return JsonResponse({'error': 'Debes escribir un mensaje o adjuntar un archivo'}, status=400)
+
+    # Crear el mensaje
+    mensaje = Mensaje.objects.create(
+        practica=practica,
+        remitente=request.user,
+        contenido=contenido,
+        archivo_adjunto=archivo
+    )
+
+    return JsonResponse({
+        'success': True,
+        'mensaje': {
+            'id': mensaje.id,
+            'contenido': mensaje.contenido,
+            'fecha_envio': mensaje.fecha_envio.strftime('%d/%m/%Y %H:%M'),
+            'remitente': mensaje.remitente.username,
+            'archivo': mensaje.archivo_adjunto.url if mensaje.archivo_adjunto else None,
+        }
+    })
+
+
+@estudiante_required
+def obtener_mensajes(request):
+    """AJAX: Obtener nuevos mensajes"""
+    from django.http import JsonResponse
+    from coordinacion.models import Mensaje
+
+    estudiante = request.user.estudiante
+
+    # Obtener la práctica activa
+    practica = PracticaEmpresarial.objects.filter(
+        estudiante=estudiante,
+        estado='EN_CURSO'
+    ).first()
+
+    if not practica:
+        return JsonResponse({'mensajes': []})
+
+    # Obtener ID del último mensaje que tiene el cliente
+    ultimo_id = request.GET.get('ultimo_id', 0)
+
+    # Obtener mensajes nuevos
+    mensajes = Mensaje.objects.filter(
+        practica=practica,
+        id__gt=ultimo_id
+    ).select_related('remitente').order_by('fecha_envio')
+
+    # Marcar como leídos los mensajes del docente
+    Mensaje.objects.filter(
+        practica=practica,
+        remitente=practica.docente_asesor.user,
+        leido=False,
+        id__gt=ultimo_id
+    ).update(leido=True, fecha_lectura=timezone.now())
+
+    mensajes_data = []
+    for mensaje in mensajes:
+        mensajes_data.append({
+            'id': mensaje.id,
+            'contenido': mensaje.contenido,
+            'fecha_envio': mensaje.fecha_envio.strftime('%d/%m/%Y %H:%M'),
+            'remitente': mensaje.remitente.username,
+            'remitente_nombre': (
+                mensaje.remitente.estudiante.nombre_completo
+                if hasattr(mensaje.remitente, 'estudiante')
+                else mensaje.remitente.docente_asesor.nombre_completo
+            ),
+            'es_mio': mensaje.remitente == request.user,
+            'archivo': mensaje.archivo_adjunto.url if mensaje.archivo_adjunto else None,
+            'leido': mensaje.leido,
+        })
+
+    return JsonResponse({'mensajes': mensajes_data})
+
+
+
+
+

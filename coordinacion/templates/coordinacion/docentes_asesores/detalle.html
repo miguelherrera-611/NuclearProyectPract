@@ -1,0 +1,179 @@
+{% extends 'coordinacion/base.html' %}
+
+{% block title %}Detalle Docente Asesor - {{ docente.nombre_completo }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2>
+                <i class="fas fa-chalkboard-teacher me-2"></i>
+                {{ docente.nombre_completo }}
+            </h2>
+            <p class="text-muted mb-0">Docente Asesor</p>
+        </div>
+        <div>
+            <a href="{% url 'coordinacion:docente_asesor_editar' docente.id %}" class="btn btn-primary">
+                <i class="fas fa-edit me-1"></i>Editar
+            </a>
+            <a href="{% url 'coordinacion:docentes_asesores_lista' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i>Volver
+            </a>
+        </div>
+    </div>
+
+    <!-- Información del Docente -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-user me-2"></i>Información Personal</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <p><strong>Nombre Completo:</strong><br>{{ docente.nombre_completo }}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>Email:</strong><br>{{ docente.email }}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>Teléfono:</strong><br>{{ docente.telefono }}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>Especialidad:</strong><br>{{ docente.especialidad }}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>Estado:</strong><br>
+                                {% if docente.activo %}
+                                    <span class="badge bg-success">Activo</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactivo</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>Fecha Registro:</strong><br>{{ docente.fecha_registro|date:"d/m/Y" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-center stat-card">
+                <div class="card-body">
+                    <h3 class="text-primary">{{ total_practicas_activas }}</h3>
+                    <p class="text-muted mb-0">Prácticas Activas</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center stat-card">
+                <div class="card-body">
+                    <h3 class="text-success">{{ total_practicas_finalizadas }}</h3>
+                    <p class="text-muted mb-0">Prácticas Finalizadas</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center stat-card">
+                <div class="card-body">
+                    <h3 class="text-warning">{{ total_seguimientos_pendientes }}</h3>
+                    <p class="text-muted mb-0">Seguimientos Pendientes</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Filtrar por Estado</label>
+                    <select name="estado" class="form-select" onchange="this.form.submit()">
+                        <option value="">Todas las prácticas</option>
+                        <option value="EN_CURSO" {% if estado_filtro == 'EN_CURSO' %}selected{% endif %}>En Curso</option>
+                        <option value="FINALIZADA" {% if estado_filtro == 'FINALIZADA' %}selected{% endif %}>Finalizadas</option>
+                        <option value="CANCELADA" {% if estado_filtro == 'CANCELADA' %}selected{% endif %}>Canceladas</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de Prácticas Asignadas -->
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-users me-2"></i>Estudiantes Asignados</h5>
+        </div>
+        <div class="card-body">
+            {% if practicas %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Estudiante</th>
+                                <th>Programa</th>
+                                <th>Empresa</th>
+                                <th>Fecha Inicio</th>
+                                <th>Estado</th>
+                                <th>Seguimientos</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for practica in practicas %}
+                            <tr>
+                                <td>
+                                    <strong>{{ practica.estudiante.nombre_completo }}</strong><br>
+                                    <small class="text-muted">{{ practica.estudiante.codigo }}</small>
+                                </td>
+                                <td>{{ practica.estudiante.programa_academico }}</td>
+                                <td>{{ practica.empresa.razon_social }}</td>
+                                <td>{{ practica.fecha_inicio|date:"d/m/Y" }}</td>
+                                <td>
+                                    {% if practica.estado == 'EN_CURSO' %}
+                                        <span class="badge bg-primary">En Curso</span>
+                                    {% elif practica.estado == 'FINALIZADA' %}
+                                        <span class="badge bg-success">Finalizada</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Cancelada</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% with total=practica.seguimientos.count pendientes=practica.seguimientos.filter|length %}
+                                    <span class="badge bg-info">{{ practica.seguimientos.count }} total</span>
+                                    <br>
+                                    <small class="text-warning">
+                                        {{ practica.seguimientos.filter.count }} pendientes
+                                    </small>
+                                    {% endwith %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'coordinacion:docente_asesor_practica_detalle' docente.id practica.id %}"
+                                       class="btn btn-sm btn-primary">
+                                        <i class="fas fa-eye"></i> Ver Detalle
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info text-center py-4">
+                    <i class="fas fa-info-circle fa-2x mb-3"></i>
+                    <p class="mb-0">Este docente aún no tiene estudiantes asignados.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,4 +1,4 @@
-{% extends 'estudiantes/base.html' %}
+{% extends 'estudiante/base.html' %}
 
 {% block title %}{{ vacante.titulo }} - Detalle de Vacante{% endblock %}
 
@@ -21,9 +21,16 @@
                     </a>
                 </li>
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-user-circle me-1"></i>
-                        Mi Cuenta
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                        {% if estudiante_actual.foto_perfil %}
+                            <img src="{{ estudiante_actual.foto_perfil.url }}" 
+                                 alt="{{ estudiante_actual.nombre_completo }}"
+                                 class="rounded-circle me-2"
+                                 style="width: 32px; height: 32px; object-fit: cover; border: 2px solid white;">
+                        {% else %}
+                            <i class="fas fa-user-circle me-2" style="font-size: 1.5rem;"></i>
+                        {% endif %}
+                        {{ estudiante_actual.nombre_completo|default:user.username }}
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li>
@@ -45,23 +52,25 @@
 </nav>
 
 <!-- Main Content -->
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-lg-10">
-            
-            <!-- Breadcrumb -->
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item">
-                        <a href="{% url 'estudiante:dashboard' %}">Dashboard</a>
-                    </li>
-                    <li class="breadcrumb-item">
-                        <a href="{% url 'estudiante:vacantes_lista' %}">Vacantes</a>
-                    </li>
-                    <li class="breadcrumb-item active">{{ vacante.titulo }}</li>
-                </ol>
-            </nav>
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 sidebar">
+            <div class="list-group">
+                <a href="{% url 'estudiante:dashboard' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-home me-2"></i>Dashboard
+                </a>
+                <a href="{% url 'estudiante:vacantes_lista' %}" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-briefcase me-2"></i>Vacantes Disponibles
+                </a>
+                <a href="{% url 'estudiante:postulaciones_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-clipboard-list me-2"></i>Mis Postulaciones
+                </a>
+            </div>
+        </div>
 
+        <!-- Main Area -->
+        <div class="col-md-9 col-lg-10">
             <!-- Header -->
             <div class="card mb-4">
                 <div class="card-body">
@@ -74,7 +83,7 @@
                             <h2 class="mb-3">{{ vacante.titulo }}</h2>
                             
                             <div class="d-flex gap-2 mb-3">
-                                <span class="badge bg-success">
+                                <span class="badge bg-primary">
                                     <i class="fas fa-door-open me-1"></i>
                                     {{ vacante.cupos_disponibles }} cupo{{ vacante.cupos_disponibles|pluralize }} disponible{{ vacante.cupos_disponibles|pluralize }}
                                 </span>
@@ -154,13 +163,13 @@
 
                 <div class="col-md-6">
                     <div class="card h-100">
-                        <div class="card-header bg-success text-white">
+                        <div class="card-header bg-primary text-white">
                             <i class="fas fa-info-circle me-2"></i>
                             Información General
                         </div>
                         <div class="card-body">
                             <p class="mb-2">
-                                <i class="fas fa-briefcase me-2 text-success"></i>
+                                <i class="fas fa-briefcase me-2 text-primary"></i>
                                 <strong>Área:</strong> {{ vacante.area_practica }}
                             </p>
                             <p class="mb-2">
@@ -253,7 +262,6 @@
                 <a href="{% url 'estudiante:vacantes_lista' %}" class="btn btn-outline-secondary">
                     <i class="fas fa-arrow-left me-2"></i>Volver a Vacantes
                 </a>
-                
                 {% if not postulacion %}
                 <div class="alert alert-info mb-0">
                     <i class="fas fa-info-circle me-2"></i>
