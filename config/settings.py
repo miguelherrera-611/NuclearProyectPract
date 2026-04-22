@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'coordinacion',  # Nuestra app de coordinación empresarial
     'Estudiante',    # App de estudiantes (registro, login, dashboard)
     'docente',       # App de docente asesor
+    'tutor_empresarial',  # App de tutor empresarial
 ]
 
 MIDDLEWARE = [
@@ -69,6 +70,7 @@ TEMPLATES = [
                 'coordinacion.context_processors.coordinador_data',  # Foto de perfil coordinador
                 'Estudiante.context_processors.estudiante_data',  # Foto de perfil estudiante
                 'docente.context_processors.docente_data',  # Foto de perfil docente
+                'tutor_empresarial.context_processors.tutor_data',  # Foto de perfil tutor
             ],
         },
     },

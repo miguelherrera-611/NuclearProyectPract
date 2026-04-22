@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q, Count
 from django.utils import timezone
@@ -556,7 +557,7 @@ def postulacion_aprobar(request, postulacion_id):
                 })
 
             postulacion.estado = 'RECHAZADO'
-            postulacion.fecha_respuesta = timezone.now()
+            postulion.fecha_respuesta = timezone.now()
             postulacion.observaciones = observaciones
             postulacion.save()
 
@@ -564,8 +565,7 @@ def postulacion_aprobar(request, postulacion_id):
             if postulacion.estudiante.estado != 'EN_PRACTICA':
                 postulacion.estudiante.estado = 'APTO'
                 postulacion.estudiante.save()
-
-            messages.warning(
+                messages.warning(
                 request,
                 f'❌ Postulación rechazada. Motivo: {observaciones[:100]}'
             )
@@ -858,8 +858,8 @@ def postulacion_desvincular(request, postulacion_id):
 
         # Liberar cupo de la vacante
         if postulacion.vacante.cupos_ocupados > 0:
-            postulacion.vacante.cupos_ocupados -= 1
-            postulacion.vacante.save()
+            postulion.vacante.cupos_ocupados -= 1
+            postulion.vacante.save()
 
         messages.success(
             request,
@@ -1613,6 +1613,296 @@ def reportes_dashboard(request):
     }
 
     return render(request, 'coordinacion/reportes/dashboard.html', context)
+
+
+@login_required
+@coordinator_required
+def exportar_reportes_excel(request):
+    """Exportar reportes a Excel"""
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+    from django.http import HttpResponse
+    from datetime import datetime
+
+    # Crear el workbook
+    wb = Workbook()
+
+    # ============================================
+    # HOJA 1: RESUMEN GENERAL
+    # ============================================
+    ws1 = wb.active
+    ws1.title = "Resumen General"
+
+    # Título
+    ws1['A1'] = "REPORTE GENERAL DEL SISTEMA DE PRÁCTICAS"
+    ws1['A1'].font = Font(size=16, bold=True, color="FFFFFF")
+    ws1['A1'].fill = PatternFill(start_color="1E3C72", end_color="1E3C72", fill_type="solid")
+    ws1['A1'].alignment = Alignment(horizontal='center', vertical='center')
+    ws1.merge_cells('A1:D1')
+    ws1.row_dimensions[1].height = 30
+
+    ws1['A2'] = f"Generado el: {datetime.now().strftime('%d/%m/%Y %H:%M')}"
+    ws1['A2'].font = Font(italic=True)
+    ws1.merge_cells('A2:D2')
+
+    # Estadísticas
+    ws1['A4'] = "ESTADÍSTICAS GENERALES"
+    ws1['A4'].font = Font(size=14, bold=True)
+    ws1.merge_cells('A4:B4')
+
+    estadisticas = {
+        'Total Empresas': Empresa.objects.count(),
+        'Empresas Activas': Empresa.objects.filter(estado='APROBADA').count(),
+        'Total Vacantes': Vacante.objects.count(),
+        'Vacantes Disponibles': Vacante.objects.filter(estado='DISPONIBLE').count(),
+        'Total Estudiantes': Estudiante.objects.count(),
+        'Estudiantes en Práctica': Estudiante.objects.filter(estado='EN_PRACTICA').count(),
+        'Prácticas Finalizadas': PracticaEmpresarial.objects.filter(estado='FINALIZADA').count(),
+        'Prácticas en Curso': PracticaEmpresarial.objects.filter(estado='EN_CURSO').count(),
+    }
+
+    row = 5
+    for concepto, valor in estadisticas.items():
+        ws1[f'A{row}'] = concepto
+        ws1[f'B{row}'] = valor
+        ws1[f'A{row}'].font = Font(bold=True)
+        row += 1
+
+    # Ajustar anchos
+    ws1.column_dimensions['A'].width = 30
+    ws1.column_dimensions['B'].width = 20
+
+    # ============================================
+    # HOJA 2: EMPRESAS
+    # ============================================
+    ws2 = wb.create_sheet("Empresas")
+
+    # Encabezados
+    headers = ['Razón Social', 'NIT', 'Ciudad', 'Estado', 'Prácticas Activas']
+    for col, header in enumerate(headers, start=1):
+        cell = ws2.cell(row=1, column=col, value=header)
+        cell.font = Font(bold=True, color="FFFFFF")
+        cell.fill = PatternFill(start_color="2A5298", end_color="2A5298", fill_type="solid")
+        cell.alignment = Alignment(horizontal='center')
+
+    # Datos
+    empresas = Empresa.objects.annotate(
+        practicas_activas=Count('practicas', filter=Q(practicas__estado='EN_CURSO'))
+    ).order_by('razon_social')
+
+    for row, empresa in enumerate(empresas, start=2):
+        ws2.cell(row=row, column=1, value=empresa.razon_social)
+        ws2.cell(row=row, column=2, value=empresa.nit)
+        ws2.cell(row=row, column=3, value=empresa.ciudad)
+        ws2.cell(row=row, column=4, value=empresa.get_estado_display())
+        ws2.cell(row=row, column=5, value=empresa.practicas_activas)
+
+    # Ajustar anchos
+    ws2.column_dimensions['A'].width = 40
+    ws2.column_dimensions['B'].width = 15
+    ws2.column_dimensions['C'].width = 20
+    ws2.column_dimensions['D'].width = 15
+    ws2.column_dimensions['E'].width = 18
+
+    # ============================================
+    # HOJA 3: ESTUDIANTES
+    # ============================================
+    ws3 = wb.create_sheet("Estudiantes")
+
+    # Encabezados
+    headers = ['Código', 'Nombre', 'Programa', 'Semestre', 'Estado', 'Empresa (si aplica)']
+    for col, header in enumerate(headers, start=1):
+        cell = ws3.cell(row=1, column=col, value=header)
+        cell.font = Font(bold=True, color="FFFFFF")
+        cell.fill = PatternFill(start_color="2A5298", end_color="2A5298", fill_type="solid")
+        cell.alignment = Alignment(horizontal='center')
+
+    # Datos
+    estudiantes = Estudiante.objects.prefetch_related('practicas').all().order_by('codigo')
+
+    for row, estudiante in enumerate(estudiantes, start=2):
+        practica_activa = estudiante.practicas.filter(estado='EN_CURSO').first()
+        ws3.cell(row=row, column=1, value=estudiante.codigo)
+        ws3.cell(row=row, column=2, value=estudiante.nombre_completo)
+        ws3.cell(row=row, column=3, value=estudiante.programa_academico)
+        ws3.cell(row=row, column=4, value=estudiante.semestre)
+        ws3.cell(row=row, column=5, value=estudiante.get_estado_display())
+        ws3.cell(row=row, column=6, value=practica_activa.empresa.razon_social if practica_activa else 'N/A')
+
+    # Ajustar anchos
+    ws3.column_dimensions['A'].width = 12
+    ws3.column_dimensions['B'].width = 35
+    ws3.column_dimensions['C'].width = 30
+    ws3.column_dimensions['D'].width = 10
+    ws3.column_dimensions['E'].width = 20
+    ws3.column_dimensions['F'].width = 35
+
+    # ============================================
+    # HOJA 4: PRÁCTICAS ACTIVAS
+    # ============================================
+    ws4 = wb.create_sheet("Prácticas Activas")
+
+    # Encabezados
+    headers = ['Estudiante', 'Empresa', 'Tutor', 'Docente Asesor', 'Fecha Inicio', 'Estado']
+    for col, header in enumerate(headers, start=1):
+        cell = ws4.cell(row=1, column=col, value=header)
+        cell.font = Font(bold=True, color="FFFFFF")
+        cell.fill = PatternFill(start_color="2A5298", end_color="2A5298", fill_type="solid")
+        cell.alignment = Alignment(horizontal='center')
+
+    # Datos
+    practicas = PracticaEmpresarial.objects.filter(
+        estado__in=['EN_CURSO', 'FINALIZADA']
+    ).select_related(
+        'estudiante', 'empresa', 'tutor_empresarial', 'docente_asesor'
+    ).order_by('-fecha_inicio')
+
+    for row, practica in enumerate(practicas, start=2):
+        ws4.cell(row=row, column=1, value=practica.estudiante.nombre_completo)
+        ws4.cell(row=row, column=2, value=practica.empresa.razon_social)
+        ws4.cell(row=row, column=3, value=practica.tutor_empresarial.nombre_completo if practica.tutor_empresarial else 'N/A')
+        ws4.cell(row=row, column=4, value=practica.docente_asesor.nombre_completo if practica.docente_asesor else 'N/A')
+        ws4.cell(row=row, column=5, value=practica.fecha_inicio.strftime('%d/%m/%Y'))
+        ws4.cell(row=row, column=6, value=practica.get_estado_display())
+
+    # Ajustar anchos
+    ws4.column_dimensions['A'].width = 35
+    ws4.column_dimensions['B'].width = 35
+    ws4.column_dimensions['C'].width = 30
+    ws4.column_dimensions['D'].width = 30
+    ws4.column_dimensions['E'].width = 15
+    ws4.column_dimensions['F'].width = 15
+
+    # Preparar respuesta HTTP
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename="Reporte_Practicas_{datetime.now().strftime("%Y%m%d_%H%M")}.xlsx"'
+
+    wb.save(response)
+    return response
+
+
+@login_required
+@coordinator_required
+def exportar_reportes_pdf(request):
+    """Exportar reportes a PDF"""
+    from reportlab.lib.pagesizes import letter, A4
+    from reportlab.lib import colors
+    from reportlab.lib.units import inch
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.enums import TA_CENTER, TA_LEFT
+    from django.http import HttpResponse
+    from datetime import datetime
+    from io import BytesIO
+
+    # Crear buffer
+    buffer = BytesIO()
+
+    # Crear el documento
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    elements = []
+    styles = getSampleStyleSheet()
+
+    # Estilos personalizados
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=18,
+        textColor=colors.HexColor('#1E3C72'),
+        spaceAfter=30,
+        alignment=TA_CENTER,
+        fontName='Helvetica-Bold'
+    )
+
+    heading_style = ParagraphStyle(
+        'CustomHeading',
+        parent=styles['Heading2'],
+        fontSize=14,
+        textColor=colors.HexColor('#2A5298'),
+        spaceAfter=12,
+        fontName='Helvetica-Bold'
+    )
+
+    # Título
+    elements.append(Paragraph("REPORTE GENERAL DEL SISTEMA DE PRÁCTICAS", title_style))
+    elements.append(Paragraph(f"Generado el: {datetime.now().strftime('%d/%m/%Y %H:%M')}", styles['Normal']))
+    elements.append(Spacer(1, 0.3*inch))
+
+    # ============================================
+    # ESTADÍSTICAS GENERALES
+    # ============================================
+    elements.append(Paragraph("ESTADÍSTICAS GENERALES", heading_style))
+
+    estadisticas_data = [
+        ['Concepto', 'Cantidad'],
+        ['Total Empresas', str(Empresa.objects.count())],
+        ['Empresas Activas', str(Empresa.objects.filter(estado='APROBADA').count())],
+        ['Total Vacantes', str(Vacante.objects.count())],
+        ['Vacantes Disponibles', str(Vacante.objects.filter(estado='DISPONIBLE').count())],
+        ['Total Estudiantes', str(Estudiante.objects.count())],
+        ['Estudiantes en Práctica', str(Estudiante.objects.filter(estado='EN_PRACTICA').count())],
+        ['Prácticas Finalizadas', str(PracticaEmpresarial.objects.filter(estado='FINALIZADA').count())],
+        ['Prácticas en Curso', str(PracticaEmpresarial.objects.filter(estado='EN_CURSO').count())],
+    ]
+
+    table = Table(estadisticas_data, colWidths=[4*inch, 1.5*inch])
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2A5298')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 12),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ('FONTNAME', (0, 1), (0, -1), 'Helvetica-Bold'),
+    ]))
+    elements.append(table)
+    elements.append(Spacer(1, 0.4*inch))
+
+    # ============================================
+    # TOP EMPRESAS
+    # ============================================
+    elements.append(Paragraph("TOP 5 EMPRESAS CON MÁS PRÁCTICAS", heading_style))
+
+    empresas = Empresa.objects.annotate(
+        num_practicas=Count('practicas')
+    ).order_by('-num_practicas')[:5]
+
+    empresas_data = [['Empresa', 'NIT', 'Prácticas']]
+    for empresa in empresas:
+        empresas_data.append([
+            empresa.razon_social[:40],
+            empresa.nit,
+            str(empresa.num_practicas)
+        ])
+
+    table2 = Table(empresas_data, colWidths=[3.5*inch, 1.2*inch, 1*inch])
+    table2.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2A5298')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 11),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.lightblue),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+    ]))
+    elements.append(table2)
+
+    # Construir PDF
+    doc.build(elements)
+
+    # Preparar respuesta
+    buffer.seek(0)
+    response = HttpResponse(buffer, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="Reporte_Practicas_{datetime.now().strftime("%Y%m%d_%H%M")}.pdf"'
+
+    return response
+
+
 # ============================================
 # PERFIL DE COORDINADOR
 # ============================================
@@ -1638,3 +1928,238 @@ def perfil_coordinador(request):
         'form': form
     }
     return render(request, 'coordinacion/perfil.html', context)
+
+
+# ============================================
+# GESTIÓN DE ENCUESTAS
+# ============================================
+
+@login_required
+@coordinator_required
+def encuestas_lista(request):
+    """Lista de encuestas creadas"""
+    from .models import Encuesta
+    from django.db.models import Count
+
+    encuestas = Encuesta.objects.all().annotate(
+        total_respuestas=Count('respuestas')
+    ).order_by('-fecha_creacion')
+
+    context = {
+        'encuestas': encuestas,
+    }
+    return render(request, 'coordinacion/encuestas/lista.html', context)
+
+
+@login_required
+@coordinator_required
+def encuesta_crear(request):
+    """Crear nueva encuesta"""
+    from .models import Encuesta, PreguntaEncuesta
+    from .forms import EncuestaForm
+
+    if request.method == 'POST':
+        form = EncuestaForm(request.POST)
+        if form.is_valid():
+            encuesta = form.save(commit=False)
+            encuesta.creada_por = request.user.coordinador
+            encuesta.save()
+
+            # Crear preguntas predeterminadas
+            preguntas_default = [
+                {
+                    'texto': '¿Cómo califica la puntualidad del estudiante?',
+                    'tipo': 'CALIFICACION',
+                    'orden': 1,
+                },
+                {
+                    'texto': '¿Cómo califica la calidad del trabajo realizado?',
+                    'tipo': 'CALIFICACION',
+                    'orden': 2,
+                },
+                {
+                    'texto': '¿Cómo califica la actitud y disposición del estudiante?',
+                    'tipo': 'CALIFICACION',
+                    'orden': 3,
+                },
+                {
+                    'texto': '¿Cómo califica el trabajo en equipo?',
+                    'tipo': 'CALIFICACION',
+                    'orden': 4,
+                },
+                {
+                    'texto': '¿Cómo califica la iniciativa y proactividad?',
+                    'tipo': 'CALIFICACION',
+                    'orden': 5,
+                },
+                {
+                    'texto': 'Comentarios adicionales sobre el desempeño del estudiante',
+                    'tipo': 'TEXTO',
+                    'orden': 6,
+                    'requerida': False,
+                },
+            ]
+
+            for pregunta_data in preguntas_default:
+                PreguntaEncuesta.objects.create(
+                    encuesta=encuesta,
+                    **pregunta_data
+                )
+
+            messages.success(request, '✅ Encuesta creada exitosamente con preguntas predeterminadas.')
+            return redirect('coordinacion:encuesta_detalle', encuesta_id=encuesta.id)
+    else:
+        form = EncuestaForm()
+
+    context = {
+        'form': form,
+    }
+    return render(request, 'coordinacion/encuestas/crear.html', context)
+
+
+@login_required
+@coordinator_required
+def encuesta_detalle(request, encuesta_id):
+    """Ver detalle de una encuesta y enviarla a tutores"""
+    from .models import Encuesta, TutorEmpresarial, PracticaEmpresarial, RespuestaEncuesta
+    from django.db.models import Q
+
+    encuesta = get_object_or_404(Encuesta, id=encuesta_id)
+
+    # Manejar envío de encuesta a tutor
+    if request.method == 'POST' and 'practica_id' in request.POST:
+        practica_id = request.POST.get('practica_id')
+        practica = get_object_or_404(PracticaEmpresarial, id=practica_id, estado='FINALIZADA')
+
+        # Verificar que no exista ya una respuesta para esta combinación
+        respuesta_existente = RespuestaEncuesta.objects.filter(
+            encuesta=encuesta,
+            practica=practica,
+            tutor=practica.tutor_empresarial
+        ).exists()
+
+        if not respuesta_existente:
+            # Crear la respuesta en estado EN_PROGRESO
+            RespuestaEncuesta.objects.create(
+                encuesta=encuesta,
+                practica=practica,
+                tutor=practica.tutor_empresarial,
+                estado='EN_PROGRESO'
+            )
+            messages.success(
+                request,
+                f'✅ Encuesta enviada a {practica.tutor_empresarial.nombre_completo} para evaluar a {practica.estudiante.nombre_completo}'
+            )
+        else:
+            messages.warning(
+                request,
+                f'⚠️ Ya existe una encuesta enviada a este tutor para este estudiante'
+            )
+
+        return redirect('coordinacion:encuesta_detalle', encuesta_id=encuesta.id)
+
+    # Obtener todos los tutores que tienen prácticas (finalizadas o en curso)
+    tutores_data = []
+    tutores = TutorEmpresarial.objects.filter(
+        practicas_supervisadas__isnull=False
+    ).distinct().select_related('empresa')
+
+    for tutor in tutores:
+        # Obtener todas las prácticas del tutor
+        practicas = tutor.practicas_supervisadas.all().select_related(
+            'estudiante', 'empresa'
+        ).order_by('-fecha_inicio')
+
+        practicas_info = []
+        for practica in practicas:
+            # Verificar si ya tiene encuesta respondida o pendiente
+            encuesta_enviada = RespuestaEncuesta.objects.filter(
+                encuesta=encuesta,
+                practica=practica,
+                tutor=tutor
+            ).first()
+
+            practicas_info.append({
+                'practica': practica,
+                'puede_responder': practica.estado == 'FINALIZADA' and not encuesta_enviada,
+                'encuesta_enviada': encuesta_enviada,
+            })
+
+        if practicas_info:  # Solo agregar tutores que tengan prácticas
+            tutores_data.append({
+                'tutor': tutor,
+                'practicas': practicas_info,
+                'total_practicas': len(practicas_info),
+                'finalizadas': len([p for p in practicas_info if p['practica'].estado == 'FINALIZADA']),
+                'en_curso': len([p for p in practicas_info if p['practica'].estado == 'EN_CURSO']),
+            })
+
+    # Obtener respuestas completadas de esta encuesta
+    respuestas = encuesta.respuestas.filter(
+        estado='COMPLETADA'
+    ).select_related('tutor', 'practica__estudiante')
+
+    context = {
+        'encuesta': encuesta,
+        'preguntas': encuesta.preguntas.all().order_by('orden'),
+        'tutores_data': tutores_data,
+        'respuestas': respuestas,
+    }
+    return render(request, 'coordinacion/encuestas/detalle.html', context)
+
+
+@login_required
+@coordinator_required
+def encuesta_editar(request, encuesta_id):
+    """Editar encuesta existente"""
+    from .models import Encuesta
+    from .forms import EncuestaForm
+
+    encuesta = get_object_or_404(Encuesta, id=encuesta_id)
+
+    if request.method == 'POST':
+        form = EncuestaForm(request.POST, instance=encuesta)
+        if form.is_valid():
+            form.save()
+            messages.success(request, '✅ Encuesta actualizada exitosamente.')
+            return redirect('coordinacion:encuesta_detalle', encuesta_id=encuesta.id)
+    else:
+        form = EncuestaForm(instance=encuesta)
+
+    context = {
+        'form': form,
+        'encuesta': encuesta,
+    }
+    return render(request, 'coordinacion/encuestas/editar.html', context)
+
+
+@login_required
+@coordinator_required
+def encuesta_estadisticas(request, encuesta_id):
+    """Ver estadísticas de respuestas de una encuesta"""
+    from .models import Encuesta, RespuestaEncuesta
+    from django.db.models import Avg, Count
+
+    encuesta = get_object_or_404(Encuesta, id=encuesta_id)
+
+    # Estadísticas generales
+    total_respuestas = encuesta.respuestas.filter(estado='COMPLETADA').count()
+    promedio_general = encuesta.respuestas.filter(
+        estado='COMPLETADA',
+        calificacion_promedio__isnull=False
+    ).aggregate(
+        promedio=Avg('calificacion_promedio')
+    )['promedio']
+
+    # Respuestas por tutor
+    respuestas_por_tutor = encuesta.respuestas.filter(
+        estado='COMPLETADA'
+    ).select_related('tutor', 'practica__estudiante').order_by('-fecha_completado')
+
+    context = {
+        'encuesta': encuesta,
+        'total_respuestas': total_respuestas,
+        'promedio_general': promedio_general,
+        'respuestas': respuestas_por_tutor,
+    }
+    return render(request, 'coordinacion/encuestas/estadisticas.html', context)

@@ -233,11 +233,28 @@ class Postulacion(models.Model):
 class TutorEmpresarial(models.Model):
     """Tutores de las empresas que supervisan estudiantes"""
 
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='tutor_empresarial',
+        null=True,
+        blank=True,
+        help_text="Usuario asociado al tutor empresarial"
+    )
     empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='tutores')
     nombre_completo = models.CharField(max_length=200)
     cargo = models.CharField(max_length=100)
     email = models.EmailField()
     telefono = models.CharField(max_length=20)
+
+    # Foto de perfil
+    foto_perfil = models.ImageField(
+        upload_to='tutores/fotos_perfil/',
+        blank=True,
+        null=True,
+        help_text="Foto de perfil del tutor empresarial"
+    )
+
     activo = models.BooleanField(default=True)
     fecha_registro = models.DateTimeField(auto_now_add=True)
 
@@ -519,4 +536,170 @@ class Mensaje(models.Model):
 
     def __str__(self):
         return f"Mensaje de {self.remitente.username} - {self.fecha_envio.strftime('%d/%m/%Y %H:%M')}"
+
+
+# ============================================
+# MODELO: ENCUESTA
+# ============================================
+class Encuesta(models.Model):
+    """Encuestas creadas por coordinación para que tutores empresariales evalúen estudiantes"""
+
+    ESTADO_CHOICES = [
+        ('ACTIVA', 'Activa'),
+        ('INACTIVA', 'Inactiva'),
+        ('FINALIZADA', 'Finalizada'),
+    ]
+
+    titulo = models.CharField(max_length=300, help_text="Título de la encuesta")
+    descripcion = models.TextField(help_text="Descripción y objetivo de la encuesta")
+
+    # Control
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='ACTIVA')
+    creada_por = models.ForeignKey(
+        Coordinador,
+        on_delete=models.CASCADE,
+        related_name='encuestas_creadas'
+    )
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_inicio = models.DateField(help_text="Fecha desde la cual la encuesta está disponible")
+    fecha_fin = models.DateField(help_text="Fecha hasta la cual la encuesta está disponible")
+
+    class Meta:
+        verbose_name = 'Encuesta'
+        verbose_name_plural = 'Encuestas'
+        ordering = ['-fecha_creacion']
+
+    def __str__(self):
+        return f"{self.titulo}"
+
+
+# ============================================
+# MODELO: PREGUNTA ENCUESTA
+# ============================================
+class PreguntaEncuesta(models.Model):
+    """Preguntas de una encuesta"""
+
+    TIPO_CHOICES = [
+        ('CALIFICACION', 'Calificación 1-5'),
+        ('TEXTO', 'Texto Libre'),
+        ('OPCION_MULTIPLE', 'Opción Múltiple'),
+    ]
+
+    encuesta = models.ForeignKey(
+        Encuesta,
+        on_delete=models.CASCADE,
+        related_name='preguntas'
+    )
+    texto_pregunta = models.TextField(help_text="Texto de la pregunta")
+    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default='CALIFICACION')
+    orden = models.IntegerField(default=0, help_text="Orden de aparición de la pregunta")
+    requerida = models.BooleanField(default=True, help_text="Indica si la pregunta es obligatoria")
+
+    # Para preguntas de opción múltiple
+    opciones = models.JSONField(
+        blank=True,
+        null=True,
+        help_text="Opciones para preguntas de opción múltiple (formato JSON)"
+    )
+
+    class Meta:
+        verbose_name = 'Pregunta de Encuesta'
+        verbose_name_plural = 'Preguntas de Encuesta'
+        ordering = ['encuesta', 'orden']
+
+    def __str__(self):
+        return f"{self.encuesta.titulo} - {self.texto_pregunta[:50]}"
+
+
+# ============================================
+# MODELO: RESPUESTA ENCUESTA
+# ============================================
+class RespuestaEncuesta(models.Model):
+    """Respuestas de tutores empresariales a encuestas sobre estudiantes"""
+
+    ESTADO_CHOICES = [
+        ('EN_PROGRESO', 'En Progreso'),
+        ('COMPLETADA', 'Completada'),
+    ]
+
+    encuesta = models.ForeignKey(
+        Encuesta,
+        on_delete=models.CASCADE,
+        related_name='respuestas'
+    )
+    practica = models.ForeignKey(
+        PracticaEmpresarial,
+        on_delete=models.CASCADE,
+        related_name='encuestas_respondidas'
+    )
+    tutor = models.ForeignKey(
+        TutorEmpresarial,
+        on_delete=models.CASCADE,
+        related_name='encuestas_respondidas'
+    )
+
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='EN_PROGRESO')
+    calificacion_promedio = models.DecimalField(
+        max_digits=3,
+        decimal_places=1,
+        blank=True,
+        null=True,
+        help_text="Promedio de calificaciones de la encuesta"
+    )
+
+    fecha_inicio = models.DateTimeField(auto_now_add=True)
+    fecha_completado = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        verbose_name = 'Respuesta de Encuesta'
+        verbose_name_plural = 'Respuestas de Encuestas'
+        ordering = ['-fecha_inicio']
+        unique_together = ['encuesta', 'practica', 'tutor']
+
+    def __str__(self):
+        return f"{self.encuesta.titulo} - {self.practica.estudiante.nombre_completo}"
+
+
+# ============================================
+# MODELO: DETALLE RESPUESTA ENCUESTA
+# ============================================
+class DetalleRespuestaEncuesta(models.Model):
+    """Detalle de respuestas individuales a cada pregunta"""
+
+    respuesta_encuesta = models.ForeignKey(
+        RespuestaEncuesta,
+        on_delete=models.CASCADE,
+        related_name='detalles'
+    )
+    pregunta = models.ForeignKey(
+        PreguntaEncuesta,
+        on_delete=models.CASCADE,
+        related_name='respuestas'
+    )
+
+    # Campos para diferentes tipos de respuesta
+    calificacion = models.IntegerField(
+        blank=True,
+        null=True,
+        help_text="Calificación 1-5 para preguntas tipo calificación"
+    )
+    texto_respuesta = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Texto para preguntas de texto libre"
+    )
+    opcion_seleccionada = models.CharField(
+        max_length=500,
+        blank=True,
+        null=True,
+        help_text="Opción seleccionada para preguntas de opción múltiple"
+    )
+
+    class Meta:
+        verbose_name = 'Detalle Respuesta Encuesta'
+        verbose_name_plural = 'Detalles Respuestas Encuestas'
+        unique_together = ['respuesta_encuesta', 'pregunta']
+
+    def __str__(self):
+        return f"{self.respuesta_encuesta} - {self.pregunta.texto_pregunta[:30]}"
 

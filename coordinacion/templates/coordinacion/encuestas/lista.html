@@ -1,0 +1,218 @@
+{% extends 'coordinacion/base.html' %}
+{% load static %}
+
+{% block title %}Encuestas - Portal de Coordinación{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'coordinacion:dashboard' %}">
+            <i class="fas fa-graduation-cap me-2"></i>
+            Sistema de Prácticas
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                {% include 'coordinacion/_navbar_user_dropdown.html' %}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 sidebar">
+            <div class="list-group">
+                <a href="{% url 'coordinacion:dashboard' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-home me-2"></i>Dashboard
+                </a>
+                <a href="{% url 'coordinacion:empresas_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-building me-2"></i>Empresas
+                </a>
+                <a href="{% url 'coordinacion:vacantes_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-briefcase me-2"></i>Vacantes
+                </a>
+                <a href="{% url 'coordinacion:estudiantes_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-user-graduate me-2"></i>Estudiantes
+                </a>
+                <a href="{% url 'coordinacion:postulaciones_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-clipboard-list me-2"></i>Postulaciones
+                </a>
+                <a href="{% url 'coordinacion:practicas_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-tasks me-2"></i>Prácticas
+                </a>
+                <a href="{% url 'coordinacion:tutores_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chalkboard-teacher me-2"></i>Tutores
+                </a>
+                <a href="{% url 'coordinacion:docentes_asesores_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-user-tie me-2"></i>Docentes Asesores
+                </a>
+                <a href="{% url 'coordinacion:sustentaciones_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-graduation-cap me-2"></i>Sustentaciones
+                </a>
+                <a href="{% url 'coordinacion:encuestas_lista' %}" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-poll-h me-2"></i>Encuestas
+                </a>
+                <a href="{% url 'coordinacion:reportes_dashboard' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chart-line me-2"></i>Reportes
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-poll-h me-2" style="color: #4a90e2;"></i>
+                Gestión de Encuestas
+            </h2>
+            <p class="text-muted mb-0">
+                Administra las encuestas de satisfacción para tutores empresariales
+            </p>
+        </div>
+        <a href="{% url 'coordinacion:encuesta_crear' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Nueva Encuesta
+        </a>
+    </div>
+
+    <!-- Alertas -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Card con lista de encuestas -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0">
+                <i class="fas fa-list me-2"></i>
+                Encuestas Disponibles
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if encuestas %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Título</th>
+                                <th>Estado</th>
+                                <th>Periodo</th>
+                                <th class="text-center">Respuestas</th>
+                                <th>Creada Por</th>
+                                <th class="text-end">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for encuesta in encuestas %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ encuesta.titulo }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ encuesta.descripcion|truncatewords:15 }}</small>
+                                    </td>
+                                    <td>
+                                        {% if encuesta.estado == 'ACTIVA' %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check-circle me-1"></i>Activa
+                                            </span>
+                                        {% elif encuesta.estado == 'FINALIZADA' %}
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-flag-checkered me-1"></i>Finalizada
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark">
+                                                <i class="fas fa-pause-circle me-1"></i>Inactiva
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small>
+                                            <i class="far fa-calendar-alt me-1"></i>
+                                            {{ encuesta.fecha_inicio|date:"d/m/Y" }} - {{ encuesta.fecha_fin|date:"d/m/Y" }}
+                                        </small>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">
+                                            {{ encuesta.total_respuestas }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            {{ encuesta.creada_por.nombre_completo }}
+                                        </small>
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'coordinacion:encuesta_detalle' encuesta.id %}"
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Ver Detalles">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'coordinacion:encuesta_estadisticas' encuesta.id %}"
+                                               class="btn btn-sm btn-outline-info"
+                                               title="Ver Estadísticas">
+                                                <i class="fas fa-chart-bar"></i>
+                                            </a>
+                                            <a href="{% url 'coordinacion:encuesta_editar' encuesta.id %}"
+                                               class="btn btn-sm btn-outline-warning"
+                                               title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+                    <h5 class="text-muted">No hay encuestas registradas</h5>
+                    <p class="text-muted">Crea tu primera encuesta para comenzar a evaluar la satisfacción de los tutores.</p>
+                    <a href="{% url 'coordinacion:encuesta_crear' %}" class="btn btn-primary mt-3">
+                        <i class="fas fa-plus me-2"></i>Crear Primera Encuesta
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .table tbody tr:hover {
+        background-color: #f8f9fa;
+        transition: background-color 0.2s;
+    }
+
+    .btn-group .btn {
+        border-radius: 0;
+    }
+
+    .btn-group .btn:first-child {
+        border-top-left-radius: 0.25rem;
+        border-bottom-left-radius: 0.25rem;
+    }
+
+    .btn-group .btn:last-child {
+        border-top-right-radius: 0.25rem;
+        border-bottom-right-radius: 0.25rem;
+    }
+</style>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

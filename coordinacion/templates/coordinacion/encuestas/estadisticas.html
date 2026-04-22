@@ -1,0 +1,275 @@
+{% extends 'coordinacion/base.html' %}
+{% load static %}
+
+{% block title %}Estadísticas - {{ encuesta.titulo }}{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'coordinacion:dashboard' %}">
+            <i class="fas fa-graduation-cap me-2"></i>
+            Sistema de Prácticas
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                {% include 'coordinacion/_navbar_user_dropdown.html' %}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 sidebar">
+            <div class="list-group">
+                <a href="{% url 'coordinacion:dashboard' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-home me-2"></i>Dashboard
+                </a>
+                <a href="{% url 'coordinacion:empresas_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-building me-2"></i>Empresas
+                </a>
+                <a href="{% url 'coordinacion:vacantes_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-briefcase me-2"></i>Vacantes
+                </a>
+                <a href="{% url 'coordinacion:estudiantes_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-user-graduate me-2"></i>Estudiantes
+                </a>
+                <a href="{% url 'coordinacion:postulaciones_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-clipboard-list me-2"></i>Postulaciones
+                </a>
+                <a href="{% url 'coordinacion:practicas_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-tasks me-2"></i>Prácticas
+                </a>
+                <a href="{% url 'coordinacion:tutores_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chalkboard-teacher me-2"></i>Tutores
+                </a>
+                <a href="{% url 'coordinacion:docentes_asesores_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-user-tie me-2"></i>Docentes Asesores
+                </a>
+                <a href="{% url 'coordinacion:sustentaciones_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-graduation-cap me-2"></i>Sustentaciones
+                </a>
+                <a href="{% url 'coordinacion:encuestas_lista' %}" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-poll-h me-2"></i>Encuestas
+                </a>
+                <a href="{% url 'coordinacion:reportes_dashboard' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chart-line me-2"></i>Reportes
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-chart-bar me-2" style="color: #4a90e2;"></i>
+                Estadísticas - {{ encuesta.titulo }}
+            </h2>
+            <p class="text-muted mb-0">Análisis de las respuestas recibidas</p>
+        </div>
+        <a href="{% url 'coordinacion:encuesta_detalle' encuesta.id %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Volver
+        </a>
+    </div>
+
+    <!-- Resumen general -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-primary">
+                <div class="card-body text-center">
+                    <i class="fas fa-clipboard-check fa-4x text-primary mb-3"></i>
+                    <h3 class="mb-0">{{ total_respuestas }}</h3>
+                    <p class="text-muted mb-0">Respuestas Completadas</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-success">
+                <div class="card-body text-center">
+                    <i class="fas fa-star fa-4x text-success mb-3"></i>
+                    <h3 class="mb-0">
+                        {% if promedio_general %}
+                            {{ promedio_general|floatformat:1 }}/5.0
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </h3>
+                    <p class="text-muted mb-0">Promedio General</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-info">
+                <div class="card-body text-center">
+                    <i class="fas fa-percent fa-4x text-info mb-3"></i>
+                    <h3 class="mb-0">
+                        {% if promedio_general %}
+                            {% widthratio promedio_general 5 100 %}%
+                        {% else %}
+                            0%
+                        {% endif %}
+                    </h3>
+                    <p class="text-muted mb-0">Nivel de Satisfacción</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detalles de respuestas -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0">
+                <i class="fas fa-list me-2"></i>
+                Detalle de Respuestas
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if respuestas %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Tutor Empresarial</th>
+                                <th>Empresa</th>
+                                <th>Estudiante Evaluado</th>
+                                <th class="text-center">Calificación</th>
+                                <th class="text-center">Nivel</th>
+                                <th>Fecha Completado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for respuesta in respuestas %}
+                                <tr>
+                                    <td>
+                                        <i class="fas fa-user-tie me-2 text-muted"></i>
+                                        {{ respuesta.tutor.nombre_completo }}
+                                    </td>
+                                    <td>
+                                        <i class="fas fa-building me-2 text-muted"></i>
+                                        {{ respuesta.tutor.empresa.razon_social }}
+                                    </td>
+                                    <td>
+                                        <i class="fas fa-user-graduate me-2 text-muted"></i>
+                                        {{ respuesta.practica.estudiante.nombre_completo }}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if respuesta.calificacion_promedio %}
+                                            <strong class="text-primary">
+                                                {{ respuesta.calificacion_promedio|floatformat:1 }}/5.0
+                                            </strong>
+                                        {% else %}
+                                            <span class="text-muted">N/A</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if respuesta.calificacion_promedio %}
+                                            {% if respuesta.calificacion_promedio >= 4.5 %}
+                                                <span class="badge bg-success">Excelente</span>
+                                            {% elif respuesta.calificacion_promedio >= 3.5 %}
+                                                <span class="badge bg-info">Bueno</span>
+                                            {% elif respuesta.calificacion_promedio >= 2.5 %}
+                                                <span class="badge bg-warning text-dark">Regular</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Deficiente</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="badge bg-secondary">N/A</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            <i class="far fa-calendar-alt me-1"></i>
+                                            {{ respuesta.fecha_completado|date:"d/m/Y H:i" }}
+                                        </small>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Gráfica de distribución -->
+                <div class="mt-4">
+                    <h6 class="mb-3">
+                        <i class="fas fa-chart-pie me-2"></i>
+                        Distribución de Calificaciones
+                    </h6>
+                    <div class="row">
+                        {% with excelente=0 bueno=0 regular=0 deficiente=0 %}
+                            {% for resp in respuestas %}
+                                {% if resp.calificacion_promedio >= 4.5 %}
+                                    {% with excelente=excelente|add:1 %}{% endwith %}
+                                {% elif resp.calificacion_promedio >= 3.5 %}
+                                    {% with bueno=bueno|add:1 %}{% endwith %}
+                                {% elif resp.calificacion_promedio >= 2.5 %}
+                                    {% with regular=regular|add:1 %}{% endwith %}
+                                {% else %}
+                                    {% with deficiente=deficiente|add:1 %}{% endwith %}
+                                {% endif %}
+                            {% endfor %}
+
+                            <div class="col-md-3">
+                                <div class="text-center p-3 bg-success bg-opacity-10 rounded">
+                                    <h4 class="text-success mb-0">{{ excelente }}</h4>
+                                    <small>Excelente (≥4.5)</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center p-3 bg-info bg-opacity-10 rounded">
+                                    <h4 class="text-info mb-0">{{ bueno }}</h4>
+                                    <small>Bueno (3.5-4.4)</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center p-3 bg-warning bg-opacity-10 rounded">
+                                    <h4 class="text-warning mb-0">{{ regular }}</h4>
+                                    <small>Regular (2.5-3.4)</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center p-3 bg-danger bg-opacity-10 rounded">
+                                    <h4 class="text-danger mb-0">{{ deficiente }}</h4>
+                                    <small>Deficiente (<2.5)</small>
+                                </div>
+                            </div>
+                        {% endwith %}
+                    </div>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-chart-line fa-4x text-muted mb-3"></i>
+                    <h5 class="text-muted">No hay respuestas para analizar</h5>
+                    <p class="text-muted">Las estadísticas se mostrarán cuando se reciban respuestas completadas.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border-radius: 10px;
+        transition: transform 0.2s;
+    }
+
+    .card:hover {
+        transform: translateY(-3px);
+    }
+
+    .table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+</style>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

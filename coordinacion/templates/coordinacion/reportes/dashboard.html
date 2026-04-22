@@ -53,8 +53,14 @@
                 <a href="{% url 'coordinacion:tutores_lista' %}" class="list-group-item list-group-item-action">
                     <i class="fas fa-chalkboard-teacher me-2"></i>Tutores
                 </a>
+                <a href="{% url 'coordinacion:docentes_asesores_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-user-tie me-2"></i>Docentes Asesores
+                </a>
                 <a href="{% url 'coordinacion:sustentaciones_lista' %}" class="list-group-item list-group-item-action">
                     <i class="fas fa-graduation-cap me-2"></i>Sustentaciones
+                </a>
+                <a href="{% url 'coordinacion:encuestas_lista' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-poll-h me-2"></i>Encuestas
                 </a>
                 <a href="{% url 'coordinacion:reportes_dashboard' %}" class="list-group-item list-group-item-action active">
                     <i class="fas fa-chart-line me-2"></i>Reportes
@@ -64,6 +70,23 @@
 
         <!-- Main Content -->
         <div class="col-md-9 col-lg-10">
+            <!-- Header con botones de exportación (FUERA de React) -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <i class="fas fa-chart-line me-2 text-primary"></i>
+                    Reportes e Indicadores
+                </h2>
+                <div class="btn-group">
+                    <a href="{% url 'coordinacion:exportar_reportes_pdf' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-file-pdf me-2"></i>Exportar PDF
+                    </a>
+                    <a href="{% url 'coordinacion:exportar_reportes_excel' %}" class="btn btn-outline-success">
+                        <i class="fas fa-file-excel me-2"></i>Exportar Excel
+                    </a>
+                </div>
+            </div>
+
+            <!-- React renderiza aquí -->
             <div id="reportes-root"></div>
         </div>
     </div>
@@ -90,21 +113,6 @@
 
         return (
             <div>
-                <div className="d-flex justify-content-between align-items-center mb-4">
-                    <h2>
-                        <i className="fas fa-chart-line me-2 text-primary"></i>
-                        Reportes e Indicadores
-                    </h2>
-                    <div className="btn-group">
-                        <button className="btn btn-outline-primary">
-                            <i className="fas fa-file-pdf me-2"></i>Exportar PDF
-                        </button>
-                        <button className="btn btn-outline-success">
-                            <i className="fas fa-file-excel me-2"></i>Exportar Excel
-                        </button>
-                    </div>
-                </div>
-
                 <div className="card mb-4">
                     <div className="card-header bg-primary text-white">
                         <h5 className="mb-0">

@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from django.forms import inlineformset_factory
-from .models import Vacante, Empresa, Postulacion, Estudiante, TutorEmpresarial, PracticaEmpresarial, DocenteAsesor, Coordinador
+from .models import Vacante, Empresa, Postulacion, Estudiante, TutorEmpresarial, PracticaEmpresarial, DocenteAsesor, Coordinador, Encuesta
 from datetime import date, timedelta
 from django.utils import timezone
 from django.core.exceptions import ValidationError
@@ -784,3 +784,59 @@ class CoordinadorPerfilForm(forms.ModelForm):
                 'accept': 'image/*'
             })
         }
+
+
+# ============================================
+# FORMULARIO: ENCUESTA
+# ============================================
+class EncuestaForm(forms.ModelForm):
+    """Formulario para crear/editar encuestas"""
+
+    class Meta:
+        model = Encuesta
+        fields = ['titulo', 'descripcion', 'fecha_inicio', 'fecha_fin', 'estado']
+        widgets = {
+            'titulo': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej: Evaluación de Satisfacción de Tutores 2025-I',
+                'required': True
+            }),
+            'descripcion': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'Describe el objetivo de esta encuesta...',
+                'required': True
+            }),
+            'fecha_inicio': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date',
+                'required': True
+            }),
+            'fecha_fin': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date',
+                'required': True
+            }),
+            'estado': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+        }
+        labels = {
+            'titulo': 'Título de la Encuesta',
+            'descripcion': 'Descripción',
+            'fecha_inicio': 'Fecha de Inicio',
+            'fecha_fin': 'Fecha de Fin',
+            'estado': 'Estado',
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        fecha_inicio = cleaned_data.get('fecha_inicio')
+        fecha_fin = cleaned_data.get('fecha_fin')
+
+        if fecha_inicio and fecha_fin:
+            if fecha_fin <= fecha_inicio:
+                raise ValidationError('La fecha de fin debe ser posterior a la fecha de inicio')
+
+        return cleaned_data
+

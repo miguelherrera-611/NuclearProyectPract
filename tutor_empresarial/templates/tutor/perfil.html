@@ -1,0 +1,147 @@
+{% extends "tutor/base.html" %}
+
+{% block title %}Mi Perfil - Tutor Empresarial{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <i class="fas fa-user-circle me-2"></i>
+                Mi Perfil
+            </h2>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Información Actual -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-id-card me-2"></i>
+                        Información Actual
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    {% if tutor.foto_perfil %}
+                        <img src="{{ tutor.foto_perfil.url }}" alt="Foto de perfil"
+                             class="img-fluid rounded-circle mb-3"
+                             style="width: 150px; height: 150px; object-fit: cover; border: 4px solid #1e3c72;">
+                    {% else %}
+                        <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3"
+                             style="width: 150px; height: 150px; font-size: 4rem;">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    {% endif %}
+
+                    <h4 class="mb-1">{{ tutor.nombre_completo }}</h4>
+                    <p class="text-muted mb-2">{{ tutor.cargo }}</p>
+                    <p class="mb-1">
+                        <i class="fas fa-building me-2"></i>
+                        {{ tutor.empresa.razon_social }}
+                    </p>
+                    <hr>
+                    <p class="mb-1">
+                        <i class="fas fa-envelope me-2"></i>
+                        {{ tutor.email }}
+                    </p>
+                    <p class="mb-0">
+                        <i class="fas fa-phone me-2"></i>
+                        {{ tutor.telefono }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulario de Edición -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-edit me-2"></i>
+                        Editar Información
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="{{ form.nombre_completo.id_for_label }}" class="form-label">
+                                    {{ form.nombre_completo.label }}
+                                    <span class="text-danger">*</span>
+                                </label>
+                                {{ form.nombre_completo }}
+                                {% if form.nombre_completo.errors %}
+                                    <div class="text-danger small">{{ form.nombre_completo.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-12 mb-3">
+                                <label for="{{ form.cargo.id_for_label }}" class="form-label">
+                                    {{ form.cargo.label }}
+                                    <span class="text-danger">*</span>
+                                </label>
+                                {{ form.cargo }}
+                                {% if form.cargo.errors %}
+                                    <div class="text-danger small">{{ form.cargo.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.email.id_for_label }}" class="form-label">
+                                    {{ form.email.label }}
+                                    <span class="text-danger">*</span>
+                                </label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                    <div class="text-danger small">{{ form.email.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.telefono.id_for_label }}" class="form-label">
+                                    {{ form.telefono.label }}
+                                    <span class="text-danger">*</span>
+                                </label>
+                                {{ form.telefono }}
+                                {% if form.telefono.errors %}
+                                    <div class="text-danger small">{{ form.telefono.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-12 mb-3">
+                                <label for="{{ form.foto_perfil.id_for_label }}" class="form-label">
+                                    {{ form.foto_perfil.label }}
+                                </label>
+                                {{ form.foto_perfil }}
+                                {% if form.foto_perfil.errors %}
+                                    <div class="text-danger small">{{ form.foto_perfil.errors }}</div>
+                                {% endif %}
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Formatos permitidos: JPG, PNG. Tamaño máximo: 2MB
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="{% url 'tutor:dashboard' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save me-2"></i>Guardar Cambios
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

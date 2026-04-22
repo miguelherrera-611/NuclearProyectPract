@@ -1,0 +1,136 @@
+{% extends "tutor/base.html" %}
+
+{% block title %}Encuestas - Tutor Empresarial{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <i class="fas fa-clipboard-list me-2"></i>
+                Encuestas de Evaluación
+            </h2>
+        </div>
+    </div>
+
+    <!-- Encuestas Pendientes -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-hourglass-half me-2"></i>
+                        Encuestas Pendientes
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if encuestas_pendientes %}
+                    <div class="row">
+                        {% for encuesta in encuestas_pendientes %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card border-warning">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ encuesta.titulo }}</h5>
+                                    <p class="card-text">{{ encuesta.descripcion }}</p>
+                                    <p class="text-muted small">
+                                        <i class="fas fa-calendar me-1"></i>
+                                        Disponible desde: {{ encuesta.fecha_inicio|date:"d/m/Y" }}<br>
+                                        <i class="fas fa-calendar-times me-1"></i>
+                                        Vigente hasta: {{ encuesta.fecha_fin|date:"d/m/Y" }}
+                                    </p>
+
+                                    {% if practicas_activas %}
+                                    <hr>
+                                    <p class="mb-2"><strong>Selecciona el estudiante a evaluar:</strong></p>
+                                    <div class="list-group">
+                                        {% for practica in practicas_activas %}
+                                        <a href="{% url 'tutor:responder_encuesta' encuesta.id practica.id %}"
+                                           class="list-group-item list-group-item-action">
+                                            <i class="fas fa-user-graduate me-2"></i>
+                                            {{ practica.estudiante.nombre_completo }}
+                                            <small class="text-muted">({{ practica.estudiante.codigo }})</small>
+                                        </a>
+                                        {% endfor %}
+                                    </div>
+                                    {% else %}
+                                    <div class="alert alert-warning mb-0">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                        No tienes estudiantes activos para evaluar
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                        <p class="text-muted">¡Excelente! No tienes encuestas pendientes por responder</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Encuestas Completadas -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-check-double me-2"></i>
+                        Encuestas Completadas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if encuestas_completadas %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Encuesta</th>
+                                    <th>Estudiante</th>
+                                    <th>Fecha Completado</th>
+                                    <th>Calificación Promedio</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for respuesta in encuestas_completadas %}
+                                <tr>
+                                    <td>{{ respuesta.encuesta.titulo }}</td>
+                                    <td>
+                                        <strong>{{ respuesta.practica.estudiante.nombre_completo }}</strong><br>
+                                        <small class="text-muted">{{ respuesta.practica.estudiante.codigo }}</small>
+                                    </td>
+                                    <td>{{ respuesta.fecha_completado|date:"d/m/Y H:i" }}</td>
+                                    <td>
+                                        {% if respuesta.calificacion_promedio %}
+                                            <span class="badge bg-primary">{{ respuesta.calificacion_promedio|floatformat:1 }}</span>
+                                        {% else %}
+                                            <span class="text-muted">N/A</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-success">Completada</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-info-circle fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No has completado encuestas aún</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

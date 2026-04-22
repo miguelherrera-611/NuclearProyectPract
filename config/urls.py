@@ -21,6 +21,9 @@ urlpatterns = [
 
     # Rutas de Docente Asesor
     path('docente/', include('docente.urls')),
+
+    # Rutas de Tutor Empresarial
+    path('tutor/', include('tutor_empresarial.urls')),
 ]
 
 if settings.DEBUG:

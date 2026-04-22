@@ -6,7 +6,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 
 def login_unificado(request):
     """
-    Login único que detecta automáticamente si es Coordinador, Estudiante o Docente Asesor
+    Login único que detecta automáticamente si es Coordinador, Estudiante, Docente Asesor o Tutor Empresarial
     """
     # Si ya está autenticado, redirigir según su rol activo
     if request.user.is_authenticated:
@@ -17,6 +17,8 @@ def login_unificado(request):
             return redirect('estudiante:dashboard')
         if active_role == 'docente':
             return redirect('docente:dashboard')
+        if active_role == 'tutor':
+            return redirect('tutor:dashboard')
 
         # Si no hay rol activo, detectar por relaciones OneToOne
         roles = []
@@ -26,6 +28,8 @@ def login_unificado(request):
             roles.append('estudiante')
         if hasattr(request.user, 'docente_asesor'):
             roles.append('docente')
+        if hasattr(request.user, 'tutor_empresarial'):
+            roles.append('tutor')
 
         # Si tiene un solo rol, redirigir directamente
         if len(roles) == 1:
@@ -36,6 +40,8 @@ def login_unificado(request):
                 return redirect('estudiante:dashboard')
             elif roles[0] == 'docente':
                 return redirect('docente:dashboard')
+            elif roles[0] == 'tutor':
+                return redirect('tutor:dashboard')
 
         # Si tiene múltiples roles, pedir selección
         if len(roles) > 1:
@@ -70,6 +76,9 @@ def login_unificado(request):
             elif selected_role == 'docente':
                 has_role = hasattr(user, 'docente_asesor')
                 role_name = 'Docente Asesor'
+            elif selected_role == 'tutor':
+                has_role = hasattr(user, 'tutor_empresarial')
+                role_name = 'Tutor Empresarial'
 
             if not has_role:
                 messages.error(request, f'❌ Tu cuenta no tiene permisos de {role_name}. Verifica tu rol.')
@@ -97,6 +106,12 @@ def login_unificado(request):
                 if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
                     return redirect(next_url)
                 return redirect('docente:dashboard')
+
+            elif selected_role == 'tutor':
+                messages.success(request, f'¡Bienvenido/a, Tutor {user.tutor_empresarial.nombre_completo}! 👋')
+                if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
+                    return redirect(next_url)
+                return redirect('tutor:dashboard')
 
         else:
             messages.error(request, '❌ Usuario o contraseña incorrectos')
@@ -128,6 +143,8 @@ def seleccionar_rol(request):
             return redirect('estudiante:dashboard')
         elif role == 'docente':
             return redirect('docente:dashboard')
+        elif role == 'tutor':
+            return redirect('tutor:dashboard')
 
     # GET -> mostrar opciones
     display = []
@@ -138,6 +155,8 @@ def seleccionar_rol(request):
             display.append({'key': 'estudiante', 'label': 'Estudiante', 'icon': 'fa-user-graduate'})
         elif r == 'docente':
             display.append({'key': 'docente', 'label': 'Docente Asesor', 'icon': 'fa-chalkboard-teacher'})
+        elif r == 'tutor':
+            display.append({'key': 'tutor', 'label': 'Tutor Empresarial', 'icon': 'fa-briefcase'})
 
     return render(request, 'seleccionar_rol.html', {'roles': display})
 

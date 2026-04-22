@@ -98,6 +98,17 @@ urlpatterns = [
     # REPORTES E INDICADORES (RF-12)
     # ============================================
     path('reportes/', views.reportes_dashboard, name='reportes_dashboard'),
+    path('reportes/exportar-excel/', views.exportar_reportes_excel, name='exportar_reportes_excel'),
+    path('reportes/exportar-pdf/', views.exportar_reportes_pdf, name='exportar_reportes_pdf'),
+
+    # ============================================
+    # GESTIÓN DE ENCUESTAS
+    # ============================================
+    path('encuestas/', views.encuestas_lista, name='encuestas_lista'),
+    path('encuestas/crear/', views.encuesta_crear, name='encuesta_crear'),
+    path('encuestas/<int:encuesta_id>/', views.encuesta_detalle, name='encuesta_detalle'),
+    path('encuestas/<int:encuesta_id>/editar/', views.encuesta_editar, name='encuesta_editar'),
+    path('encuestas/<int:encuesta_id>/estadisticas/', views.encuesta_estadisticas, name='encuesta_estadisticas'),
 
     # ============================================
     # PERFIL DE COORDINADOR
