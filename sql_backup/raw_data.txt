@@ -1,0 +1,79 @@
+===USERS===
+1|||pbkdf2_sha256$1000000$vJpqd6oYIxItwHH6qzde5K$ft0ERJVmOCJIYvaOVxJCc/POojIkpAXaukdm9NenjJU=|||2025-11-04 22:34:46.617393+00:00|||1|||admin|||||||||gamerly9060@gmail.com|||1|||1|||2025-11-04 22:33:32.876430+00:00
+2|||pbkdf2_sha256$1000000$jFAN6z9NApOb3bbjYEBRT9$jKYhLTCZcjMJnLrTjGsl7nUo3zPQkGhGukqE77xKqoA=|||2025-11-29 00:58:49.536339+00:00|||1|||coordinador|||||||||cordemphumbldt_115@gmail.com|||1|||1|||2025-11-04 22:41:25.877571+00:00
+56|||pbkdf2_sha256$1000000$tpscNIvY1e9dmJGMHbqaXn$f1v9lVI+Da4YHNG214U1VIBp4WHJuY+mifZZiF4JmOI=|||2025-12-02 22:23:06.182053+00:00|||0|||coord001|||María|||García|||coordinador@universidad.edu|||0|||1|||2025-11-30 19:36:27.688079+00:00
+57|||pbkdf2_sha256$1000000$jJwCjU1odnchutVJ1QDnG8$hK1FN7PlVjflnKmFgEuhGPQwXB/xuWs/XAtrCML+b0Y=|||2025-12-02 21:36:04.021633+00:00|||0|||docente001|||Carlos|||López|||carlos.perez@universidad.edu|||0|||1|||2025-11-30 19:36:28.338273+00:00
+58|||pbkdf2_sha256$1000000$04Q4SwRWPpbmIW29UIDBjb$8Lf4w7hLxnHoBI9S5TXVnoDYbktD5OsF2w4HmRvpy2w=|||None|||0|||docente002|||Ana|||Gómez|||ana.gomez@universidad.edu|||0|||1|||2025-11-30 19:36:28.979963+00:00
+59|||pbkdf2_sha256$1000000$c6yKeaICI0xlpcBnrNuuLZ$JqFdfBPoWI1DVx9i6slrpoLC0Ih8ypJfs5S9XkN545o=|||None|||0|||docente003|||Luis|||Torres|||luis.torres@universidad.edu|||0|||1|||2025-11-30 19:36:29.603606+00:00
+60|||pbkdf2_sha256$1000000$J4azKL4qq3H032aqowRFcO$y/+1ipGFhjdhaBnajEarGoZizmx42L1TJljJE/y/s5w=|||2025-12-16 03:32:08.573563+00:00|||0|||est001|||Juan|||Martínez|||juan.martinez@estudiante.edu|||0|||1|||2025-11-30 19:36:30.262986+00:00
+61|||pbkdf2_sha256$1000000$4ZwHt3WCSyUzx0SwZorbdY$xswqw9a+8l9y7FlXO6KJOiy8Gspm6r1Si3ph5ldVGUg=|||None|||0|||est002|||María|||Rodríguez|||maria.rodriguez@estudiante.edu|||0|||1|||2025-11-30 19:36:30.913161+00:00
+62|||pbkdf2_sha256$1000000$x8G6r2Jb4nA1UUI4FlYaj7$KdcZJvuWekTHudWS5VYFFVXLnaA12dl8VrfFWAik60I=|||None|||0|||est003|||Carlos|||López|||carlos.lopez@estudiante.edu|||0|||1|||2025-11-30 19:36:31.535322+00:00
+63|||pbkdf2_sha256$1000000$a34CJtwwv7XFTfRIwWS9wt$2FQgBJGJaQSYndKZR6vY1Urj8dhZ9cfix1Z3jBqnDls=|||None|||0|||est004|||Laura|||Gómez|||laura.gomez@estudiante.edu|||0|||1|||2025-11-30 19:36:32.186014+00:00
+64|||pbkdf2_sha256$1000000$VLlfZbhW9FKqYLrguVbNG6$/eC7UGFsOP5gs43YDXVw0O+egr9Y2vcszc9qNd1qM7k=|||None|||0|||est005|||Santiago|||Hernández|||santiago.hernandez@estudiante.edu|||0|||1|||2025-11-30 19:36:32.804365+00:00
+65|||pbkdf2_sha256$1000000$bsaKirBMTQrtkkfXjkbpb2$VXNicjp8AsM9QLNLbGSidUkKIxnB5vEudK80vRGTlBg=|||None|||0|||est006|||Daniela|||Castro|||daniela.castro@estudiante.edu|||0|||1|||2025-11-30 19:36:33.458638+00:00
+66|||pbkdf2_sha256$1000000$e84g12C633IHYBYqTg1FVX$oM/yrGxz/hgOWrVjZb8i+vMsk4qjaenTn/3acfBdx18=|||None|||0|||est007|||Andrés|||Morales|||andres.morales@estudiante.edu|||0|||1|||2025-11-30 19:36:34.109733+00:00
+67|||pbkdf2_sha256$1000000$sdIDPqV7hPhnwwbAAyPsop$QnaUXUqkVuDkXxileCXn6EZIvt/u7YDHDfkgSomxWQw=|||None|||0|||est008|||Isabella|||Ramírez|||isabella.ramirez@estudiante.edu|||0|||1|||2025-11-30 19:36:34.765542+00:00
+68|||pbkdf2_sha256$1000000$5NgKHPtX9OsTs0Hfnk4IqW$aQr0pGXOi4jYuBtRtlZWp+hc1D8tLzpSHItaRwOZp98=|||2025-12-01 18:20:06.207087+00:00|||0|||tutor001|||Roberto|||Sánchez|||tutor@empresa.com|||0|||1|||2025-12-01 13:06:24.297518+00:00
+===COORDINADOR===
+7|||María García Rodríguez|||coordinador@universidad.edu|||3001234567|||coordinadores/fotos_perfil/descargar.jpg|||2025-11-30 19:36:28.318752+00:00|||1|||56
+===EMPRESA===
+11|||TechSolutions S.A.S|||900123456-1|||Cra 7 #32-40, Bogotá|||6013001234|||contacto@techsolutions.com|||Bogotá|||Carlos Alberto Pérez|||Gerente General|||carlos.perez@techsolutions.com|||3001112233|||||||||APROBADA|||2025-11-30 19:36:35.411230+00:00|||None|||7|||None
+12|||Manufacturas Industriales Ltda|||800234567-2|||Autopista Norte Km 15, Bogotá|||6014002345|||rrhh@manufacturas.com|||Bogotá|||María Victoria Gómez|||Gerente de Recursos Humanos|||maria.gomez@manufacturas.com|||3002223344|||||||||APROBADA|||2025-11-30 19:36:35.465819+00:00|||None|||7|||None
+13|||Comercializadora Global S.A|||900345678-3|||Av. El Dorado #68-55, Bogotá|||6015003456|||info@comercializadora.com|||Bogotá|||Jorge Luis Ramírez|||Gerente General|||jorge.ramirez@comercializadora.com|||3003334455|||||||||APROBADA|||2025-11-30 19:36:35.520372+00:00|||None|||7|||None
+===DOCENTEASESOR===
+9|||Ingeniero Arle Morales|||None|||carlos.perez@universidad.edu|||3101234567|||Ingeniería de Software|||docentes/fotos_perfil/descargar_1.jpg|||1|||2025-11-30 19:36:28.961428+00:00|||57
+10|||Dra. Ana María Gómez|||None|||ana.gomez@universidad.edu|||3102234567|||Ingeniería Industrial||||||1|||2025-11-30 19:36:29.588347+00:00|||58
+11|||Mg. Luis Alberto Torres|||None|||luis.torres@universidad.edu|||3103234567|||Administración de Empresas||||||1|||2025-11-30 19:36:30.241330+00:00|||59
+===TUTOREMPRESARIAL===
+7|||Ing. Roberto Sánchez|||Director de TI|||roberto.sanchez@techsolutions.com|||3301234567||||||1|||2025-11-30 19:36:35.427467+00:00|||11|||None
+8|||Ing. Patricia Vega|||Jefe de Producción|||patricia.vega@manufacturas.com|||3302234567||||||1|||2025-11-30 19:36:35.486304+00:00|||12|||None
+9|||Adm. Claudia Moreno|||Gerente de Talento Humano|||claudia.moreno@comercializadora.com|||3303234567||||||1|||2025-11-30 19:36:35.538941+00:00|||13|||None
+10|||Ing. Roberto Sánchez|||Jefe de Desarrollo|||tutor@empresa.com|||3001234567|||tutores/fotos_perfil/images.jpg|||1|||2025-12-01 13:16:56.746086+00:00|||13|||68
+===ESTUDIANTE===
+38|||IS2021001|||Arle|||juan.martinez@estudiante.edu|||3201234567|||Ingeniería de Software|||5|||estudiantes/fotos_perfil/descargar_2.jpg||||||EN_PRACTICA|||4.20|||2025-11-30 19:36:30.893755+00:00|||60
+39|||IS2021002|||María Camila Rodríguez|||maria.rodriguez@estudiante.edu|||3202234567|||Ingeniería de Software|||6|||||||||APTO|||4.50|||2025-11-30 19:36:31.516345+00:00|||61
+40|||IS2022001|||Carlos Andrés López|||carlos.lopez@estudiante.edu|||3203234567|||Ingeniería de Software|||4|||||||||APTO|||4.00|||2025-11-30 19:36:32.166983+00:00|||62
+41|||II2021001|||Laura Valentina Gómez|||laura.gomez@estudiante.edu|||3204234567|||Ingeniería Industrial|||5|||||||||APTO|||4.30|||2025-11-30 19:36:32.782843+00:00|||63
+42|||II2021002|||Santiago Hernández|||santiago.hernandez@estudiante.edu|||3205234567|||Ingeniería Industrial|||6|||||||||APTO|||4.10|||2025-11-30 19:36:33.431730+00:00|||64
+43|||AE2022001|||Daniela Alejandra Castro|||daniela.castro@estudiante.edu|||3206234567|||Administración de Empresas|||3|||||||||FINALIZADO|||4.40|||2025-11-30 19:36:34.092633+00:00|||65
+44|||AE2022002|||Andrés Felipe Morales|||andres.morales@estudiante.edu|||3207234567|||Administración de Empresas|||4|||||||||EN_PRACTICA|||3.90|||2025-11-30 19:36:34.746760+00:00|||66
+45|||AE2023001|||Isabella Ramírez|||isabella.ramirez@estudiante.edu|||3208234567|||Administración de Empresas|||2|||||||||APTO|||4.00|||2025-11-30 19:36:35.391270+00:00|||67
+===VACANTE===
+14|||Practicante Desarrollo de Software|||Desarrollo de Software|||Apoyo en desarrollo de aplicaciones web con React y Django|||2|||1|||Ingeniería de Software|||4|||Python, JavaScript, React, Django|||Lunes a Viernes 8:00 AM - 2:00 PM|||6|||DISPONIBLE|||2025-11-30 19:36:35.446000+00:00|||None|||None|||11|||7
+15|||Practicante Ingeniería de Procesos|||Procesos Industriales|||Apoyo en optimización de procesos productivos|||1|||0|||Ingeniería Industrial|||4|||Lean Manufacturing, Six Sigma, Análisis de procesos|||Lunes a Viernes 7:00 AM - 1:00 PM|||6|||DISPONIBLE|||2025-11-30 19:36:35.504762+00:00|||None|||None|||12|||7
+16|||Practicante Administración|||Gestión Administrativa|||Apoyo en gestión administrativa y comercial|||2|||1|||Administración de Empresas|||2|||Excel, gestión documental, atención al cliente|||Lunes a Viernes 8:00 AM - 3:00 PM|||6|||DISPONIBLE|||2025-11-30 19:36:35.552772+00:00|||None|||None|||13|||7
+17|||ejemploooo|||Desarrollo de Software|||aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa|||1|||1|||ingeniería de software|||4|||qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq|||Lunes a Viernes 8:00am - 5:00pm|||3|||OCUPADA|||2025-12-02 22:15:23.515174+00:00|||2025-12-02 22:15:23.511042+00:00|||None|||13|||7
+===POSTULACION===
+34|||VINCULADO|||2025-11-30 19:52:08.258795+00:00|||2025-11-30 20:12:43.089338+00:00|||Postulación aprobada y estudiante vinculado|||38|||7|||14
+35|||SELECCIONADO|||2025-11-30 19:55:04.217249+00:00|||2025-11-30 19:55:15.299463+00:00|||Postulación aprobada y estudiante vinculado
+
+DESVINCULADO: kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk|||45|||7|||16
+36|||VINCULADO|||2025-12-01 13:31:43.893258+00:00|||2025-12-01 13:31:58.965076+00:00|||Postulación aprobada y estudiante vinculado|||43|||7|||16
+37|||VINCULADO|||2025-12-02 22:24:58.530596+00:00|||2025-12-02 22:25:12.042574+00:00|||Postulación aprobada y estudiante vinculado|||44|||7|||17
+===PRACTICA===
+9|||2025-11-30|||2026-02-28|||2025-11-30||||||0|||CANCELADA|||2025-11-30 19:56:03.355441+00:00|||Práctica creada desde postulación #35
+
+CANCELADA: kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk|||7|||9|||13|||45|||9|||16
+10|||2025-11-30|||2026-02-28|||None||||||0|||EN_CURSO|||2025-11-30 20:13:06.335978+00:00|||Práctica creada desde postulación #34|||7|||9|||11|||38|||7|||14
+11|||2025-12-01|||2026-03-01|||None||||||0|||FINALIZADA|||2025-12-01 13:33:20.633055+00:00|||Práctica creada desde postulación #36|||7|||9|||13|||43|||10|||16
+===SUSTENTACION===
+6|||2026-01-01 13:33:00+00:00|||Sala de Conferencias A|||PROGRAMADA|||None|||||||||2025-12-01 13:34:03.872172+00:00|||9|||10|||11|||7
+===SEGUIMIENTO===
+1|||1|||2025-11-10|||2025-11-17|||ene sta semana kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk|||kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk|||kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk|||practicas/seguimientos/sociales_guia_8_4gWRdzg.docx|||APROBADO|||0|||1|||None|||None|||esta muy bonito mi muchacho|||2025-11-30 20:53:31.823256+00:00|||2025-11-30 20:17:24.319151+00:00|||2025-11-30 20:53:31.824171+00:00|||10
+2|||2|||2025-10-27|||2025-11-03|||kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk|||kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk|||kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk||||||APROBADO|||0|||1|||3.0|||None|||kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk fghggggggggggggggggggggggggggggggggggggg|||2025-11-30 22:44:48.290183+00:00|||2025-11-30 21:41:59.774787+00:00|||2025-11-30 22:44:48.292997+00:00|||10
+===MENSAJE===
+1|||hola||||||1|||2025-12-01 00:27:08.450919+00:00|||2025-12-01 00:37:32.765308+00:00|||10|||60
+2||||||mensajes/adjuntos/sociales_guia_8_4gWRdzg_1.docx|||1|||2025-12-01 00:27:16.846973+00:00|||2025-12-01 00:37:32.765308+00:00|||10|||60
+3|||gracias||||||1|||2025-12-01 00:37:42.980253+00:00|||2025-12-01 00:52:07.203922+00:00|||10|||57
+4|||hola||||||1|||2025-12-01 01:27:19.941746+00:00|||2025-12-01 02:03:12.776667+00:00|||10|||60
+5|||?||||||1|||2025-12-01 02:00:56.319147+00:00|||2025-12-01 02:03:12.776667+00:00|||10|||60
+6||||||mensajes/adjuntos/imagen_2025-11-30_210707481.png|||1|||2025-12-01 02:07:10.369741+00:00|||2025-12-01 02:19:47.651368+00:00|||10|||60
+7|||hola||||||1|||2025-12-01 02:41:18.453778+00:00|||2025-12-01 05:03:50.548746+00:00|||10|||57
+8|||como estas?||||||1|||2025-12-01 02:47:47.546134+00:00|||2025-12-01 05:03:50.548746+00:00|||10|||57
+===ENCUESTA===
+1|||Evaluación prueba|||kkkkkkkkkkkkkk|||ACTIVA|||2025-12-01 17:36:36.516592+00:00|||2025-12-01|||2025-12-31|||7
+2|||Practicante de Ingeniería Industrial - Tech Solutions SAS|||kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk|||ACTIVA|||2025-12-16 03:29:35.674168+00:00|||2025-12-09|||2026-01-02|||7
+===PREGUNTAENCUESTA===
+===RESPUESTAENCUESTA===
+1|||EN_PROGRESO|||None|||2025-12-01 18:27:13.262662+00:00|||None|||1|||11|||10
+===DETALLERESPUESTA===

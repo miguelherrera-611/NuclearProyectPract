@@ -14,16 +14,16 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
 
     # Rutas de Coordinación
-    path('coordinacion/', include('coordinacion.urls')),
+    path('coordinacion/', include('apps.coordinacion.urls')),
 
     # Rutas de Estudiantes
-    path('estudiante/', include('Estudiante.urls')),
+    path('estudiante/', include('apps.estudiante.urls')),
 
     # Rutas de Docente Asesor
-    path('docente/', include('docente.urls')),
+    path('docente/', include('apps.docente.urls')),
 
     # Rutas de Tutor Empresarial
-    path('tutor/', include('tutor_empresarial.urls')),
+    path('tutor/', include('apps.tutor_empresarial.urls')),
 ]
 
 if settings.DEBUG:
